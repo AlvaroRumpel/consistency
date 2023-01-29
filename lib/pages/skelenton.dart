@@ -1,13 +1,12 @@
 import 'package:consistency/configs/colors.dart';
 import 'package:consistency/controllers/base_controller.dart';
 import 'package:consistency/controllers/skeleton_controller.dart';
+import 'package:consistency/pages/calendar_page.dart';
 import 'package:consistency/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
 class Skelenton extends StatefulWidget {
-  const Skelenton({this.controller, Key? key}) : super(key: key);
-
-  final BaseController? controller;
+  const Skelenton({Key? key}) : super(key: key);
 
   @override
   SkelentonState createState() => SkelentonState();
@@ -22,7 +21,6 @@ class SkelentonState extends State<Skelenton>
     controller = SkeletonController(vsync: this);
 
     super.initState();
-    widget.controller != null ? widget.controller!.onInit() : null;
   }
 
   @override
@@ -40,7 +38,7 @@ class SkelentonState extends State<Skelenton>
           controller: controller.pageController,
           onPageChanged: (index) => controller.changePage(index),
           children: [
-            Text("1"),
+            CalendarPage(),
             HomePage(),
             Text("3"),
           ],
