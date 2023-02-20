@@ -20,18 +20,41 @@ class SkeletonController extends BaseController<int> {
       vsync: vsync,
       duration: const Duration(milliseconds: 200),
     );
-    animationIconPosition = Tween(begin: 24.0, end: 16.0).animate(
-      CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+    animationIconPosition = Tween(
+      begin: 24.0,
+      end: 16.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut,
+      ),
     );
-    animationLabelPosition = Tween(begin: 64.0, end: 40.0).animate(
-      CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+    animationLabelPosition = Tween(
+      begin: 64.0,
+      end: 40.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut,
+      ),
     );
-    animationLabelOpacity = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+    animationLabelOpacity = Tween(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut,
+      ),
     );
-    animationBoxSize =
-        Tween(begin: const Size(70, 70), end: const Size(80, 80)).animate(
-      CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+    animationBoxSize = Tween(
+      begin: const Size(70, 70),
+      end: const Size(80, 80),
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut,
+      ),
     );
     animationController.forward();
   }

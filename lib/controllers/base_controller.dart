@@ -2,11 +2,7 @@ abstract class BaseController<T> {
   BaseController() {
     onInit();
   }
-  void onInit() {
-    onInit();
-  }
+  void onInit();
 
-  void onDispose() {
-    onDispose();
-  }
+  void onDispose();
 }

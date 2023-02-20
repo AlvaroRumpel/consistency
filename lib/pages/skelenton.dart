@@ -1,8 +1,8 @@
 import 'package:consistency/configs/colors.dart';
-import 'package:consistency/controllers/base_controller.dart';
 import 'package:consistency/controllers/skeleton_controller.dart';
 import 'package:consistency/pages/calendar_page.dart';
 import 'package:consistency/pages/home_page.dart';
+import 'package:consistency/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 
 class Skelenton extends StatefulWidget {
@@ -19,7 +19,6 @@ class SkelentonState extends State<Skelenton>
   @override
   void initState() {
     controller = SkeletonController(vsync: this);
-
     super.initState();
   }
 
@@ -37,10 +36,10 @@ class SkelentonState extends State<Skelenton>
         body: PageView(
           controller: controller.pageController,
           onPageChanged: (index) => controller.changePage(index),
-          children: [
+          children: const [
             CalendarPage(),
             HomePage(),
-            Text("3"),
+            SettingsPage(),
           ],
         ),
         bottomNavigationBar: NavigationBar(
@@ -49,7 +48,7 @@ class SkelentonState extends State<Skelenton>
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.calendar_month_outlined),
-              label: 'calendar',
+              label: 'Calendar',
             ),
             NavigationDestination(
               icon: SizedBox(width: 0, height: 0),
@@ -57,7 +56,7 @@ class SkelentonState extends State<Skelenton>
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_outlined),
-              label: 'settings',
+              label: 'Settings',
             ),
           ],
         ),
