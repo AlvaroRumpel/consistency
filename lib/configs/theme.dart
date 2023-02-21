@@ -40,6 +40,9 @@ ThemeData theme = ThemeData(
     floatingLabelStyle: TextStyles.i.normalText,
     errorStyle: TextStyles.i.normalText.copyWith(color: AppColors.redColor),
   ),
+  progressIndicatorTheme: const ProgressIndicatorThemeData(
+    color: AppColors.primaryColor,
+  ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: AppColors.primaryColor,

@@ -5,6 +5,7 @@ import 'package:consistency/configs/text_styles.dart';
 import 'package:consistency/controllers/settings_controller.dart';
 import 'package:consistency/widgets/list_tile_custom.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -93,7 +94,19 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   title: 'Delete all data',
                 ),
                 ListTileCustom(
-                  onTap: () {},
+                  onTap: () {
+                    launchUrl(
+                      Uri(
+                        scheme: 'mailto',
+                        path: 'alvaroRumpel@gmail.com',
+                        query: _encodeQueryParameters(
+                          <String, String>{
+                            'subject': 'Consistency App Opinion',
+                          },
+                        ),
+                      ),
+                    );
+                  },
                   bottom: true,
                   title: 'Send your opinion',
                 ),
@@ -103,6 +116,13 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         ],
       ),
     );
+  }
+
+  String? _encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 
   Future<String?> _changeNicknameBottomSheet(BuildContext context) async {
@@ -239,10 +259,23 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             style: context.textStyles.normalText.copyWith(fontSize: 24),
             textAlign: TextAlign.center,
           ),
-          content: Text(
-            'Consistency is a simple app, it consists of marking, saving and numbering the days that you have completed your personal daily goals, I hope you enjoy and understand the purpose of the app, any questions you can forward to support.',
-            style: context.textStyles.normalText,
-            textAlign: TextAlign.justify,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Consistency is a simple app, it consists of marking, saving and numbering the days that you have completed your personal daily goals, I hope you enjoy and understand the purpose of the app, any questions you can forward to support.',
+                style: context.textStyles.normalText,
+                textAlign: TextAlign.justify,
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              Text(
+                'Made with ♥ by Álvaro Rumpel',
+                style: context.textStyles.normalText.copyWith(fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         );
       },
