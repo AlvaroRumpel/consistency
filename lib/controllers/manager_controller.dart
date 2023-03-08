@@ -15,7 +15,7 @@ class SkeletonController extends BaseController<int> {
   late Animation<Size> animationBoxSize;
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     animationController = AnimationController(
       vsync: vsync,
       duration: const Duration(milliseconds: 200),
@@ -59,17 +59,17 @@ class SkeletonController extends BaseController<int> {
     animationController.forward();
   }
 
+  @override
+  void onDispose() {
+    animationController.dispose();
+    pageController.dispose();
+  }
+
   changePage(int index) {
     currentIndex.value = index;
     pageController.jumpToPage(index);
     currentIndex.value == 1
         ? animationController.forward()
         : animationController.reverse();
-  }
-
-  @override
-  void onDispose() {
-    animationController.dispose();
-    pageController.dispose();
   }
 }

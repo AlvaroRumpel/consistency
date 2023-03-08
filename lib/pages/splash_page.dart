@@ -9,7 +9,7 @@ class SplashPage extends StatelessWidget {
     Future.delayed(
       const Duration(milliseconds: 1500),
       () async {
-        Navigator.of(context).popAndPushNamed('/skeleton');
+        Navigator.of(context).popAndPushNamed('/manager');
       },
     );
 

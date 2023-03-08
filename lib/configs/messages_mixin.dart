@@ -12,13 +12,39 @@ mixin MessagesMixin<T extends StatefulWidget> on State<T> {
       Overlay.of(context),
       CustomSnackBar.error(
         iconRotationAngle: 0,
-        iconPositionLeft: 8,
+        iconPositionLeft: 16,
         message: message,
         backgroundColor: AppColors.redColor.withOpacity(.8),
         textStyle: context.textStyles.boldText,
         icon: const Icon(
           Icons.error_outline_outlined,
           size: 40,
+          color: AppColors.whiteColor,
+        ),
+        borderRadius: BorderRadius.circular(100),
+      ),
+    );
+  }
+
+  void showMessageUndo({
+    required String message,
+    required Function() onTap,
+  }) {
+    showTopSnackBar(
+      animationDuration: const Duration(milliseconds: 800),
+      curve: Curves.linearToEaseOut,
+      Overlay.of(context),
+      displayDuration: const Duration(milliseconds: 5000),
+      onTap: onTap,
+      CustomSnackBar.info(
+        iconRotationAngle: 0,
+        iconPositionLeft: 16,
+        message: message,
+        backgroundColor: AppColors.primaryColor.withOpacity(.8),
+        textStyle: context.textStyles.boldText,
+        icon: const Icon(
+          Icons.undo_rounded,
+          size: 32,
           color: AppColors.whiteColor,
         ),
         borderRadius: BorderRadius.circular(100),

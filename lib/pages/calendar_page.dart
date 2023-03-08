@@ -1,6 +1,7 @@
 import 'package:consistency/configs/colors.dart';
 import 'package:consistency/configs/text_styles.dart';
 import 'package:consistency/controllers/calendar_controller.dart';
+import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 
@@ -40,7 +41,9 @@ class _CalendarPageState extends State<CalendarPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
-                color: AppColors.blackColor,
+                color: ThemeProvider.of(context).themeMode == ThemeMode.dark
+                    ? AppColors.blackColor
+                    : AppColors.whiteColor.shade700,
                 border: Border.all(
                   color: AppColors.primaryColor,
                   width: 2,
@@ -56,28 +59,27 @@ class _CalendarPageState extends State<CalendarPage> {
                       weekDayMargin: const EdgeInsets.all(0),
                       childAspectRatio: 1,
                       disableDayPressed: true,
-                      dayButtonColor: AppColors.blackColor,
+                      dayButtonColor:
+                          ThemeProvider.of(context).themeMode == ThemeMode.dark
+                              ? AppColors.blackColor
+                              : AppColors.whiteColor.shade700,
                       selectedDateTime: DateTime.now(),
                       iconColor: AppColors.primaryColor,
-                      weekDayBackgroundColor: AppColors.blackColor,
-                      selectedDayButtonColor: AppColors.blackColor,
+                      weekDayBackgroundColor:
+                          ThemeProvider.of(context).themeMode == ThemeMode.dark
+                              ? AppColors.blackColor
+                              : AppColors.whiteColor.shade700,
+                      selectedDayButtonColor:
+                          ThemeProvider.of(context).themeMode == ThemeMode.dark
+                              ? AppColors.blackColor
+                              : AppColors.whiteColor.shade700,
                       selectedDayBorderColor: AppColors.primaryColor,
                       daysHaveCircularBorder: true,
-                      daysTextStyle: const TextStyle(
-                        color: AppColors.whiteColor,
-                      ),
-                      weekdayTextStyle: const TextStyle(
-                        color: AppColors.whiteColor,
-                      ),
-                      weekendTextStyle: const TextStyle(
-                        color: AppColors.whiteColor,
-                      ),
-                      selectedDayTextStyle: const TextStyle(
-                        color: AppColors.whiteColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      headerTextStyle: const TextStyle(
-                        color: AppColors.primaryColor,
+                      daysTextStyle: context.textStyles.normalText,
+                      weekdayTextStyle: context.textStyles.normalText,
+                      weekendTextStyle: context.textStyles.normalText,
+                      selectedDayTextStyle: context.textStyles.boldText,
+                      headerTextStyle: context.textStyles.normalText.copyWith(
                         fontSize: 20,
                       ),
                       weekDayFormat: WeekdayFormat.short,

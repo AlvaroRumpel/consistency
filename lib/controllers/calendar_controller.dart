@@ -26,8 +26,21 @@ class CalendarController extends BaseController {
   void treatData() {
     EventList<Event> eventListTemp = EventList(events: {});
     if (userData != null) {
-      for (var item in userData!.dates) {
-        eventListTemp.add(item, Event(date: item));
+      for (var i = 0; i < userData!.dates.length; i++) {
+        eventListTemp.add(
+          userData!.dates[i],
+          Event(
+            date: userData!.dates[i],
+            dot: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: userData!.colors[i],
+              ),
+              height: 8.0,
+              width: 8.0,
+            ),
+          ),
+        );
       }
       eventList.value = eventListTemp;
     }

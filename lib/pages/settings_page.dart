@@ -3,6 +3,7 @@ import 'package:consistency/configs/exceptions/local_data_exception.dart';
 import 'package:consistency/configs/messages_mixin.dart';
 import 'package:consistency/configs/text_styles.dart';
 import 'package:consistency/controllers/settings_controller.dart';
+import 'package:consistency/providers/theme_provider.dart';
 import 'package:consistency/widgets/list_tile_custom.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -107,8 +108,63 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                       ),
                     );
                   },
-                  bottom: true,
                   title: 'Send your opinion',
+                ),
+                ValueListenableBuilder(
+                  valueListenable: controller.themeDark,
+                  builder: (context, themeDark, _) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(
+                            themeDark
+                                ? Icons.light_mode_outlined
+                                : Icons.light_mode_rounded,
+                            color: themeDark
+                                ? AppColors.primaryColor
+                                : AppColors.blackColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Switch(
+                            thumbColor:
+                                MaterialStateProperty.resolveWith<Color>(
+                              (states) {
+                                if (states.contains(MaterialState.selected)) {
+                                  return AppColors.blackColor;
+                                }
+                                return AppColors.whiteColor.shade700;
+                              },
+                            ),
+                            trackColor:
+                                MaterialStateProperty.resolveWith<Color>(
+                              (states) {
+                                if (states.contains(MaterialState.selected)) {
+                                  return AppColors.primaryColor;
+                                }
+                                return AppColors.primaryColor.shade100;
+                              },
+                            ),
+                            value: themeDark,
+                            onChanged: (value) {
+                              controller.changeTheme(value);
+                              ThemeProvider.of(context).switchThemeMode();
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            themeDark
+                                ? Icons.dark_mode_rounded
+                                : Icons.dark_mode_outlined,
+                            color: themeDark
+                                ? AppColors.primaryColor
+                                : AppColors.blackColor,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -133,7 +189,9 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             : '');
 
     await showModalBottomSheet<String>(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: ThemeProvider.of(context).themeMode == ThemeMode.dark
+          ? AppColors.blackColor
+          : AppColors.whiteColor.shade700,
       context: context,
       builder: (context) {
         return Padding(
@@ -146,7 +204,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   maxLength: 25,
                   controller: nicknameEC,
                   style: context.textStyles.normalText,
-                  cursorColor: AppColors.whiteColor.shade50,
+                  cursorColor:
+                      ThemeProvider.of(context).themeMode == ThemeMode.dark
+                          ? AppColors.whiteColor.shade50
+                          : AppColors.blackColor,
                   decoration: InputDecoration(
                     label: Text(
                       'Nickname',
@@ -174,7 +235,8 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                     children: [
                       Text(
                         'Update nickname',
-                        style: context.textStyles.normalText,
+                        style: context.textStyles.normalText
+                            .copyWith(color: AppColors.whiteColor),
                       ),
                       const Icon(
                         Icons.save_outlined,
@@ -202,7 +264,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
           titlePadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           actionsPadding:
               const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          backgroundColor: AppColors.blackColor,
+          backgroundColor:
+              ThemeProvider.of(context).themeMode == ThemeMode.light
+                  ? AppColors.whiteColor.shade50
+                  : AppColors.blackColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
@@ -216,25 +281,32 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             style: context.textStyles.normalText,
           ),
           actions: [
-            ElevatedButton(
+            OutlinedButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await controller.clearAllData();
+                showMessageUndo(
+                  message: 'Click here to undo the deletion',
+                  onTap: controller.undoClearAllData,
+                );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.redColor,
-                foregroundColor: AppColors.redColor.shade100,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(
+                  color: AppColors.redColor,
+                ),
               ),
               child: Text(
                 "Yes! I'm Sure",
-                style: context.textStyles.normalText,
+                style: context.textStyles.normalText
+                    .copyWith(color: AppColors.redColor),
               ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 "Noooo!",
-                style: context.textStyles.normalText,
+                style: context.textStyles.normalText
+                    .copyWith(color: AppColors.whiteColor),
               ),
             ),
           ],
@@ -250,7 +322,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         return AlertDialog(
           insetPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
           titlePadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          backgroundColor: AppColors.blackColor,
+          backgroundColor:
+              ThemeProvider.of(context).themeMode == ThemeMode.light
+                  ? AppColors.whiteColor.shade50
+                  : AppColors.blackColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),

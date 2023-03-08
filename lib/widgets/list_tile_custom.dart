@@ -1,3 +1,4 @@
+import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:consistency/configs/colors.dart';
@@ -53,9 +54,11 @@ class ListTileCustom extends StatelessWidget {
                   const SizedBox(
                     width: 8,
                   ),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios,
-                    color: AppColors.whiteColor,
+                    color: ThemeProvider.of(context).themeMode == ThemeMode.dark
+                        ? AppColors.whiteColor
+                        : AppColors.blackColor,
                     size: 16,
                   ),
                 ],
@@ -68,10 +71,15 @@ class ListTileCustom extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  AppColors.blackColor,
-                  AppColors.blackColor.shade200,
-                ],
+                colors: ThemeProvider.of(context).themeMode == ThemeMode.dark
+                    ? [
+                        AppColors.blackColor,
+                        AppColors.blackColor.shade200,
+                      ]
+                    : [
+                        AppColors.whiteColor.shade700,
+                        AppColors.blackColor.shade50,
+                      ],
               ),
             ),
             height: 2,

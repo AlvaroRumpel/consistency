@@ -1,6 +1,7 @@
 import 'package:consistency/configs/colors.dart';
 import 'package:consistency/configs/text_styles.dart';
 import 'package:consistency/controllers/home_controller.dart';
+import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -80,7 +81,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               child: AnimatedBuilder(
                 animation: _animation,
                 builder: (context, child) {
-                  if (controller.hasMarketToday) {
+                  if (controller.hasMarketToday.value) {
                     _iconAnimationController.forward();
                   }
                   return Ink(
@@ -99,26 +100,33 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           spreadRadius: _animation.value,
                         ),
                         BoxShadow(
-                          color: AppColors.blackColor.shade500,
+                          color: ThemeProvider.of(context).themeMode ==
+                                  ThemeMode.dark
+                              ? AppColors.blackColor.shade500
+                              : AppColors.whiteColor.shade700,
                           spreadRadius: _animation.value / 1.5,
                         ),
                       ],
                     ),
                     child: InkWell(
                       onTap: () {
-                        if (!controller.hasMarketToday) {
+                        if (!controller.hasMarketToday.value) {
                           controller.saveData();
                           _iconAnimationController.forward();
                         }
                       },
                       highlightColor: AppColors.primaryColor,
-                      splashColor: AppColors.greenColor,
+                      splashColor: controller
+                          .activeColor(controller.completePercent.value),
                       customBorder: const CircleBorder(),
                       child: Center(
                         child: AnimatedIcon(
                           icon: AnimatedIcons.add_event,
                           progress: _iconAnimation,
-                          color: AppColors.whiteColor,
+                          color: ThemeProvider.of(context).themeMode ==
+                                  ThemeMode.dark
+                              ? AppColors.whiteColor
+                              : AppColors.blackColor.shade300,
                           size: MediaQuery.of(context).size.width * .2,
                         ),
                       ),
@@ -127,7 +135,40 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 },
               ),
             ),
-          )
+          ),
+          Text(
+            'How much completed?',
+            style: context.textStyles.normalText.copyWith(fontSize: 24),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: ValueListenableBuilder(
+              valueListenable: controller.completePercent,
+              builder: (context, value, _) {
+                return Column(
+                  children: [
+                    ValueListenableBuilder(
+                        valueListenable: controller.hasMarketToday,
+                        builder: (context, hasMarketToday, _) {
+                          return Slider(
+                            value: value,
+                            max: 100,
+                            min: 0,
+                            divisions: 4,
+                            inactiveColor: AppColors.whiteColor,
+                            activeColor: controller.activeColor(value),
+                            label: '${value.toStringAsFixed(0)}%',
+                            onChanged: hasMarketToday
+                                ? null
+                                : (value) =>
+                                    controller.completePercent.value = value,
+                          );
+                        }),
+                  ],
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

@@ -1,8 +1,10 @@
 import 'package:consistency/configs/colors.dart';
-import 'package:consistency/controllers/skeleton_controller.dart';
+import 'package:consistency/configs/text_styles.dart';
+import 'package:consistency/controllers/manager_controller.dart';
 import 'package:consistency/pages/calendar_page.dart';
 import 'package:consistency/pages/home_page.dart';
 import 'package:consistency/pages/settings_page.dart';
+import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
 class Skelenton extends StatefulWidget {
@@ -70,9 +72,14 @@ class SkelentonState extends State<Skelenton>
                 height: controller.animationBoxSize.value.height,
                 width: controller.animationBoxSize.value.width,
                 child: FloatingActionButton(
-                  backgroundColor: controller.currentIndex.value == 1
-                      ? AppColors.primaryColor.shade500
-                      : AppColors.primaryColor.shade900,
+                  backgroundColor:
+                      ThemeProvider.of(context).themeMode == ThemeMode.dark
+                          ? controller.currentIndex.value == 1
+                              ? AppColors.primaryColor.shade500
+                              : AppColors.primaryColor.shade900
+                          : controller.currentIndex.value == 1
+                              ? AppColors.primaryColor.shade50
+                              : AppColors.primaryColor.shade500,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -85,9 +92,14 @@ class SkelentonState extends State<Skelenton>
                         top: controller.animationIconPosition.value,
                         child: Icon(
                           Icons.home_outlined,
-                          color: controller.currentIndex.value == 1
-                              ? AppColors.whiteColor.shade500
-                              : AppColors.whiteColor.shade900,
+                          color: ThemeProvider.of(context).themeMode ==
+                                  ThemeMode.dark
+                              ? controller.currentIndex.value == 1
+                                  ? AppColors.whiteColor.shade500
+                                  : AppColors.whiteColor.shade900
+                              : controller.currentIndex.value == 1
+                                  ? AppColors.blackColor.shade500
+                                  : AppColors.blackColor.shade900,
                         ),
                       ),
                       Positioned(
@@ -96,8 +108,7 @@ class SkelentonState extends State<Skelenton>
                           opacity: controller.animationLabelOpacity.value,
                           child: Text(
                             'Home',
-                            style:
-                                TextStyle(color: AppColors.whiteColor.shade500),
+                            style: context.textStyles.normalText,
                           ),
                         ),
                       ),
