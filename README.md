@@ -1,16 +1,15 @@
-# consistency
+# Consistency
 
-A new Flutter project.
+An app focused on tracking the user's consistency in completing their personal daily goals.
 
-## Getting Started
+A simple application, with the idea of using few dependencies, and geared towards study, made with much appreciation and willingness to learn.
 
-This project is a starting point for a Flutter application.
+In constant development.
 
-A few resources to get you started if this is your first Flutter project:
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Um app voltado para o rastreamento da consistência do usuário ao completar seus objetivos pessoais diários.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Uma aplicação simples, com a ideia de usar poucas dependências, e voltado para o estudo, feito com muito apreço e vontade de aprender.
+
+Em constante desenvolvimento.
