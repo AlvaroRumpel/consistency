@@ -31,6 +31,13 @@ ThemeData themeDark = ThemeData(
   scaffoldBackgroundColor: AppColors.blackColor,
   useMaterial3: true,
   inputDecorationTheme: InputDecorationTheme(
+    disabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(30),
+      borderSide: BorderSide(
+        color: AppColors.blackColor.shade200,
+        width: 2,
+      ),
+    ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
       borderSide: BorderSide(
@@ -116,6 +123,13 @@ ThemeData themeLight = ThemeData(
   scaffoldBackgroundColor: AppColors.whiteColor.shade700,
   useMaterial3: true,
   inputDecorationTheme: InputDecorationTheme(
+    disabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(30),
+      borderSide: BorderSide(
+        color: AppColors.blackColor.shade200,
+        width: 2,
+      ),
+    ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
       borderSide: BorderSide(

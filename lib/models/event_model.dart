@@ -1,16 +1,19 @@
 import 'dart:convert';
 
+import 'package:consistency/models/date_goal_model.dart';
 import 'package:flutter/material.dart';
 
 class EventModel {
   List<DateTime> dates;
   List<Color> colors;
-  List<double> percentCompleted;
+  List<double>? percentCompleted;
+  List<DateGoalModel>? goals;
 
   EventModel({
     required this.dates,
     required this.colors,
-    required this.percentCompleted,
+    this.percentCompleted,
+    this.goals,
   });
 
   Map<String, dynamic> toMap() {
@@ -18,6 +21,7 @@ class EventModel {
       'dates': dates.map((x) => x.millisecondsSinceEpoch).toList(),
       'colors': colors.map((x) => x.toString()).toList(),
       'percentCompleted': percentCompleted,
+      'goals': goals?.map((x) => x.toMap()).toList(),
     };
   }
 
@@ -35,7 +39,16 @@ class EventModel {
           ),
         ),
       ),
-      percentCompleted: List<double>.from(map['percentCompleted']),
+      percentCompleted: map['percentCompleted'] != null
+          ? List<double>.from(map['percentCompleted'])
+          : null,
+      goals: map['goals'] != null
+          ? List<DateGoalModel>.from(
+              map['goals'].map(
+                (x) => DateGoalModel.fromMap(x),
+              ),
+            )
+          : null,
     );
   }
 

@@ -1,13 +1,19 @@
-import 'package:consistency/configs/colors.dart';
 import 'package:consistency/configs/local_data.dart';
+import 'package:consistency/configs/utilities.dart';
 import 'package:consistency/controllers/base_controller.dart';
+import 'package:consistency/enums/type_enum.dart';
+import 'package:consistency/models/date_goal_model.dart';
 import 'package:consistency/models/event_model.dart';
+import 'package:consistency/models/goal_model.dart';
 import 'package:flutter/material.dart';
 
 class HomeController extends BaseController {
   late LocalData localData;
   ValueNotifier<String> nickname = ValueNotifier('User');
   ValueNotifier<double> completePercent = ValueNotifier(100.0);
+  ValueNotifier<List<GoalModel>?> goals = ValueNotifier(null);
+  ValueNotifier<TypeEnum> type = ValueNotifier(TypeEnum.slider);
+  List<TextEditingController> goalsControllers = <TextEditingController>[];
   EventModel? userData;
 
   ValueNotifier<bool> hasMarketToday = ValueNotifier(false);
@@ -31,7 +37,37 @@ class HomeController extends BaseController {
               DateTime.now().day,
             )) {
       hasMarketToday.value = true;
-      completePercent.value = userData!.percentCompleted.last;
+
+      if (userData!.percentCompleted?.last != null) {
+        completePercent.value = userData!.percentCompleted!.last;
+        return;
+      }
+
+      if (userData!.goals != null &&
+          userData!.goals!.last.date !=
+              DateTime(
+                DateTime.now().year,
+                DateTime.now().month,
+                DateTime.now().day,
+              )) {
+        goals.value = [...userData!.goals!.last.goals];
+        setGoalsControllers();
+        return;
+      }
+    }
+
+    goals.value ??= userData != null && userData!.goals != null
+        ? userData!.goals!.last.goals.map((e) => e.copyWith()).toList()
+        : null;
+
+    setGoalsControllers();
+  }
+
+  void setGoalsControllers() {
+    if (goals.value != null) {
+      for (var goal in goals.value!) {
+        goalsControllers.add(TextEditingController(text: goal.name));
+      }
     }
   }
 
@@ -42,37 +78,66 @@ class HomeController extends BaseController {
       DateTime.now().day,
     );
 
+    var totalPercentCompleted = 0.0;
+    for (var i = 0; i < goals.value!.length; i++) {
+      goals.value![i].name = goalsControllers[i].text;
+      totalPercentCompleted =
+          goals.value![i].percentCompleted + totalPercentCompleted;
+    }
+
+    var avgPercentCompleted = totalPercentCompleted / goals.value!.length;
+
     userData ??= EventModel(
       dates: [currentDate],
-      colors: [activeColor(completePercent.value)],
-      percentCompleted: [completePercent.value],
+      colors: [Utilities.activeColor(avgPercentCompleted)],
+      goals: goals.value != null
+          ? [
+              DateGoalModel(date: currentDate, goals: [...goals.value!])
+            ]
+          : null,
     );
 
     if (userData!.dates.last != currentDate) {
       userData!.dates.add(currentDate);
-      userData!.colors.add(activeColor(completePercent.value));
-      userData!.percentCompleted.add(completePercent.value);
+      userData!.colors.add(Utilities.activeColor(avgPercentCompleted));
+      userData!.goals = userData!.goals != null
+          ? [
+              ...?userData!.goals,
+              DateGoalModel(date: currentDate, goals: [...goals.value!])
+            ]
+          : [
+              DateGoalModel(date: currentDate, goals: [...goals.value!])
+            ];
     }
 
     hasMarketToday.value = await localData.saveUserData(userData!);
   }
 
-  Color activeColor(double value) {
-    if (value > 75.0) {
-      return AppColors.greenColor;
-    }
-    if (value == 75.0) {
-      return AppColors.primaryColor;
-    }
-    if (value == 50.0) {
-      return AppColors.redColor.shade50;
-    }
-    if (value == 25.0) {
-      return AppColors.redColor;
-    }
-    if (value < 25.0) {
-      return AppColors.redColor.shade900;
-    }
-    return AppColors.greenColor;
+  void addNewGoal() {
+    goals.value = goals.value != null
+        ? [
+            ...?goals.value,
+            GoalModel(
+              name: 'New Goal',
+              percentCompleted: 0,
+              type: TypeEnum.slider,
+            )
+          ]
+        : [
+            GoalModel(
+              name: 'New Goal',
+              percentCompleted: 0,
+              type: TypeEnum.slider,
+            ),
+          ];
+    setGoalsControllers();
+  }
+
+  void removeGoal(int index) {
+    if (hasMarketToday.value) return;
+    var goalsCopy = [...goals.value!];
+    goalsCopy.removeAt(index);
+    goals.value = goalsCopy;
+    goalsControllers.removeAt(index);
   }
 }

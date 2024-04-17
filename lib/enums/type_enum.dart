@@ -1,0 +1,4 @@
+enum TypeEnum {
+  slider,
+  checkbox,
+}
