@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:consistency/models/goal_model.dart';
+import 'goal_model.dart';
 
 class DateGoalModel {
   DateTime date;

@@ -1,8 +1,8 @@
-import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/configs/text_styles.dart';
+import '../configs/colors.dart';
+import '../configs/text_styles.dart';
+import '../providers/theme_provider.dart';
 
 class ListTileCustom extends StatelessWidget {
   final String title;
@@ -11,12 +11,12 @@ class ListTileCustom extends StatelessWidget {
   final VoidCallback onTap;
 
   const ListTileCustom({
-    Key? key,
+    super.key,
     required this.title,
     this.top = false,
     this.bottom = false,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

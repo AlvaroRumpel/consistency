@@ -1,5 +1,6 @@
-import 'package:consistency/configs/theme.dart';
 import 'package:flutter/material.dart';
+
+import '../configs/theme.dart';
 
 class ThemeProvider extends InheritedNotifier<ThemeModel> {
   const ThemeProvider({

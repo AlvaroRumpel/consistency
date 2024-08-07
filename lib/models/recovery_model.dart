@@ -1,10 +1,11 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:consistency/models/event_model.dart';
+import 'date_goal_model.dart';
 
 class RecoveryModel {
   String? nickname;
-  EventModel? userData;
+  List<DateGoalModel>? userData;
 
   RecoveryModel({
     this.nickname,
@@ -12,22 +13,27 @@ class RecoveryModel {
   });
 
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'nickname': nickname,
-      'userData': userData?.toMap(),
+      'userData': userData?.map((x) => x.toMap()).toList(),
     };
   }
 
   factory RecoveryModel.fromMap(Map<String, dynamic> map) {
     return RecoveryModel(
-      nickname: map['nickname'],
-      userData:
-          map['userData'] != null ? EventModel.fromMap(map['userData']) : null,
+      nickname: map['nickname'] != null ? map['nickname'] as String : null,
+      userData: map['userData'] != null
+          ? List<DateGoalModel>.from(
+              (map['userData'] as List).map<DateGoalModel?>(
+                (x) => DateGoalModel.fromMap(x as Map<String, dynamic>),
+              ),
+            )
+          : null,
     );
   }
 
   String toJson() => json.encode(toMap());
 
   factory RecoveryModel.fromJson(String source) =>
-      RecoveryModel.fromMap(json.decode(source));
+      RecoveryModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

@@ -1,27 +1,33 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/configs/exceptions/local_data_exception.dart';
-import 'package:consistency/configs/messages_mixin.dart';
-import 'package:consistency/configs/text_styles.dart';
-import 'package:consistency/controllers/settings_controller.dart';
-import 'package:consistency/providers/theme_provider.dart';
-import 'package:consistency/widgets/list_tile_custom.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../configs/colors.dart';
+import '../configs/messages_mixin.dart';
+import '../configs/text_styles.dart';
+import '../controllers/settings_controller.dart';
+import '../providers/theme_provider.dart';
+import '../widgets/list_tile_custom.dart';
+
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
-  late SettingsController controller;
+  late SettingsController _controller;
 
   @override
   void initState() {
-    controller = SettingsController();
+    _controller = SettingsController(SettingLoading());
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.onDispose();
+    super.dispose();
   }
 
   @override
@@ -55,10 +61,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: ValueListenableBuilder(
-                        valueListenable: controller.nickname,
+                        valueListenable: _controller.stateNotifier,
                         builder: (context, value, _) {
                           return Text(
-                            value,
+                            value is SettingData ? value.nickname : '...',
                             style: context.textStyles.titleText,
                           );
                         },
@@ -74,16 +80,20 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 ValueListenableBuilder(
-                    valueListenable: controller.nickname,
+                    valueListenable: _controller.stateNotifier,
                     builder: (context, value, _) {
                       return ListTileCustom(
                         onTap: () async {
-                          controller.nickname.value =
-                              await _changeNicknameBottomSheet(context) ??
-                                  value;
+                          final nickname = await _changeNicknameBottomSheet(
+                            context,
+                            (value is SettingData ? value.nickname : 'User'),
+                          );
+
+                          _controller.saveNickname(nickname);
                         },
                         top: true,
-                        title: 'Change your nickname, $value',
+                        title:
+                            'Change your nickname, ${value is SettingData ? value.nickname : 'User'}',
                       );
                     }),
                 ListTileCustom(
@@ -111,8 +121,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   title: 'Send your opinion',
                 ),
                 ValueListenableBuilder(
-                  valueListenable: controller.themeDark,
-                  builder: (context, themeDark, _) {
+                  valueListenable: _controller.stateNotifier,
+                  builder: (context, state, _) {
+                    final themeDark =
+                        state is SettingData ? state.themeDark : false;
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Row(
@@ -128,19 +140,17 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                           ),
                           const SizedBox(width: 8),
                           Switch(
-                            thumbColor:
-                                MaterialStateProperty.resolveWith<Color>(
+                            thumbColor: WidgetStateProperty.resolveWith<Color>(
                               (states) {
-                                if (states.contains(MaterialState.selected)) {
+                                if (states.contains(WidgetState.selected)) {
                                   return AppColors.blackColor;
                                 }
                                 return AppColors.whiteColor.shade700;
                               },
                             ),
-                            trackColor:
-                                MaterialStateProperty.resolveWith<Color>(
+                            trackColor: WidgetStateProperty.resolveWith<Color>(
                               (states) {
-                                if (states.contains(MaterialState.selected)) {
+                                if (states.contains(WidgetState.selected)) {
                                   return AppColors.primaryColor;
                                 }
                                 return AppColors.primaryColor.shade100;
@@ -148,7 +158,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                             ),
                             value: themeDark,
                             onChanged: (value) {
-                              controller.changeTheme(value);
+                              _controller.changeTheme(value);
                               ThemeProvider.of(context).switchThemeMode();
                             },
                           ),
@@ -181,14 +191,16 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         .join('&');
   }
 
-  Future<String?> _changeNicknameBottomSheet(BuildContext context) async {
+  Future<String?> _changeNicknameBottomSheet(
+    BuildContext context,
+    String previousName,
+  ) async {
     final formKey = GlobalKey<FormState>();
     final nicknameEC = TextEditingController(
-        text: controller.nickname.value != 'User'
-            ? controller.nickname.value
-            : '');
+      text: previousName != 'User' ? previousName : '',
+    );
 
-    await showModalBottomSheet<String>(
+    return await showModalBottomSheet<String>(
       backgroundColor: ThemeProvider.of(context).themeMode == ThemeMode.dark
           ? AppColors.blackColor
           : AppColors.whiteColor.shade700,
@@ -221,13 +233,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 ElevatedButton(
                   onPressed: () async {
                     if (formKey.currentState?.validate() ?? false) {
-                      Navigator.pop(context);
-                      try {
-                        await controller.localData
-                            .saveNickname(nicknameEC.text);
-                      } on LocalDataException catch (e) {
-                        showError(e.message);
-                      }
+                      Navigator.pop(context, nicknameEC.text);
                     }
                   },
                   child: Row(
@@ -251,8 +257,6 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         );
       },
     );
-
-    return formKey.currentState?.validate() ?? false ? nicknameEC.text : null;
   }
 
   Future<void> _confirmDialog(BuildContext context) async {
@@ -284,10 +288,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             OutlinedButton(
               onPressed: () async {
                 Navigator.pop(context);
-                await controller.clearAllData();
+                await _controller.clearAllData();
                 showMessageUndo(
                   message: 'Click here to undo the deletion',
-                  onTap: controller.undoClearAllData,
+                  onTap: _controller.undoClearAllData,
                 );
               },
               style: OutlinedButton.styleFrom(
@@ -304,7 +308,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                "Noooo!",
+                'Noooo!',
                 style: context.textStyles.normalText
                     .copyWith(color: AppColors.whiteColor),
               ),

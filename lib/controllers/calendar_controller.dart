@@ -1,63 +1,141 @@
-import 'package:consistency/configs/local_data.dart';
-import 'package:consistency/controllers/base_controller.dart';
-import 'package:consistency/models/date_goal_model.dart';
-import 'package:consistency/models/event_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 
-class CalendarController extends BaseController {
-  late LocalData localData;
-  EventModel? userData;
-  ValueNotifier<EventList<Event>> eventList =
-      ValueNotifier(EventList(events: {}));
-  ValueNotifier<DateGoalModel?> selectedDay = ValueNotifier(null);
+import '../configs/local_data.dart';
+import '../configs/utilities.dart';
+import '../models/date_goal_model.dart';
+import 'base_controller.dart';
 
-  @override
-  void onDispose() {
-    // TODO: implement onDispose
+sealed class CalendarState {
+  T when<T>({
+    required T Function(CalendarData) data,
+    required T Function(CalendarLoading) loading,
+    required T Function(CalendarError) error,
+  }) {
+    if (this is CalendarData) {
+      return data(this as CalendarData);
+    } else if (this is CalendarLoading) {
+      return loading(this as CalendarLoading);
+    } else if (this is CalendarError) {
+      return error(this as CalendarError);
+    } else {
+      throw Exception('Unknown CalendarState: $this');
+    }
   }
+
+  T whenNull<T>({
+    T Function(CalendarData)? data,
+    T Function(CalendarLoading)? loading,
+    T Function(CalendarError)? error,
+    required T Function() orElse,
+  }) {
+    if (this is CalendarData && data != null) {
+      return data(this as CalendarData);
+    } else if (this is CalendarLoading && loading != null) {
+      return loading(this as CalendarLoading);
+    } else if (this is CalendarError && error != null) {
+      return error(this as CalendarError);
+    } else {
+      return orElse();
+    }
+  }
+}
+
+class CalendarLoading extends CalendarState {}
+
+class CalendarData extends CalendarState {
+  final EventList<Event> eventList;
+  final DateGoalModel? selectedDaysGoals;
+  final DateTime selectedDay;
+
+  CalendarData({
+    required this.eventList,
+    required this.selectedDaysGoals,
+    required this.selectedDay,
+  });
+}
+
+class CalendarError extends CalendarState {
+  final String message;
+
+  CalendarError({required this.message});
+}
+
+class CalendarController extends BaseController<CalendarState> {
+  late LocalData _localData;
+  final _userData = <DateGoalModel>[];
+
+  CalendarController(super.initialState);
 
   @override
   void onInit() async {
-    localData = await LocalData.i;
-    userData = await localData.searchUserData();
+    _localData = await LocalData.i;
+    _userData.addAll((await _localData.searchUserData() ?? []));
     treatData();
   }
 
   void treatData() {
-    EventList<Event> eventListTemp = EventList(events: {});
-    if (userData != null) {
-      for (var i = 0; i < userData!.dates.length; i++) {
-        eventListTemp.add(
-          userData!.dates[i],
-          Event(
-            date: userData!.dates[i],
-            dot: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                color: userData!.colors[i],
-                borderRadius: BorderRadius.circular(10),
+    emitGuard(
+      loadingState: CalendarLoading(),
+      newState: (oldState) {
+        EventList<Event> eventListTemp = EventList(events: {});
+        if (_userData.isNotEmpty) {
+          for (final item in _userData) {
+            var totalPercent = 0.0;
+
+            for (final goal in item.goals) {
+              totalPercent += goal.percentCompleted;
+            }
+
+            final avgPercent = totalPercent / item.goals.length;
+
+            eventListTemp.add(
+              item.date,
+              Event(
+                date: item.date,
+                dot: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: Utilities.activeColor(avgPercent),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  height: 2.0,
+                  width: 16.0,
+                ),
               ),
-              height: 2.0,
-              width: 16.0,
-            ),
-          ),
+            );
+          }
+        }
+
+        return CalendarData(
+          eventList: eventListTemp,
+          selectedDaysGoals:
+              oldState is CalendarData ? oldState.selectedDaysGoals : null,
+          selectedDay: oldState is CalendarData
+              ? oldState.selectedDaysGoals?.date ?? DateTime.now()
+              : DateTime.now(),
         );
-      }
-      eventList.value = eventListTemp;
-    }
+      },
+      errorState: (e) => CalendarError(message: e.toString()),
+    );
   }
 
   void selectDay(DateTime date) {
-    if (userData != null &&
-        userData!.goals != null &&
-        userData!.goals!.any((element) => element.date == date)) {
-      selectedDay.value =
-          userData!.goals!.firstWhere((element) => element.date == date);
+    final oldState = state as CalendarData;
+    if (_userData.isNotEmpty && _userData.any((e) => e.date == date)) {
+      emit(CalendarData(
+        eventList: oldState.eventList,
+        selectedDaysGoals: _userData.firstWhere((e) => e.date == date),
+        selectedDay: date,
+      ));
       return;
     }
 
-    selectedDay.value = null;
+    emit(CalendarData(
+      eventList: oldState.eventList,
+      selectedDaysGoals: null,
+      selectedDay: date,
+    ));
   }
 }

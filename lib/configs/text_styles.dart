@@ -1,6 +1,7 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
+
+import '../providers/theme_provider.dart';
+import 'colors.dart';
 
 class TextStyles {
   static TextStyles? _instance;

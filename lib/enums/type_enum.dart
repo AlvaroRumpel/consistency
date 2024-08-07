@@ -1,4 +1,0 @@
-enum TypeEnum {
-  slider,
-  checkbox,
-}
