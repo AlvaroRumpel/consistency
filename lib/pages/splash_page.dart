@@ -1,18 +1,31 @@
-import 'package:consistency/configs/text_styles.dart';
 import 'package:flutter/material.dart';
 
-class SplashPage extends StatelessWidget {
-  const SplashPage({Key? key}) : super(key: key);
+import '../configs/text_styles.dart';
+
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(
+        const Duration(milliseconds: 1500),
+        () async {
+          Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
+        },
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(
-      const Duration(milliseconds: 1500),
-      () async {
-        Navigator.of(context).popAndPushNamed('/manager');
-      },
-    );
-
     return Scaffold(
       body: Column(
         children: [

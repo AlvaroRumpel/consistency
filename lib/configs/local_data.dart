@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:developer';
 
-import 'package:consistency/configs/exceptions/local_data_exception.dart';
-import 'package:consistency/models/event_model.dart';
-import 'package:consistency/models/recovery_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/date_goal_model.dart';
+import '../models/recovery_model.dart';
+import 'exceptions/local_data_exception.dart';
 
 class LocalData {
   final String _nickname = 'nickname';
@@ -11,7 +13,7 @@ class LocalData {
   final String _themeDark = 'themeDark';
   final String _recoveryData = 'beforeDelete';
 
-  static SharedPreferences? sharedPreferences;
+  static SharedPreferences? _sharedPreferences;
 
   static LocalData? _instance;
 
@@ -22,12 +24,12 @@ class LocalData {
   }
 
   static Future<void> _initSharedPreferences() async {
-    sharedPreferences ??= await SharedPreferences.getInstance();
+    _sharedPreferences ??= await SharedPreferences.getInstance();
   }
 
   Future<bool> saveNickname(String nickname) async {
     try {
-      return await sharedPreferences!.setString(_nickname, nickname);
+      return await _sharedPreferences!.setString(_nickname, nickname);
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(
@@ -39,7 +41,7 @@ class LocalData {
 
   Future<String?> searchNickname() async {
     try {
-      return sharedPreferences!.getString(_nickname);
+      return _sharedPreferences!.getString(_nickname);
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(
@@ -49,9 +51,10 @@ class LocalData {
     }
   }
 
-  Future<bool> saveUserData(EventModel eventModel) async {
+  Future<bool> saveUserData(List<DateGoalModel> goalsModel) async {
     try {
-      return await sharedPreferences!.setString(_userData, eventModel.toJson());
+      final goals = jsonEncode(goalsModel);
+      return await _sharedPreferences!.setString(_userData, goals);
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(
@@ -61,10 +64,18 @@ class LocalData {
     }
   }
 
-  Future<EventModel?> searchUserData() async {
+  Future<List<DateGoalModel>?> searchUserData() async {
     try {
-      final userData = sharedPreferences!.getString(_userData);
-      if (userData != null) return EventModel.fromJson(userData);
+      final userDataJson = _sharedPreferences!.getString(_userData);
+      if (userDataJson != null) {
+        final userDataList = jsonDecode(userDataJson);
+        final userData = <DateGoalModel>[];
+        for (final data in userDataList) {
+          userData.add(DateGoalModel.fromJson(data));
+        }
+
+        return userData;
+      }
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(
@@ -77,7 +88,7 @@ class LocalData {
 
   Future<bool> saveTheme(bool value) async {
     try {
-      return await sharedPreferences!.setBool(_themeDark, value);
+      return await _sharedPreferences!.setBool(_themeDark, value);
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(
@@ -89,7 +100,7 @@ class LocalData {
 
   bool searchTheme() {
     try {
-      return sharedPreferences?.getBool(_themeDark) ?? false;
+      return _sharedPreferences?.getBool(_themeDark) ?? false;
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(
@@ -118,7 +129,7 @@ class LocalData {
 
   Future<bool> undoRecoveryData() async {
     try {
-      var recoveryModelString = sharedPreferences!.getString(_recoveryData);
+      var recoveryModelString = _sharedPreferences!.getString(_recoveryData);
 
       if (recoveryModelString != null && recoveryModelString.isNotEmpty) {
         var recoveryModel = RecoveryModel.fromJson(recoveryModelString);
@@ -146,9 +157,12 @@ class LocalData {
     try {
       var theme = searchTheme();
       var recoveryModel = await _saveRecoveryData();
-      await sharedPreferences!.clear();
+      await _sharedPreferences!.clear();
       await saveTheme(theme);
-      await sharedPreferences!.setString(_recoveryData, recoveryModel.toJson());
+      await _sharedPreferences!.setString(
+        _recoveryData,
+        recoveryModel.toJson(),
+      );
     } catch (e, s) {
       log(e.toString(), error: e, stackTrace: s);
       throw LocalDataException(

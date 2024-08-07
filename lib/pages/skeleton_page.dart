@@ -1,43 +1,100 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/configs/text_styles.dart';
-import 'package:consistency/controllers/manager_controller.dart';
-import 'package:consistency/pages/calendar_page.dart';
-import 'package:consistency/pages/home_page.dart';
-import 'package:consistency/pages/settings_page.dart';
-import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
-class Skelenton extends StatefulWidget {
-  const Skelenton({Key? key}) : super(key: key);
+import '../configs/colors.dart';
+import '../configs/text_styles.dart';
+import '../controllers/skeleton_controller.dart';
+import '../providers/theme_provider.dart';
+import 'calendar_page.dart';
+import 'home_page.dart';
+import 'settings_page.dart';
+
+class SkelentonPage extends StatefulWidget {
+  const SkelentonPage({super.key});
 
   @override
-  SkelentonState createState() => SkelentonState();
+  SkelentonPageState createState() => SkelentonPageState();
 }
 
-class SkelentonState extends State<Skelenton>
+class SkelentonPageState extends State<SkelentonPage>
     with SingleTickerProviderStateMixin {
-  late SkeletonController controller;
+  late SkeletonController _controller;
+
+  final _pageController = PageController(initialPage: 1);
+
+  late AnimationController _animationController;
+  late Animation<double> animationIconPosition;
+  late Animation<double> animationLabelPosition;
+  late Animation<double> animationLabelOpacity;
+  late Animation<Size> animationBoxSize;
 
   @override
   void initState() {
-    controller = SkeletonController(vsync: this);
+    _controller = SkeletonController(_pageController.initialPage);
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Durations.short4,
+    );
+
+    animationIconPosition = Tween(begin: 24.0, end: 16.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    animationLabelPosition = Tween(begin: 64.0, end: 40.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    animationLabelOpacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    animationBoxSize = Tween(
+      begin: const Size(70, 70),
+      end: const Size(80, 80),
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+    _animationController.forward();
+
     super.initState();
   }
 
   @override
   void dispose() {
-    controller.onDispose();
+    _controller.onDispose();
+    _animationController.dispose();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  void changePage(int index) {
+    _controller.changePage(index);
+    _pageController.jumpToPage(_controller.state);
+    _controller.state == 1
+        ? _animationController.forward()
+        : _animationController.reverse();
   }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: controller.currentIndex,
+      valueListenable: _controller.stateNotifier,
       builder: (context, value, child) => Scaffold(
         body: PageView(
-          controller: controller.pageController,
-          onPageChanged: (index) => controller.changePage(index),
+          controller: _pageController,
+          onPageChanged: changePage,
           children: const [
             CalendarPage(),
             HomePage(),
@@ -45,8 +102,8 @@ class SkelentonState extends State<Skelenton>
           ],
         ),
         bottomNavigationBar: NavigationBar(
-          onDestinationSelected: (index) => controller.changePage(index),
-          selectedIndex: controller.currentIndex.value,
+          onDestinationSelected: changePage,
+          selectedIndex: value,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.calendar_month_outlined),
@@ -66,46 +123,46 @@ class SkelentonState extends State<Skelenton>
           alignment: Alignment.bottomCenter,
           heightFactor: 6 / 4,
           child: AnimatedBuilder(
-            animation: controller.animationController,
+            animation: _animationController,
             builder: (context, child) {
               return SizedBox(
-                height: controller.animationBoxSize.value.height,
-                width: controller.animationBoxSize.value.width,
+                height: animationBoxSize.value.height,
+                width: animationBoxSize.value.width,
                 child: FloatingActionButton(
                   backgroundColor:
                       ThemeProvider.of(context).themeMode == ThemeMode.dark
-                          ? controller.currentIndex.value == 1
+                          ? value == 1
                               ? AppColors.primaryColor.shade500
                               : AppColors.primaryColor.shade900
-                          : controller.currentIndex.value == 1
+                          : value == 1
                               ? AppColors.primaryColor.shade50
                               : AppColors.primaryColor.shade500,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  onPressed: () => controller.changePage(1),
+                  onPressed: () => changePage(1),
                   child: Stack(
                     clipBehavior: Clip.none,
                     alignment: AlignmentDirectional.center,
                     children: [
                       Positioned(
-                        top: controller.animationIconPosition.value,
+                        top: animationIconPosition.value,
                         child: Icon(
                           Icons.home_outlined,
                           color: ThemeProvider.of(context).themeMode ==
                                   ThemeMode.dark
-                              ? controller.currentIndex.value == 1
+                              ? value == 1
                                   ? AppColors.whiteColor.shade500
                                   : AppColors.whiteColor.shade900
-                              : controller.currentIndex.value == 1
+                              : value == 1
                                   ? AppColors.blackColor.shade500
                                   : AppColors.blackColor.shade900,
                         ),
                       ),
                       Positioned(
-                        top: controller.animationLabelPosition.value,
+                        top: animationLabelPosition.value,
                         child: Opacity(
-                          opacity: controller.animationLabelOpacity.value,
+                          opacity: animationLabelOpacity.value,
                           child: Text(
                             'Home',
                             style: context.textStyles.normalText,

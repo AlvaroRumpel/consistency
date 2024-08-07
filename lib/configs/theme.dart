@@ -1,7 +1,8 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/configs/local_data.dart';
-import 'package:consistency/configs/text_styles.dart';
 import 'package:flutter/material.dart';
+
+import 'colors.dart';
+import 'local_data.dart';
+import 'text_styles.dart';
 
 class ThemeModel extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
@@ -31,6 +32,13 @@ ThemeData themeDark = ThemeData(
   scaffoldBackgroundColor: AppColors.blackColor,
   useMaterial3: true,
   inputDecorationTheme: InputDecorationTheme(
+    disabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(30),
+      borderSide: BorderSide(
+        color: AppColors.blackColor.shade200,
+        width: 2,
+      ),
+    ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
       borderSide: BorderSide(
@@ -85,9 +93,9 @@ ThemeData themeDark = ThemeData(
     labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
     indicatorColor: AppColors.primaryColor,
     indicatorShape: const CircleBorder(),
-    labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
+    labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
       (value) {
-        if (value.contains(MaterialState.selected)) {
+        if (value.contains(WidgetState.selected)) {
           return TextStyles.i.normalText;
         }
         return TextStyles.i.normalText.copyWith(
@@ -95,9 +103,9 @@ ThemeData themeDark = ThemeData(
         );
       },
     ),
-    iconTheme: MaterialStateProperty.resolveWith<IconThemeData>(
+    iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
       (value) {
-        if (value.contains(MaterialState.selected)) {
+        if (value.contains(WidgetState.selected)) {
           return const IconThemeData(
             color: AppColors.whiteColor,
           );
@@ -116,6 +124,13 @@ ThemeData themeLight = ThemeData(
   scaffoldBackgroundColor: AppColors.whiteColor.shade700,
   useMaterial3: true,
   inputDecorationTheme: InputDecorationTheme(
+    disabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(30),
+      borderSide: BorderSide(
+        color: AppColors.blackColor.shade200,
+        width: 2,
+      ),
+    ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
       borderSide: BorderSide(
@@ -170,9 +185,9 @@ ThemeData themeLight = ThemeData(
     labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
     indicatorColor: AppColors.primaryColor,
     indicatorShape: const CircleBorder(),
-    labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
+    labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
       (value) {
-        if (value.contains(MaterialState.selected)) {
+        if (value.contains(WidgetState.selected)) {
           return TextStyles.i.normalText;
         }
         return TextStyles.i.normalText.copyWith(
@@ -180,9 +195,9 @@ ThemeData themeLight = ThemeData(
         );
       },
     ),
-    iconTheme: MaterialStateProperty.resolveWith<IconThemeData>(
+    iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
       (value) {
-        if (value.contains(MaterialState.selected)) {
+        if (value.contains(WidgetState.selected)) {
           return const IconThemeData(
             color: AppColors.blackColor,
           );

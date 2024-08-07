@@ -1,8 +1,9 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/configs/text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+
+import 'colors.dart';
+import 'text_styles.dart';
 
 mixin MessagesMixin<T extends StatefulWidget> on State<T> {
   void showError(String message) {

@@ -1,47 +1,31 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/configs/text_styles.dart';
-import 'package:consistency/controllers/home_controller.dart';
-import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
+import '../configs/colors.dart';
+import '../configs/text_styles.dart';
+import '../configs/utilities.dart';
+import '../controllers/home_controller.dart';
+import '../widgets/add_day_button.dart';
+import '../widgets/goals_list_view.dart';
+
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late AnimationController _iconAnimationController;
-  late Animation<double> _animation;
-  late Animation<double> _iconAnimation;
-
-  late HomeController controller;
+class HomePageState extends State<HomePage> {
+  late HomeController _controller;
 
   @override
   void initState() {
-    _animationController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    _iconAnimationController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 1));
-    _animation = Tween(begin: 18.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-    _iconAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_iconAnimationController);
-
-    _animationController.repeat(reverse: true);
-
     super.initState();
-
-    controller = HomeController();
+    _controller = HomeController();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _iconAnimationController.dispose();
+    _controller.onDispose();
     super.dispose();
   }
 
@@ -49,126 +33,125 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
-      child: Column(
-        children: [
-          ValueListenableBuilder(
-            valueListenable: controller.nickname,
-            builder: (context, value, _) {
-              return Wrap(
-                alignment: WrapAlignment.center,
-                children: [
-                  Text(
-                    'How are you ',
-                    style: context.textStyles.normalText.copyWith(fontSize: 32),
-                  ),
-                  Text(
-                    '$value?',
-                    style: context.textStyles.normalText.copyWith(
-                      fontSize: 32,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          Text(
-            'Did you complete your goals today?',
-            style: context.textStyles.normalText,
-          ),
-          Flexible(
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  if (controller.hasMarketToday.value) {
-                    _iconAnimationController.forward();
-                  }
-                  return Ink(
-                    height: MediaQuery.of(context).size.height * .5,
-                    width: MediaQuery.of(context).size.width * .6,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primaryColor,
-                        width: 2 + (_animation.value / 4),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              AppColors.primaryColor.shade900.withOpacity(.5),
-                          spreadRadius: _animation.value,
-                        ),
-                        BoxShadow(
-                          color: ThemeProvider.of(context).themeMode ==
-                                  ThemeMode.dark
-                              ? AppColors.blackColor.shade500
-                              : AppColors.whiteColor.shade700,
-                          spreadRadius: _animation.value / 1.5,
-                        ),
-                      ],
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        if (!controller.hasMarketToday.value) {
-                          controller.saveData();
-                          _iconAnimationController.forward();
-                        }
-                      },
-                      highlightColor: AppColors.primaryColor,
-                      splashColor: controller
-                          .activeColor(controller.completePercent.value),
-                      customBorder: const CircleBorder(),
-                      child: Center(
-                        child: AnimatedIcon(
-                          icon: AnimatedIcons.add_event,
-                          progress: _iconAnimation,
-                          color: ThemeProvider.of(context).themeMode ==
-                                  ThemeMode.dark
-                              ? AppColors.whiteColor
-                              : AppColors.blackColor.shade300,
-                          size: MediaQuery.of(context).size.width * .2,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          Text(
-            'How much completed?',
-            style: context.textStyles.normalText.copyWith(fontSize: 24),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ValueListenableBuilder(
-              valueListenable: controller.completePercent,
-              builder: (context, value, _) {
-                return Column(
+      child: CustomScrollView(
+        slivers: [
+          SliverList(
+            delegate: SliverChildListDelegate.fixed(
+              [
+                Wrap(
+                  alignment: WrapAlignment.center,
                   children: [
+                    Text(
+                      'How are you ',
+                      style:
+                          context.textStyles.normalText.copyWith(fontSize: 32),
+                    ),
                     ValueListenableBuilder(
-                        valueListenable: controller.hasMarketToday,
-                        builder: (context, hasMarketToday, _) {
-                          return Slider(
-                            value: value,
-                            max: 100,
-                            min: 0,
-                            divisions: 4,
-                            inactiveColor: AppColors.whiteColor,
-                            activeColor: controller.activeColor(value),
-                            label: '${value.toStringAsFixed(0)}%',
-                            onChanged: hasMarketToday
-                                ? null
-                                : (value) =>
-                                    controller.completePercent.value = value,
-                          );
-                        }),
+                      valueListenable: _controller.stateNotifier,
+                      builder: (context, value, _) {
+                        return value.whenNull(
+                          data: (state) {
+                            return Text(
+                              '${state.nickname}?',
+                              style: context.textStyles.normalText.copyWith(
+                                fontSize: 32,
+                                color: AppColors.primaryColor,
+                              ),
+                            );
+                          },
+                          orElse: () => Text(
+                            'user?',
+                            style: context.textStyles.normalText.copyWith(
+                              fontSize: 32,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ],
-                );
-              },
+                ),
+                Text(
+                  'Did you complete your goals today?',
+                  style: context.textStyles.normalText,
+                  textAlign: TextAlign.center,
+                ),
+                ValueListenableBuilder(
+                  valueListenable: _controller.stateNotifier,
+                  builder: (context, state, _) {
+                    return AddDayButton(
+                      color: Utilities.activeColor(_controller.completePercent),
+                      onTap: () {
+                        if (state is HomeData &&
+                            !state.hasMarkedToday &&
+                            state.goals.isNotEmpty) {
+                          _controller.saveData();
+
+                          return true;
+                        }
+
+                        return false;
+                      },
+                      hasMarkedToday:
+                          state is HomeData ? state.hasMarkedToday : true,
+                    );
+                  },
+                ),
+              ],
             ),
           ),
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                Text(
+                  'How much completed?',
+                  style: context.textStyles.normalText.copyWith(fontSize: 24),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 16,
+                  ),
+                  child: ValueListenableBuilder(
+                    valueListenable: _controller.stateNotifier,
+                    builder: (context, state, _) {
+                      return state.whenNull(
+                        data: (state) {
+                          final value = state.goals;
+                          return GoalsListView(
+                            goals: value,
+                            textControllers: _controller.goalsControllers,
+                            hasMarkedToday: state.hasMarkedToday,
+                            onRemove: _controller.removeGoal,
+                            onAdd: _controller.addNewGoal,
+                          );
+                        },
+                        dataEmpty: (state) => IconButton(
+                          onPressed: _controller.addNewGoal,
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                              side: const BorderSide(
+                                color: AppColors.primaryColor,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.add,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        orElse: () => const SizedBox.shrink(),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );

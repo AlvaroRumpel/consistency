@@ -1,41 +1,118 @@
-import 'package:consistency/configs/local_data.dart';
-import 'package:consistency/controllers/base_controller.dart';
-import 'package:flutter/material.dart';
+import '../configs/local_data.dart';
+import 'base_controller.dart';
 
-class SettingsController extends BaseController {
-  ValueNotifier<String> nickname = ValueNotifier('User');
-  ValueNotifier<bool> themeDark = ValueNotifier(true);
-  late LocalData localData;
+sealed class SettingState {}
 
-  @override
-  void onDispose() {
-    // TODO: implement onDispose
-  }
+class SettingLoading extends SettingState {}
+
+class SettingError extends SettingState {
+  final String message;
+
+  SettingError({required this.message});
+}
+
+class SettingData extends SettingState {
+  final String nickname;
+  final bool themeDark;
+
+  SettingData({required this.nickname, required this.themeDark});
+}
+
+class SettingDataLoading extends SettingData {
+  SettingDataLoading({required super.nickname, required super.themeDark});
+}
+
+class SettingsController extends BaseController<SettingState> {
+  late LocalData _localData;
+
+  SettingsController(super.initialState);
 
   @override
   void onInit() async {
-    localData = await LocalData.i;
-    nickname.value = await localData.searchNickname() ?? 'User';
-    themeDark.value = localData.searchTheme();
+    _localData = await LocalData.i;
+    emitGuard(
+      loadingState: SettingLoading(),
+      newState: (_) async {
+        final nickname = await _localData.searchNickname() ?? 'User';
+        final themeDark = _localData.searchTheme();
+
+        return SettingData(nickname: nickname, themeDark: themeDark);
+      },
+      errorState: (e) => SettingError(message: e.toString()),
+    );
   }
 
   Future<void> clearAllData() async {
-    await localData.clearAllData();
-    nickname.value = 'User';
+    final newState = state as SettingData;
+    emitGuard(
+      loadingState: SettingDataLoading(
+        nickname: newState.nickname,
+        themeDark: newState.themeDark,
+      ),
+      newState: (_) async {
+        await _localData.clearAllData();
+        return SettingData(nickname: 'User', themeDark: newState.themeDark);
+      },
+      errorState: (e) => SettingError(message: e.toString()),
+    );
   }
 
   Future<bool> undoClearAllData() async {
-    var success = await localData.undoRecoveryData();
+    final newState = state as SettingData;
+    emit(SettingDataLoading(
+      nickname: newState.nickname,
+      themeDark: newState.themeDark,
+    ));
+
+    var success = await _localData.undoRecoveryData();
 
     if (success) {
-      nickname.value = await localData.searchNickname() ?? 'User';
+      final nickname = await _localData.searchNickname() ?? 'User';
+
+      emit(SettingData(nickname: nickname, themeDark: newState.themeDark));
     }
 
     return success;
   }
 
+  Future<bool> saveNickname(String? newNickname) async {
+    final newState = state as SettingData;
+    if (newNickname == null ||
+        newNickname.isEmpty ||
+        newNickname == newState.nickname) {
+      return true;
+    }
+
+    await emitGuard(
+      loadingState: SettingDataLoading(
+        nickname: newState.nickname,
+        themeDark: newState.themeDark,
+      ),
+      newState: (_) async {
+        await _localData.saveNickname(newNickname);
+        return SettingData(
+          nickname: newNickname,
+          themeDark: newState.themeDark,
+        );
+      },
+      errorState: (e) => SettingError(message: e.toString()),
+    );
+
+    return state is SettingData;
+  }
+
   Future<void> changeTheme(bool value) async {
-    themeDark.value = value;
-    await localData.saveTheme(value);
+    final newState = state as SettingData;
+    emitGuard(
+      loadingState: SettingDataLoading(
+        nickname: newState.nickname,
+        themeDark: newState.themeDark,
+      ),
+      newState: (_) async {
+        await _localData.saveTheme(value);
+        return SettingData(nickname: newState.nickname, themeDark: value);
+      },
+      errorState: (e) => SettingError(message: e.toString()),
+    );
   }
 }

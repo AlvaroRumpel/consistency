@@ -1,6 +1,7 @@
-import 'package:consistency/configs/colors.dart';
-import 'package:consistency/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
+
+import '../providers/theme_provider.dart';
+import 'colors.dart';
 
 class TextStyles {
   static TextStyles? _instance;
@@ -20,7 +21,7 @@ class TextStyles {
 
   TextStyle get normalText => TextStyle(
         color: _isDark ? AppColors.whiteColor : AppColors.blackColor,
-        fontWeight: FontWeight.w400,
+        fontWeight: FontWeight.w500,
         fontFamily: font,
         fontSize: 16,
       );
@@ -32,7 +33,7 @@ class TextStyles {
       );
   TextStyle get thinText => TextStyle(
         color: _isDark ? AppColors.whiteColor : AppColors.blackColor,
-        fontWeight: FontWeight.w100,
+        fontWeight: _isDark ? FontWeight.w100 : FontWeight.w400,
         fontFamily: font,
         fontSize: 16,
       );
