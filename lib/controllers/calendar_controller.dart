@@ -7,40 +7,7 @@ import '../configs/utilities.dart';
 import '../models/date_goal_model.dart';
 import 'base_controller.dart';
 
-sealed class CalendarState {
-  T when<T>({
-    required T Function(CalendarData) data,
-    required T Function(CalendarLoading) loading,
-    required T Function(CalendarError) error,
-  }) {
-    if (this is CalendarData) {
-      return data(this as CalendarData);
-    } else if (this is CalendarLoading) {
-      return loading(this as CalendarLoading);
-    } else if (this is CalendarError) {
-      return error(this as CalendarError);
-    } else {
-      throw Exception('Unknown CalendarState: $this');
-    }
-  }
-
-  T whenNull<T>({
-    T Function(CalendarData)? data,
-    T Function(CalendarLoading)? loading,
-    T Function(CalendarError)? error,
-    required T Function() orElse,
-  }) {
-    if (this is CalendarData && data != null) {
-      return data(this as CalendarData);
-    } else if (this is CalendarLoading && loading != null) {
-      return loading(this as CalendarLoading);
-    } else if (this is CalendarError && error != null) {
-      return error(this as CalendarError);
-    } else {
-      return orElse();
-    }
-  }
-}
+sealed class CalendarState {}
 
 class CalendarLoading extends CalendarState {}
 

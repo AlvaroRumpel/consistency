@@ -18,10 +18,6 @@ class SettingData extends SettingState {
   SettingData({required this.nickname, required this.themeDark});
 }
 
-class SettingDataLoading extends SettingData {
-  SettingDataLoading({required super.nickname, required super.themeDark});
-}
-
 class SettingsController extends BaseController<SettingState> {
   late LocalData _localData;
 
@@ -45,7 +41,7 @@ class SettingsController extends BaseController<SettingState> {
   Future<void> clearAllData() async {
     final newState = state as SettingData;
     emitGuard(
-      loadingState: SettingDataLoading(
+      loadingState: SettingData(
         nickname: newState.nickname,
         themeDark: newState.themeDark,
       ),
@@ -59,7 +55,7 @@ class SettingsController extends BaseController<SettingState> {
 
   Future<bool> undoClearAllData() async {
     final newState = state as SettingData;
-    emit(SettingDataLoading(
+    emit(SettingData(
       nickname: newState.nickname,
       themeDark: newState.themeDark,
     ));
@@ -84,7 +80,7 @@ class SettingsController extends BaseController<SettingState> {
     }
 
     await emitGuard(
-      loadingState: SettingDataLoading(
+      loadingState: SettingData(
         nickname: newState.nickname,
         themeDark: newState.themeDark,
       ),
@@ -104,7 +100,7 @@ class SettingsController extends BaseController<SettingState> {
   Future<void> changeTheme(bool value) async {
     final newState = state as SettingData;
     emitGuard(
-      loadingState: SettingDataLoading(
+      loadingState: SettingData(
         nickname: newState.nickname,
         themeDark: newState.themeDark,
       ),

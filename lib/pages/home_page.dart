@@ -49,22 +49,13 @@ class HomePageState extends State<HomePage> {
                     ValueListenableBuilder(
                       valueListenable: _controller.stateNotifier,
                       builder: (context, value, _) {
-                        return value.whenNull(
-                          data: (state) {
-                            return Text(
-                              '${state.nickname}?',
-                              style: context.textStyles.normalText.copyWith(
-                                fontSize: 32,
-                                color: AppColors.primaryColor,
-                              ),
-                            );
-                          },
-                          orElse: () => Text(
-                            'user?',
-                            style: context.textStyles.normalText.copyWith(
-                              fontSize: 32,
-                              color: AppColors.primaryColor,
-                            ),
+                        final nickname =
+                            value is HomeData ? value.nickname : 'user';
+                        return Text(
+                          '$nickname?',
+                          style: context.textStyles.normalText.copyWith(
+                            fontSize: 32,
+                            color: AppColors.primaryColor,
                           ),
                         );
                       },
@@ -117,35 +108,36 @@ class HomePageState extends State<HomePage> {
                   child: ValueListenableBuilder(
                     valueListenable: _controller.stateNotifier,
                     builder: (context, state, _) {
-                      return state.whenNull(
-                        data: (state) {
-                          final value = state.goals;
-                          return GoalsListView(
-                            goals: value,
-                            textControllers: _controller.goalsControllers,
-                            hasMarkedToday: state.hasMarkedToday,
-                            onRemove: _controller.removeGoal,
-                            onAdd: _controller.addNewGoal,
-                          );
-                        },
-                        dataEmpty: (state) => IconButton(
-                          onPressed: _controller.addNewGoal,
-                          style: IconButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100),
-                              side: const BorderSide(
-                                color: AppColors.primaryColor,
-                                width: 2,
+                      return switch (state) {
+                        HomeDataEmpty() => IconButton(
+                            onPressed: _controller.addNewGoal,
+                            style: IconButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
+                                side: const BorderSide(
+                                  color: AppColors.primaryColor,
+                                  width: 2,
+                                ),
                               ),
                             ),
+                            icon: const Icon(
+                              Icons.add,
+                              color: AppColors.primaryColor,
+                            ),
                           ),
-                          icon: const Icon(
-                            Icons.add,
-                            color: AppColors.primaryColor,
+                        HomeData(:final goals, :final hasMarkedToday) =>
+                          GoalsListView(
+                            goals: goals,
+                            textControllers: _controller.goalsControllers,
+                            hasMarkedToday: hasMarkedToday,
+                            onRemove: _controller.removeGoal,
+                            onAdd: _controller.addNewGoal,
                           ),
-                        ),
-                        orElse: () => const SizedBox.shrink(),
-                      );
+                        HomeInitial() ||
+                        HomeLoading() ||
+                        HomeError() =>
+                          const SizedBox.shrink(),
+                      };
                     },
                   ),
                 ),

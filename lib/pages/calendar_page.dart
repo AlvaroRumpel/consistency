@@ -60,13 +60,12 @@ class _CalendarPageState extends State<CalendarPage> {
                 child: ValueListenableBuilder(
                   valueListenable: _controller.stateNotifier,
                   builder: (context, state, _) {
-                    return state.whenNull(
-                      orElse: () => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      data: (data) => CalendarCarousel(
+                    if (state is! CalendarData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return CalendarCarousel(
                         scrollDirection: Axis.horizontal,
-                        markedDatesMap: data.eventList,
+                        markedDatesMap: state.eventList,
                         pageSnapping: true,
                         headerMargin: const EdgeInsets.all(0),
                         weekDayMargin: const EdgeInsets.all(0),
@@ -75,7 +74,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ThemeMode.dark
                             ? AppColors.blackColor
                             : AppColors.whiteColor.shade700,
-                        selectedDateTime: data.selectedDay,
+                        selectedDateTime: state.selectedDay,
                         iconColor: AppColors.primaryColor,
                         weekDayBackgroundColor:
                             ThemeProvider.of(context).themeMode ==
@@ -101,8 +100,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         weekDayFormat: WeekdayFormat.short,
                         onDayPressed: (date, eventList) =>
                             _controller.selectDay(date),
-                      ),
-                    );
+                      );
                   },
                 ),
               ),
@@ -111,15 +109,13 @@ class _CalendarPageState extends State<CalendarPage> {
           ValueListenableBuilder(
             valueListenable: _controller.stateNotifier,
             builder: (context, state, _) {
-              return state.whenNull(
-                orElse: () => const SliverToBoxAdapter(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                data: (data) {
-                  final value = data.selectedDaysGoals;
-                  return SliverVisibility(
+              if (state is! CalendarData) {
+                return const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final value = state.selectedDaysGoals;
+              return SliverVisibility(
                     visible: value != null,
                     sliver: SliverToBoxAdapter(
                       child: Container(
@@ -152,8 +148,6 @@ class _CalendarPageState extends State<CalendarPage> {
                       ),
                     ),
                   );
-                },
-              );
             },
           ),
         ],
