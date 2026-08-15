@@ -15,7 +15,7 @@ mixin MessagesMixin<T extends StatefulWidget> on State<T> {
         iconRotationAngle: 0,
         iconPositionLeft: 16,
         message: message,
-        backgroundColor: AppColors.redColor.withOpacity(.8),
+        backgroundColor: AppColors.redColor.withValues(alpha:.8),
         textStyle: context.textStyles.boldText,
         icon: const Icon(
           Icons.error_outline_outlined,
@@ -41,7 +41,7 @@ mixin MessagesMixin<T extends StatefulWidget> on State<T> {
         iconRotationAngle: 0,
         iconPositionLeft: 16,
         message: message,
-        backgroundColor: AppColors.primaryColor.withOpacity(.8),
+        backgroundColor: AppColors.primaryColor.withValues(alpha: .8),
         textStyle: context.textStyles.boldText,
         icon: const Icon(
           Icons.undo_rounded,

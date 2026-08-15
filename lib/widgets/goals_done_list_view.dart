@@ -52,7 +52,7 @@ class GoalsDoneListView extends StatelessWidget {
                       (ThemeProvider.of(context).themeMode == ThemeMode.dark
                               ? AppColors.whiteColor
                               : AppColors.blackColor)
-                          .withOpacity(.5),
+                          .withValues(alpha: .5),
                 ),
                 Text(
                   '${goals[index].percentCompleted.toStringAsFixed(0)}%',
@@ -68,8 +68,8 @@ class GoalsDoneListView extends StatelessWidget {
       separatorBuilder: (context, index) => Divider(
         height: 16,
         color: ThemeProvider.of(context).themeMode == ThemeMode.dark
-            ? AppColors.whiteColor.shade900.withOpacity(.3)
-            : AppColors.blackColor.withOpacity(.3),
+            ? AppColors.whiteColor.shade900.withValues(alpha: .3)
+            : AppColors.blackColor.withValues(alpha: .3),
       ),
       itemCount: goals.length,
     );

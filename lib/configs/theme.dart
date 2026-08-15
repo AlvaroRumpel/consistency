@@ -84,7 +84,7 @@ ThemeData themeDark = ThemeData(
     ),
   ),
   textSelectionTheme: TextSelectionThemeData(
-    selectionColor: AppColors.primaryColor.shade50.withOpacity(.5),
+    selectionColor: AppColors.primaryColor.shade50.withValues(alpha: .5),
     selectionHandleColor: AppColors.primaryColor,
     cursorColor: AppColors.whiteColor,
   ),
@@ -176,7 +176,7 @@ ThemeData themeLight = ThemeData(
     ),
   ),
   textSelectionTheme: TextSelectionThemeData(
-    selectionColor: AppColors.primaryColor.shade50.withOpacity(.5),
+    selectionColor: AppColors.primaryColor.shade50.withValues(alpha: .5),
     selectionHandleColor: AppColors.primaryColor,
     cursorColor: AppColors.blackColor,
   ),

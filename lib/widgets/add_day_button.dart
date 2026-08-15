@@ -72,7 +72,7 @@ class _AddDayButtonState extends State<AddDayButton>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryColor.shade900.withOpacity(.5),
+                  color: AppColors.primaryColor.shade900.withValues(alpha: .5),
                   spreadRadius: _animation.value,
                 ),
                 BoxShadow(

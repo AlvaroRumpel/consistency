@@ -101,6 +101,7 @@ class SkelentonPageState extends State<SkelentonPage>
             SettingsPage(),
           ],
         ),
+        resizeToAvoidBottomInset: false,
         bottomNavigationBar: NavigationBar(
           onDestinationSelected: changePage,
           selectedIndex: value,

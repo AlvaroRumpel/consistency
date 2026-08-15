@@ -18,7 +18,9 @@ class _SplashPageState extends State<SplashPage> {
       await Future.delayed(
         const Duration(milliseconds: 1500),
         () async {
-          Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
+          if(mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
+          }
         },
       );
     });
