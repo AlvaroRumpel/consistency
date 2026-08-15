@@ -39,56 +39,56 @@ class SettingsController extends BaseController<SettingState> {
   }
 
   Future<void> clearAllData() async {
-    final newState = state as SettingData;
+    final current = state;
+    if (current is! SettingData) return;
+
     emitGuard(
       loadingState: SettingData(
-        nickname: newState.nickname,
-        themeDark: newState.themeDark,
+        nickname: current.nickname,
+        themeDark: current.themeDark,
       ),
       newState: (_) async {
         await _localData.clearAllData();
-        return SettingData(nickname: 'User', themeDark: newState.themeDark);
+        return SettingData(nickname: 'User', themeDark: current.themeDark);
       },
       errorState: (e) => SettingError(message: e.toString()),
     );
   }
 
   Future<bool> undoClearAllData() async {
-    final newState = state as SettingData;
-    emit(SettingData(
-      nickname: newState.nickname,
-      themeDark: newState.themeDark,
-    ));
+    final current = state;
+    if (current is! SettingData) return false;
 
     var success = await _localData.undoRecoveryData();
 
     if (success) {
       final nickname = await _localData.searchNickname() ?? 'User';
-
-      emit(SettingData(nickname: nickname, themeDark: newState.themeDark));
+      emit(SettingData(nickname: nickname, themeDark: current.themeDark));
     }
 
     return success;
   }
 
   Future<bool> saveNickname(String? newNickname) async {
-    final newState = state as SettingData;
+    final current = state;
+    if (current is! SettingData) return false;
+
     if (newNickname == null ||
         newNickname.isEmpty ||
-        newNickname == newState.nickname) {
+        newNickname == current.nickname) {
       return true;
     }
 
     await emitGuard(
       loadingState: SettingData(
-        nickname: newState.nickname,
-        themeDark: newState.themeDark,
+        nickname: current.nickname,
+        themeDark: current.themeDark,
       ),
       newState: (_) async {
         await _localData.saveNickname(newNickname);
         return SettingData(
           nickname: newNickname,
-          themeDark: newState.themeDark,
+          themeDark: current.themeDark,
         );
       },
       errorState: (e) => SettingError(message: e.toString()),
@@ -98,15 +98,17 @@ class SettingsController extends BaseController<SettingState> {
   }
 
   Future<void> changeTheme(bool value) async {
-    final newState = state as SettingData;
+    final current = state;
+    if (current is! SettingData) return;
+
     emitGuard(
       loadingState: SettingData(
-        nickname: newState.nickname,
-        themeDark: newState.themeDark,
+        nickname: current.nickname,
+        themeDark: current.themeDark,
       ),
       newState: (_) async {
         await _localData.saveTheme(value);
-        return SettingData(nickname: newState.nickname, themeDark: value);
+        return SettingData(nickname: current.nickname, themeDark: value);
       },
       errorState: (e) => SettingError(message: e.toString()),
     );
