@@ -13,9 +13,8 @@ class SettingError extends SettingState {
 
 class SettingData extends SettingState {
   final String nickname;
-  final bool themeDark;
 
-  SettingData({required this.nickname, required this.themeDark});
+  SettingData({required this.nickname});
 }
 
 class SettingsController extends BaseController<SettingState> {
@@ -28,12 +27,8 @@ class SettingsController extends BaseController<SettingState> {
     _localData = await LocalData.i;
     emitGuard(
       loadingState: SettingLoading(),
-      newState: (_) async {
-        final nickname = await _localData.searchNickname() ?? 'User';
-        final themeDark = _localData.searchTheme();
-
-        return SettingData(nickname: nickname, themeDark: themeDark);
-      },
+      newState: (_) async =>
+          SettingData(nickname: await _localData.searchNickname() ?? 'User'),
       errorState: (e) => SettingError(message: e.toString()),
     );
   }
@@ -43,13 +38,10 @@ class SettingsController extends BaseController<SettingState> {
     if (current is! SettingData) return;
 
     emitGuard(
-      loadingState: SettingData(
-        nickname: current.nickname,
-        themeDark: current.themeDark,
-      ),
+      loadingState: SettingData(nickname: current.nickname),
       newState: (_) async {
         await _localData.clearAllData();
-        return SettingData(nickname: 'User', themeDark: current.themeDark);
+        return SettingData(nickname: 'User');
       },
       errorState: (e) => SettingError(message: e.toString()),
     );
@@ -63,7 +55,7 @@ class SettingsController extends BaseController<SettingState> {
 
     if (success) {
       final nickname = await _localData.searchNickname() ?? 'User';
-      emit(SettingData(nickname: nickname, themeDark: current.themeDark));
+      emit(SettingData(nickname: nickname));
     }
 
     return success;
@@ -80,37 +72,14 @@ class SettingsController extends BaseController<SettingState> {
     }
 
     await emitGuard(
-      loadingState: SettingData(
-        nickname: current.nickname,
-        themeDark: current.themeDark,
-      ),
+      loadingState: SettingData(nickname: current.nickname),
       newState: (_) async {
         await _localData.saveNickname(newNickname);
-        return SettingData(
-          nickname: newNickname,
-          themeDark: current.themeDark,
-        );
+        return SettingData(nickname: newNickname);
       },
       errorState: (e) => SettingError(message: e.toString()),
     );
 
     return state is SettingData;
-  }
-
-  Future<void> changeTheme(bool value) async {
-    final current = state;
-    if (current is! SettingData) return;
-
-    emitGuard(
-      loadingState: SettingData(
-        nickname: current.nickname,
-        themeDark: current.themeDark,
-      ),
-      newState: (_) async {
-        await _localData.saveTheme(value);
-        return SettingData(nickname: current.nickname, themeDark: value);
-      },
-      errorState: (e) => SettingError(message: e.toString()),
-    );
   }
 }

@@ -120,11 +120,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   },
                   title: 'Send your opinion',
                 ),
-                ValueListenableBuilder(
-                  valueListenable: _controller.stateNotifier,
-                  builder: (context, state, _) {
+                Builder(
+                  builder: (context) {
                     final themeDark =
-                        state is SettingData ? state.themeDark : false;
+                        ThemeProvider.of(context).themeMode == ThemeMode.dark;
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Row(
@@ -157,10 +156,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                               },
                             ),
                             value: themeDark,
-                            onChanged: (value) {
-                              _controller.changeTheme(value);
-                              ThemeProvider.of(context).switchThemeMode();
-                            },
+                            onChanged: ThemeProvider.of(context).setDark,
                           ),
                           const SizedBox(width: 8),
                           Icon(

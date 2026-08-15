@@ -8,21 +8,22 @@ class ThemeModel extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
 
   ThemeModel() {
-    setThemeMode();
+    _load();
   }
 
   ThemeMode get themeMode => _themeMode;
 
-  Future<void> setThemeMode() async {
-    var localData = await LocalData.i;
+  Future<void> _load() async {
+    final localData = await LocalData.i;
     _themeMode = localData.searchTheme() ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }
 
-  void switchThemeMode() {
-    _themeMode =
-        _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+  Future<void> setDark(bool value) async {
+    _themeMode = value ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
+    final localData = await LocalData.i;
+    await localData.saveTheme(value);
   }
 }
 

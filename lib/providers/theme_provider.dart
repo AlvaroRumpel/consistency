@@ -9,7 +9,10 @@ class ThemeProvider extends InheritedNotifier<ThemeModel> {
     required super.notifier,
   });
 
-  static ThemeModel of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<ThemeProvider>()?.notifier ??
-      ThemeModel();
+  static ThemeModel of(BuildContext context) {
+    final notifier =
+        context.dependOnInheritedWidgetOfExactType<ThemeProvider>()?.notifier;
+    assert(notifier != null, 'No ThemeProvider found in context');
+    return notifier!;
+  }
 }
