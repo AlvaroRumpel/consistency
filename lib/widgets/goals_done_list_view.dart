@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../configs/utilities.dart';
 import '../models/goal_model.dart';
-import '../providers/theme_provider.dart';
 
 class GoalsDoneListView extends StatelessWidget {
   final List<GoalModel> goals;
@@ -49,10 +47,7 @@ class GoalsDoneListView extends StatelessWidget {
                     goals[index].percentCompleted,
                   ),
                   backgroundColor:
-                      (ThemeProvider.of(context).themeMode == ThemeMode.dark
-                              ? AppColors.whiteColor
-                              : AppColors.blackColor)
-                          .withValues(alpha: .5),
+                      Theme.of(context).iconTheme.color!.withValues(alpha: .5),
                 ),
                 Text(
                   '${goals[index].percentCompleted.toStringAsFixed(0)}%',
@@ -67,9 +62,7 @@ class GoalsDoneListView extends StatelessWidget {
       },
       separatorBuilder: (context, index) => Divider(
         height: 16,
-        color: ThemeProvider.of(context).themeMode == ThemeMode.dark
-            ? AppColors.whiteColor.shade900.withValues(alpha: .3)
-            : AppColors.blackColor.withValues(alpha: .3),
+        color: Theme.of(context).dividerColor,
       ),
       itemCount: goals.length,
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../configs/colors.dart';
-import '../providers/theme_provider.dart';
 
 class AddDayButton extends StatefulWidget {
   const AddDayButton({
@@ -55,6 +54,7 @@ class _AddDayButtonState extends State<AddDayButton>
       child: AnimatedBuilder(
         animation: _animation,
         builder: (context, child) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           if (widget.hasMarkedToday) {
             _iconAnimationController.forward();
           } else {
@@ -76,7 +76,7 @@ class _AddDayButtonState extends State<AddDayButton>
                   spreadRadius: _animation.value,
                 ),
                 BoxShadow(
-                  color: ThemeProvider.of(context).themeMode == ThemeMode.dark
+                  color: isDark
                       ? AppColors.blackColor.shade500
                       : AppColors.whiteColor.shade700,
                   spreadRadius: _animation.value / 1.5,
@@ -94,9 +94,7 @@ class _AddDayButtonState extends State<AddDayButton>
                 child: AnimatedIcon(
                   icon: AnimatedIcons.add_event,
                   progress: _iconAnimation,
-                  color: ThemeProvider.of(context).themeMode == ThemeMode.dark
-                      ? AppColors.whiteColor
-                      : AppColors.blackColor.shade300,
+                  color: Theme.of(context).iconTheme.color,
                   size: MediaQuery.of(context).size.width * .2,
                 ),
               ),

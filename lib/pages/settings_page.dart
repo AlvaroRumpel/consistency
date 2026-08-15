@@ -197,9 +197,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
     );
 
     return await showModalBottomSheet<String>(
-      backgroundColor: ThemeProvider.of(context).themeMode == ThemeMode.dark
-          ? AppColors.blackColor
-          : AppColors.whiteColor.shade700,
+      backgroundColor: Theme.of(context).cardColor,
       context: context,
       builder: (context) {
         return Padding(
@@ -212,10 +210,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   maxLength: 25,
                   controller: nicknameEC,
                   style: context.textStyles.normalText,
-                  cursorColor:
-                      ThemeProvider.of(context).themeMode == ThemeMode.dark
-                          ? AppColors.whiteColor.shade50
-                          : AppColors.blackColor,
+                  cursorColor: Theme.of(context).textSelectionTheme.cursorColor,
                   decoration: InputDecoration(
                     label: Text(
                       'Nickname',
@@ -264,10 +259,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
           titlePadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           actionsPadding:
               const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          backgroundColor:
-              ThemeProvider.of(context).themeMode == ThemeMode.light
-                  ? AppColors.whiteColor.shade50
-                  : AppColors.blackColor,
+          backgroundColor: Theme.of(context).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
@@ -322,10 +314,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         return AlertDialog(
           insetPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
           titlePadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          backgroundColor:
-              ThemeProvider.of(context).themeMode == ThemeMode.light
-                  ? AppColors.whiteColor.shade50
-                  : AppColors.blackColor,
+          backgroundColor: Theme.of(context).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),

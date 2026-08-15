@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
-import '../providers/theme_provider.dart';
 
 class ListTileCustom extends StatelessWidget {
   final String title;
@@ -18,7 +17,7 @@ class ListTileCustom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = ThemeProvider.of(context).themeMode == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [

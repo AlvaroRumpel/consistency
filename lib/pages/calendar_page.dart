@@ -4,7 +4,6 @@ import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
-import '../providers/theme_provider.dart';
 import '../widgets/goals_done_list_view.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -49,9 +48,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  color: ThemeProvider.of(context).themeMode == ThemeMode.dark
-                      ? AppColors.blackColor
-                      : AppColors.whiteColor.shade700,
+                  color: Theme.of(context).cardColor,
                   border: Border.all(
                     color: AppColors.primaryColor,
                     width: 2,
@@ -70,22 +67,11 @@ class _CalendarPageState extends State<CalendarPage> {
                         headerMargin: const EdgeInsets.all(0),
                         weekDayMargin: const EdgeInsets.all(0),
                         childAspectRatio: 1,
-                        dayButtonColor: ThemeProvider.of(context).themeMode ==
-                                ThemeMode.dark
-                            ? AppColors.blackColor
-                            : AppColors.whiteColor.shade700,
+                        dayButtonColor: Theme.of(context).cardColor,
                         selectedDateTime: state.selectedDay,
                         iconColor: AppColors.primaryColor,
-                        weekDayBackgroundColor:
-                            ThemeProvider.of(context).themeMode ==
-                                    ThemeMode.dark
-                                ? AppColors.blackColor
-                                : AppColors.whiteColor.shade700,
-                        selectedDayButtonColor:
-                            ThemeProvider.of(context).themeMode ==
-                                    ThemeMode.dark
-                                ? AppColors.blackColor
-                                : AppColors.whiteColor.shade700,
+                        weekDayBackgroundColor: Theme.of(context).cardColor,
+                        selectedDayButtonColor: Theme.of(context).cardColor,
                         selectedDayBorderColor: AppColors.primaryColor,
                         daysHaveCircularBorder: true,
                         daysTextStyle: context.textStyles.normalText,
@@ -126,10 +112,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: ThemeProvider.of(context).themeMode ==
-                                  ThemeMode.dark
-                              ? AppColors.blackColor
-                              : AppColors.whiteColor.shade700,
+                          color: Theme.of(context).cardColor,
                           border: Border.all(
                             color: AppColors.primaryColor,
                             width: 2,
