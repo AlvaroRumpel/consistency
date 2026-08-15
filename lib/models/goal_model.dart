@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class GoalModel {
   String name;
   double percentCompleted;
@@ -22,11 +20,6 @@ class GoalModel {
       percentCompleted: map['percentCompleted']?.toDouble() ?? 0.0,
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory GoalModel.fromJson(String source) =>
-      GoalModel.fromMap(json.decode(source));
 
   GoalModel copyWith({
     String? name,

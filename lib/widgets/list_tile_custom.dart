@@ -7,34 +7,27 @@ import '../providers/theme_provider.dart';
 class ListTileCustom extends StatelessWidget {
   final String title;
   final bool top;
-  final bool bottom;
   final VoidCallback onTap;
 
   const ListTileCustom({
     super.key,
     required this.title,
     this.top = false,
-    this.bottom = false,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = ThemeProvider.of(context).themeMode == ThemeMode.dark;
+
     return Column(
       children: [
         Ink(
           child: InkWell(
             onTap: onTap,
             splashColor: AppColors.primaryColor.shade50,
-            borderRadius: BorderRadius.only(
-              topLeft:
-                  top ? const Radius.circular(16) : const Radius.circular(0),
-              topRight:
-                  top ? const Radius.circular(16) : const Radius.circular(0),
-              bottomLeft:
-                  bottom ? const Radius.circular(16) : const Radius.circular(0),
-              bottomRight:
-                  bottom ? const Radius.circular(16) : const Radius.circular(0),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(top ? 16 : 0),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -51,14 +44,11 @@ class ListTileCustom extends StatelessWidget {
                       textAlign: TextAlign.end,
                     ),
                   ),
-                  const SizedBox(
-                    width: 8,
-                  ),
+                  const SizedBox(width: 8),
                   Icon(
                     Icons.arrow_forward_ios,
-                    color: ThemeProvider.of(context).themeMode == ThemeMode.dark
-                        ? AppColors.whiteColor
-                        : AppColors.blackColor,
+                    color:
+                        isDark ? AppColors.whiteColor : AppColors.blackColor,
                     size: 16,
                   ),
                 ],
@@ -66,24 +56,15 @@ class ListTileCustom extends StatelessWidget {
             ),
           ),
         ),
-        Visibility(
-          visible: !bottom,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: ThemeProvider.of(context).themeMode == ThemeMode.dark
-                    ? [
-                        AppColors.blackColor,
-                        AppColors.blackColor.shade200,
-                      ]
-                    : [
-                        AppColors.whiteColor.shade700,
-                        AppColors.blackColor.shade50,
-                      ],
-              ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [AppColors.blackColor, AppColors.blackColor.shade200]
+                  : [AppColors.whiteColor.shade700, AppColors.blackColor.shade50],
             ),
-            height: 2,
           ),
+          height: 2,
         ),
       ],
     );
