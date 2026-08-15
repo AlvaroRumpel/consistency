@@ -28,6 +28,7 @@ class ThemeModel extends ChangeNotifier {
 }
 
 ThemeData themeDark = ThemeData(
+  brightness: Brightness.dark,
   primarySwatch: AppColors.primaryColor,
   primaryColor: AppColors.primaryColor,
   scaffoldBackgroundColor: AppColors.blackColor,
@@ -124,6 +125,7 @@ ThemeData themeDark = ThemeData(
 );
 
 ThemeData themeLight = ThemeData(
+  brightness: Brightness.light,
   primarySwatch: AppColors.primaryColor,
   primaryColor: AppColors.primaryColor,
   scaffoldBackgroundColor: AppColors.whiteColor.shade700,
@@ -170,9 +172,8 @@ ThemeData themeLight = ThemeData(
     contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
     labelStyle: const TextStyles(false).normalText,
     floatingLabelStyle: const TextStyles(false).normalText,
-    errorStyle: const TextStyles(false)
-        .normalText
-        .copyWith(color: AppColors.redColor),
+    errorStyle:
+        const TextStyles(false).normalText.copyWith(color: AppColors.redColor),
   ),
   progressIndicatorTheme: const ProgressIndicatorThemeData(
     color: AppColors.primaryColor,

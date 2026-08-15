@@ -43,7 +43,8 @@ class _GoalsListViewState extends State<GoalsListView> {
                     maxLength: 50,
                     style: context.textStyles.normalText,
                     enabled: !widget.hasMarkedToday,
-                    cursorColor: Theme.of(context).textSelectionTheme.cursorColor,
+                    cursorColor:
+                        Theme.of(context).textSelectionTheme.cursorColor,
                     decoration: InputDecoration(
                       counterText: '',
                       label: Text(

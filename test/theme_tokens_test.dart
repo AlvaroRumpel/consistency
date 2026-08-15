@@ -1,5 +1,7 @@
+import 'package:consistency/configs/colors.dart';
 import 'package:consistency/configs/theme.dart';
 import 'package:consistency/main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,18 +9,22 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ThemeData tokens', () {
-    test('themeDark defines every token this task introduced', () {
-      expect(themeDark.cardColor, isNotNull);
-      expect(themeDark.iconTheme.color, isNotNull);
-      expect(themeDark.dividerColor, isNotNull);
-      expect(themeDark.textSelectionTheme.cursorColor, isNotNull);
+    test('themeDark carries the exact dark-mode token values', () {
+      expect(themeDark.brightness, Brightness.dark);
+      expect(themeDark.cardColor, AppColors.blackColor);
+      expect(themeDark.iconTheme.color, AppColors.whiteColor);
+      expect(themeDark.dividerColor,
+          AppColors.whiteColor.shade900.withValues(alpha: .3));
+      expect(themeDark.textSelectionTheme.cursorColor, AppColors.whiteColor);
     });
 
-    test('themeLight defines every token this task introduced', () {
-      expect(themeLight.cardColor, isNotNull);
-      expect(themeLight.iconTheme.color, isNotNull);
-      expect(themeLight.dividerColor, isNotNull);
-      expect(themeLight.textSelectionTheme.cursorColor, isNotNull);
+    test('themeLight carries the exact light-mode token values', () {
+      expect(themeLight.brightness, Brightness.light);
+      expect(themeLight.cardColor, AppColors.whiteColor.shade700);
+      expect(themeLight.iconTheme.color, AppColors.blackColor);
+      expect(
+          themeLight.dividerColor, AppColors.blackColor.withValues(alpha: .3));
+      expect(themeLight.textSelectionTheme.cursorColor, AppColors.blackColor);
     });
   });
 
