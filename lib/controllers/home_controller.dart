@@ -61,12 +61,19 @@ class HomeController extends BaseController<HomeState> {
   @override
   void onInit() async {
     localData = await LocalData.i;
+    LocalData.revision.addListener(_reload);
     emitGuard(
       loadingState: HomeLoading(),
       newState: recoveryData,
       errorState: (e) => HomeError(message: e.toString()),
     );
   }
+
+  void _reload() => emitGuard(
+        loadingState: HomeLoading(),
+        newState: recoveryData,
+        errorState: (e) => HomeError(message: e.toString()),
+      );
 
   Future<HomeState> recoveryData([HomeState? oldState]) async {
     final nickname = await localData.searchNickname() ?? 'User';
@@ -199,6 +206,7 @@ class HomeController extends BaseController<HomeState> {
 
   @override
   void onDispose() {
+    LocalData.revision.removeListener(_reload);
     for (final controller in goalsControllers) {
       controller.dispose();
     }

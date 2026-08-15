@@ -38,7 +38,14 @@ class CalendarController extends BaseController<CalendarState> {
   @override
   void onInit() async {
     _localData = await LocalData.i;
-    _userData.addAll((await _localData.searchUserData() ?? []));
+    LocalData.revision.addListener(_reload);
+    await _reload();
+  }
+
+  Future<void> _reload() async {
+    _userData
+      ..clear()
+      ..addAll(await _localData.searchUserData() ?? []);
     treatData();
   }
 
@@ -100,5 +107,11 @@ class CalendarController extends BaseController<CalendarState> {
         selectedDay: date,
       ),
     );
+  }
+
+  @override
+  void onDispose() {
+    LocalData.revision.removeListener(_reload);
+    super.onDispose();
   }
 }

@@ -38,7 +38,18 @@ class _AddDayButtonState extends State<AddDayButton>
 
     _animationController.repeat(reverse: true);
 
+    if (widget.hasMarkedToday) _iconAnimationController.value = 1;
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(AddDayButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.hasMarkedToday != oldWidget.hasMarkedToday) {
+      widget.hasMarkedToday
+          ? _iconAnimationController.forward()
+          : _iconAnimationController.reverse();
+    }
   }
 
   @override
@@ -55,11 +66,6 @@ class _AddDayButtonState extends State<AddDayButton>
         animation: _animation,
         builder: (context, child) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          if (widget.hasMarkedToday) {
-            _iconAnimationController.forward();
-          } else {
-            _iconAnimationController.reverse();
-          }
 
           return Ink(
             height: MediaQuery.of(context).size.height * .5,

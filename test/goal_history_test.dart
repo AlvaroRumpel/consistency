@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:consistency/configs/local_data.dart';
 import 'package:consistency/controllers/home_controller.dart';
 import 'package:consistency/models/date_goal_model.dart';
 import 'package:consistency/models/goal_model.dart';
@@ -22,6 +23,18 @@ Future<void> settle(HomeController controller) async {
     if (controller.state is HomeData) return;
   }
   fail('controller never reached HomeData; state was ${controller.state}');
+}
+
+/// Like [settle], but waits specifically for the empty state: after a wipe,
+/// state briefly passes through HomeLoading and lands on HomeDataEmpty, which
+/// is itself a HomeData — so `settle`'s `is HomeData` check would return
+/// immediately on the pre-wipe state instead of waiting for the reload.
+Future<void> settleEmpty(HomeController controller) async {
+  for (var i = 0; i < 20; i++) {
+    await Future<void>.delayed(Duration.zero);
+    if (controller.state is HomeDataEmpty) return;
+  }
+  fail('controller never reached HomeDataEmpty; state was ${controller.state}');
 }
 
 void main() {
@@ -62,6 +75,30 @@ void main() {
     await Future.wait([first, second]);
 
     expect(controller.userData.length, 2, reason: 'today was marked twice');
+
+    controller.onDispose();
+  });
+
+  test('a data wipe reloads Home and drops stale goal controllers', () async {
+    final controller = HomeController();
+    await settle(controller);
+
+    expect(controller.goalsControllers.single.text, 'Run');
+
+    // Settings' "Delete all data", from another live page.
+    final localData = await LocalData.i;
+    await localData.clearAllData();
+    await settleEmpty(controller);
+
+    expect(controller.state, isA<HomeDataEmpty>());
+    expect(controller.goalsControllers, isEmpty,
+        reason: 'orphan controller survived the reload');
+
+    // The user-visible symptom: a new goal must not inherit the old name.
+    controller.addNewGoal();
+    final goals = (controller.state as HomeData).goals;
+    expect(goals.single.name, 'New Goal');
+    expect(goals.any((goal) => goal.name == 'Run'), isFalse);
 
     controller.onDispose();
   });

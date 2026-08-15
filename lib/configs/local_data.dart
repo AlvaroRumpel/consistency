@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/date_goal_model.dart';
@@ -14,6 +15,11 @@ class LocalData {
   static SharedPreferences? _sharedPreferences;
 
   static LocalData? _instance;
+
+  /// Bumped when data is wiped or restored from outside the controller that
+  /// owns it, so other live pages can reload. Not bumped by saveUserData —
+  /// its only caller already holds the resulting state.
+  static final ValueNotifier<int> revision = ValueNotifier(0);
 
   LocalData._();
   static Future<LocalData> get i async {
@@ -72,6 +78,7 @@ class LocalData {
       await saveUserData(recoveryModel.userData!);
     }
 
+    revision.value++;
     return true;
   }
 
@@ -81,5 +88,6 @@ class LocalData {
     await _sharedPreferences!.clear();
     await saveTheme(theme);
     await _sharedPreferences!.setString(_recoveryData, recoveryModel.toJson());
+    revision.value++;
   }
 }
