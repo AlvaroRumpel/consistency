@@ -79,6 +79,41 @@ void main() {
     controller.onDispose();
   });
 
+  test('saveData snapshots the entry it appends, not a live reference',
+      () async {
+    // LocalData caches its SharedPreferences instance in a static (see
+    // theme_tokens_test.dart / theme_tokens_light_test.dart for the same
+    // root cause), so setUp()'s setMockInitialValues above only takes effect
+    // for the very first LocalData access in this whole file. Reseed through
+    // LocalData's own setters instead, so this test is correct no matter
+    // what earlier tests in this file already wrote.
+    final seedLocalData = await LocalData.i;
+    await seedLocalData.saveNickname('Alvaro');
+    await seedLocalData.saveUserData([
+      DateGoalModel(
+        date: DateTime(2026, 1, 1),
+        goals: [GoalModel(name: 'Run', percentCompleted: 50)],
+      ),
+    ]);
+
+    final controller = HomeController();
+    await settle(controller);
+
+    await controller.saveData();
+
+    // The user drags the slider and renames the goal after saving today.
+    final live = (controller.state as HomeData).goals;
+    live.single.percentCompleted = 100;
+    live.single.name = 'Sprint';
+
+    final savedToday = controller.userData.last.goals.single;
+    expect(savedToday.percentCompleted, 50,
+        reason: "today's entry was rewritten");
+    expect(savedToday.name, 'Run', reason: "today's entry was rewritten");
+
+    controller.onDispose();
+  });
+
   test('a data wipe reloads Home and drops stale goal controllers', () async {
     final controller = HomeController();
     await settle(controller);
