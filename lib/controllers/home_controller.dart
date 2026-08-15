@@ -38,6 +38,7 @@ class HomeController extends BaseController<HomeState> {
   late LocalData localData;
   List<TextEditingController> goalsControllers = <TextEditingController>[];
   final userData = <DateGoalModel>[];
+  bool _saving = false;
 
   HomeController() : super(HomeInitial());
 
@@ -76,6 +77,9 @@ class HomeController extends BaseController<HomeState> {
       ..addAll(userGoals ?? []);
 
     if (userGoals == null || userGoals.isEmpty) {
+      // Drop any controllers left over from a previous load, or saveData would
+      // read a stale one and persist the new goal under the old name.
+      setGoalsControllers(const []);
       return HomeDataEmpty(nickname: nickname);
     }
 
@@ -110,32 +114,40 @@ class HomeController extends BaseController<HomeState> {
 
   Future<void> saveData() async {
     final current = state;
-    if (current is! HomeData ||
+    // _saving holds across the await; hasMarkedToday is only emitted after it,
+    // so on its own it lets a double tap append today twice.
+    if (_saving ||
+        current is! HomeData ||
         current.hasMarkedToday ||
         current.goals.isEmpty) {
       return;
     }
+    _saving = true;
 
-    // Snapshot, so later slider drags and renames cannot reach the history.
-    final snapshot = [
-      for (var i = 0; i < current.goals.length; i++)
-        current.goals[i].copyWith(name: goalsControllers[i].text),
-    ];
+    try {
+      // Snapshot, so later slider drags and renames cannot reach the history.
+      final snapshot = [
+        for (var i = 0; i < current.goals.length; i++)
+          current.goals[i].copyWith(name: goalsControllers[i].text),
+      ];
 
-    for (var i = 0; i < current.goals.length; i++) {
-      current.goals[i].name = goalsControllers[i].text;
+      for (var i = 0; i < current.goals.length; i++) {
+        current.goals[i].name = goalsControllers[i].text;
+      }
+
+      userData.add(DateGoalModel(date: _today, goals: snapshot));
+      await localData.saveUserData(userData);
+
+      emit(
+        HomeData(
+          nickname: current.nickname,
+          goals: current.goals,
+          hasMarkedToday: true,
+        ),
+      );
+    } finally {
+      _saving = false;
     }
-
-    userData.add(DateGoalModel(date: _today, goals: snapshot));
-    await localData.saveUserData(userData);
-
-    emit(
-      HomeData(
-        nickname: current.nickname,
-        goals: current.goals,
-        hasMarkedToday: true,
-      ),
-    );
   }
 
   void addNewGoal() {

@@ -52,6 +52,20 @@ void main() {
     controller.onDispose();
   });
 
+  test('a double tap only marks today once', () async {
+    final controller = HomeController();
+    await settle(controller);
+
+    // Two taps landing before the first save resolves.
+    final first = controller.saveData();
+    final second = controller.saveData();
+    await Future.wait([first, second]);
+
+    expect(controller.userData.length, 2, reason: 'today was marked twice');
+
+    controller.onDispose();
+  });
+
   test('copyWith produces an independent instance', () {
     final original = GoalModel(name: 'Read', percentCompleted: 25);
     final copy = original.copyWith();
