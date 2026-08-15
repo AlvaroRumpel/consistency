@@ -42,3 +42,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/app/.cxx/
+
+# Local tooling (MCP servers, generated graphs)
+.mcp.json
+/graphify-out/
+/.code-review-graph/
