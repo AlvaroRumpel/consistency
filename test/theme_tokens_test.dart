@@ -1,11 +1,9 @@
 import 'package:consistency/configs/colors.dart';
 import 'package:consistency/configs/theme.dart';
-import 'package:consistency/data/settings_repository.dart';
-import 'package:consistency/main.dart';
-import 'package:consistency/state/settings_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,14 +30,10 @@ void main() {
 
   group('app smoke test', () {
     testWidgets('builds with no exception in dark mode', (tester) async {
-      SharedPreferences.setMockInitialValues({'themeDark': true});
-      final prefs = await SharedPreferences.getInstance();
-      await tester.pumpWidget(
-        ConsistencyApp(settings: SettingsStore(SettingsRepository(prefs))),
-      );
+      await tester.pumpWidget(await buildApp(prefs: {'themeDark': true}));
       await tester.pump();
-      // A few real frames: lets the splash navigation (async over LocalData.i)
-      // settle without a wall-clock timer.
+      // A few real frames: lets the splash navigation settle without a
+      // wall-clock timer.
       for (var i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 16));
       }

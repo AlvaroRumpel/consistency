@@ -1,9 +1,10 @@
-import 'dart:developer';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../configs/local_data.dart';
 import '../configs/text_styles.dart';
+import '../state/app_store.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -17,11 +18,17 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Warm the storage singleton; if it fails, the pages surface the error.
-      try {
-        await LocalData.i;
-      } catch (e, s) {
-        log('LocalData init failed', error: e, stackTrace: s);
+      final store = context.read<AppStore>();
+      // Already loaded (widget tests seed it) — nothing to wait for.
+      if (!store.loaded && store.loadError == null) {
+        final completer = Completer<void>();
+        void onStoreChanged() {
+          if (store.loaded || store.loadError != null) completer.complete();
+        }
+
+        store.addListener(onStoreChanged);
+        await completer.future;
+        store.removeListener(onStoreChanged);
       }
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);

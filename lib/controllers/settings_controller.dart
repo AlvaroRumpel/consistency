@@ -1,4 +1,5 @@
-import '../configs/local_data.dart';
+import '../state/app_store.dart';
+import '../state/settings_store.dart';
 import 'base_controller.dart';
 
 sealed class SettingState {}
@@ -18,72 +19,35 @@ class SettingData extends SettingState {
 }
 
 class SettingsController extends BaseController<SettingState> {
-  late LocalData _localData;
+  final AppStore store;
+  final SettingsStore settings;
 
-  SettingsController(super.initialState);
+  SettingsController(this.store, this.settings) : super(SettingLoading());
 
   @override
-  void onInit() => reload();
-
-  Future<void> reload() async {
-    await emitGuard(
-      loadingState: SettingLoading(),
-      newState: (_) async {
-        _localData = await LocalData.i;
-        return SettingData(
-            nickname: await _localData.searchNickname() ?? 'User');
-      },
-      errorState: (e) => SettingError(message: e.toString()),
-    );
+  void onInit() {
+    settings.addListener(reload);
+    reload();
   }
 
-  Future<void> clearAllData() async {
-    final current = state;
-    if (current is! SettingData) return;
+  void reload() => emit(SettingData(nickname: settings.nicknameOrDefault));
 
-    emitGuard(
-      loadingState: SettingData(nickname: current.nickname),
-      newState: (_) async {
-        await _localData.clearAllData();
-        return SettingData(nickname: 'User');
-      },
-      errorState: (e) => SettingError(message: e.toString()),
-    );
-  }
+  Future<void> clearAllData() => store.clearAll();
 
-  Future<bool> undoClearAllData() async {
-    final current = state;
-    if (current is! SettingData) return false;
-
-    var success = await _localData.undoRecoveryData();
-
-    if (success) {
-      final nickname = await _localData.searchNickname() ?? 'User';
-      emit(SettingData(nickname: nickname));
-    }
-
-    return success;
-  }
+  Future<bool> undoClearAllData() => store.undoClear();
 
   Future<bool> saveNickname(String? newNickname) async {
-    final current = state;
-    if (current is! SettingData) return false;
-
-    if (newNickname == null ||
-        newNickname.isEmpty ||
-        newNickname == current.nickname) {
+    final nickname = newNickname?.trim();
+    if (nickname == null || nickname.isEmpty || nickname == settings.nickname) {
       return true;
     }
+    await settings.setNickname(nickname);
+    return true;
+  }
 
-    await emitGuard(
-      loadingState: SettingData(nickname: current.nickname),
-      newState: (_) async {
-        await _localData.saveNickname(newNickname);
-        return SettingData(nickname: newNickname);
-      },
-      errorState: (e) => SettingError(message: e.toString()),
-    );
-
-    return state is SettingData;
+  @override
+  void onDispose() {
+    settings.removeListener(reload);
+    super.onDispose();
   }
 }

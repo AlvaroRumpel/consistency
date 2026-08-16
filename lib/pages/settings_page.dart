@@ -6,6 +6,7 @@ import '../configs/colors.dart';
 import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
 import '../controllers/settings_controller.dart';
+import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
 import '../widgets/list_tile_custom.dart';
@@ -22,8 +23,11 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
 
   @override
   void initState() {
-    _controller = SettingsController(SettingLoading());
     super.initState();
+    _controller = SettingsController(
+      context.read<AppStore>(),
+      context.read<SettingsStore>(),
+    );
   }
 
   @override
