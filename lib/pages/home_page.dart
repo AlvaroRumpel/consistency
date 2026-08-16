@@ -138,7 +138,8 @@ class HomePageState extends State<HomePage> {
                             message: message,
                             onRetry: _controller.reload,
                           ),
-                        HomeInitial() || HomeLoading() =>
+                        HomeInitial() ||
+                        HomeLoading() =>
                           const SizedBox.shrink(),
                       };
                     },

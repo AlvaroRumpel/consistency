@@ -17,8 +17,6 @@ class ListTileCustom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       children: [
         Ink(
@@ -46,8 +44,7 @@ class ListTileCustom extends StatelessWidget {
                   const SizedBox(width: 8),
                   Icon(
                     Icons.arrow_forward_ios,
-                    color:
-                        isDark ? AppColors.whiteColor : AppColors.blackColor,
+                    color: Theme.of(context).colorScheme.onSurface,
                     size: 16,
                   ),
                 ],
@@ -55,16 +52,7 @@ class ListTileCustom extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [AppColors.blackColor, AppColors.blackColor.shade200]
-                  : [AppColors.whiteColor.shade700, AppColors.blackColor.shade50],
-            ),
-          ),
-          height: 2,
-        ),
+        Divider(height: 2, thickness: 1, color: Theme.of(context).dividerColor),
       ],
     );
   }

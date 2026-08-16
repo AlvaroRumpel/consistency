@@ -125,18 +125,13 @@ class SkelentonPageState extends State<SkelentonPage>
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {
-              final isDark = Theme.of(context).brightness == Brightness.dark;
               return SizedBox(
                 height: animationBoxSize.value.height,
                 width: animationBoxSize.value.width,
                 child: FloatingActionButton(
-                  backgroundColor: isDark
-                      ? value == 1
-                          ? AppColors.primaryColor.shade500
-                          : AppColors.primaryColor.shade900
-                      : value == 1
-                          ? AppColors.primaryColor.shade50
-                          : AppColors.primaryColor.shade500,
+                  backgroundColor: value == 1
+                      ? AppColors.primaryColor
+                      : Theme.of(context).colorScheme.surfaceContainerLow,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -149,13 +144,9 @@ class SkelentonPageState extends State<SkelentonPage>
                         top: animationIconPosition.value,
                         child: Icon(
                           Icons.home_outlined,
-                          color: isDark
-                              ? value == 1
-                                  ? AppColors.whiteColor.shade500
-                                  : AppColors.whiteColor.shade900
-                              : value == 1
-                                  ? AppColors.blackColor.shade500
-                                  : AppColors.blackColor.shade900,
+                          color: value == 1
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Positioned(

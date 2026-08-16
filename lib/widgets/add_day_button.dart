@@ -65,8 +65,6 @@ class _AddDayButtonState extends State<AddDayButton>
       child: AnimatedBuilder(
         animation: _animation,
         builder: (context, child) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-
           return Ink(
             height: MediaQuery.of(context).size.height * .5,
             width: MediaQuery.of(context).size.width * .6,
@@ -82,9 +80,7 @@ class _AddDayButtonState extends State<AddDayButton>
                   spreadRadius: _animation.value,
                 ),
                 BoxShadow(
-                  color: isDark
-                      ? AppColors.blackColor.shade500
-                      : AppColors.whiteColor.shade700,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   spreadRadius: _animation.value / 1.5,
                 ),
               ],

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
+import 'app_tokens.dart';
 
+/// Kept for callers that have no BuildContext (calendar controller). q1–q4
+/// are theme-independent, so the light table is safe here.
 class Utilities {
-  static Color activeColor(double value) {
-    if (value < 25.0) return AppColors.redColor.shade900;
-    if (value < 50.0) return AppColors.redColor;
-    if (value < 75.0) return AppColors.redColor.shade50;
-    if (value <= 82.0) return AppColors.primaryColor;
-    return AppColors.greenColor;
-  }
+  static Color activeColor(double value) => AppTokens.light.qualityFor(value);
 }

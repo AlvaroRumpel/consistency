@@ -68,32 +68,32 @@ class _CalendarPageState extends State<CalendarPage> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     return CalendarCarousel(
-                        scrollDirection: Axis.horizontal,
-                        markedDatesMap: state.eventList,
-                        pageSnapping: true,
-                        headerMargin: const EdgeInsets.all(0),
-                        weekDayMargin: const EdgeInsets.all(0),
-                        childAspectRatio: 1,
-                        dayButtonColor: Theme.of(context).cardColor,
-                        selectedDateTime: state.selectedDay,
-                        iconColor: AppColors.primaryColor,
-                        weekDayBackgroundColor: Theme.of(context).cardColor,
-                        selectedDayButtonColor: Theme.of(context).cardColor,
-                        selectedDayBorderColor: AppColors.primaryColor,
-                        daysHaveCircularBorder: true,
-                        daysTextStyle: context.textStyles.normalText,
-                        weekdayTextStyle: context.textStyles.normalText,
-                        weekendTextStyle: context.textStyles.normalText,
-                        selectedDayTextStyle: context.textStyles.boldText,
-                        headerTextStyle: context.textStyles.normalText.copyWith(
-                          fontSize: 20,
-                        ),
-                        todayButtonColor: Colors.transparent,
-                        todayBorderColor: AppColors.whiteColor,
-                        weekDayFormat: WeekdayFormat.short,
-                        onDayPressed: (date, eventList) =>
-                            _controller.selectDay(date),
-                      );
+                      scrollDirection: Axis.horizontal,
+                      markedDatesMap: state.eventList,
+                      pageSnapping: true,
+                      headerMargin: const EdgeInsets.all(0),
+                      weekDayMargin: const EdgeInsets.all(0),
+                      childAspectRatio: 1,
+                      dayButtonColor: Theme.of(context).cardColor,
+                      selectedDateTime: state.selectedDay,
+                      iconColor: AppColors.primaryColor,
+                      weekDayBackgroundColor: Theme.of(context).cardColor,
+                      selectedDayButtonColor: Theme.of(context).cardColor,
+                      selectedDayBorderColor: AppColors.primaryColor,
+                      daysHaveCircularBorder: true,
+                      daysTextStyle: context.textStyles.normalText,
+                      weekdayTextStyle: context.textStyles.normalText,
+                      weekendTextStyle: context.textStyles.normalText,
+                      selectedDayTextStyle: context.textStyles.boldText,
+                      headerTextStyle: context.textStyles.normalText.copyWith(
+                        fontSize: 20,
+                      ),
+                      todayButtonColor: Colors.transparent,
+                      todayBorderColor: AppColors.whiteColor,
+                      weekDayFormat: WeekdayFormat.short,
+                      onDayPressed: (date, eventList) =>
+                          _controller.selectDay(date),
+                    );
                   },
                 ),
               ),
@@ -108,35 +108,35 @@ class _CalendarPageState extends State<CalendarPage> {
               }
               final value = state.selectedDaysGoals;
               return SliverVisibility(
-                    visible: value != null,
-                    sliver: SliverToBoxAdapter(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: Theme.of(context).cardColor,
-                          border: Border.all(
-                            color: AppColors.primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Goals completed in ${value?.date.month}/${value?.date.day}',
-                              style: context.textStyles.boldText,
-                            ),
-                            const SizedBox(height: 8),
-                            GoalsDoneListView(goals: value?.goals ?? [])
-                          ],
-                        ),
+                visible: value != null,
+                sliver: SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: Theme.of(context).cardColor,
+                      border: Border.all(
+                        color: AppColors.primaryColor,
+                        width: 2,
                       ),
                     ),
-                  );
+                    child: Column(
+                      children: [
+                        Text(
+                          'Goals completed in ${value?.date.month}/${value?.date.day}',
+                          style: context.textStyles.boldText,
+                        ),
+                        const SizedBox(height: 8),
+                        GoalsDoneListView(goals: value?.goals ?? [])
+                      ],
+                    ),
+                  ),
+                ),
+              );
             },
           ),
         ],
