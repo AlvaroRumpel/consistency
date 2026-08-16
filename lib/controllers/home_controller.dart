@@ -61,7 +61,7 @@ class HomeController extends BaseController<HomeState> {
   @override
   void onInit() async {
     localData = await LocalData.i;
-    LocalData.revision.addListener(_reload);
+    LocalData.revision.addListener(reload);
     emitGuard(
       loadingState: HomeLoading(),
       newState: recoveryData,
@@ -69,7 +69,7 @@ class HomeController extends BaseController<HomeState> {
     );
   }
 
-  void _reload() => emitGuard(
+  void reload() => emitGuard(
         loadingState: HomeLoading(),
         newState: recoveryData,
         errorState: (e) => HomeError(message: e.toString()),
@@ -206,7 +206,7 @@ class HomeController extends BaseController<HomeState> {
 
   @override
   void onDispose() {
-    LocalData.revision.removeListener(_reload);
+    LocalData.revision.removeListener(reload);
     for (final controller in goalsControllers) {
       controller.dispose();
     }

@@ -23,9 +23,11 @@ class SettingsController extends BaseController<SettingState> {
   SettingsController(super.initialState);
 
   @override
-  void onInit() async {
+  void onInit() => reload();
+
+  Future<void> reload() async {
     _localData = await LocalData.i;
-    emitGuard(
+    await emitGuard(
       loadingState: SettingLoading(),
       newState: (_) async =>
           SettingData(nickname: await _localData.searchNickname() ?? 'User'),

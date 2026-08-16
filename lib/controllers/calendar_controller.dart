@@ -38,11 +38,11 @@ class CalendarController extends BaseController<CalendarState> {
   @override
   void onInit() async {
     _localData = await LocalData.i;
-    LocalData.revision.addListener(_reload);
-    await _reload();
+    LocalData.revision.addListener(reload);
+    await reload();
   }
 
-  Future<void> _reload() async {
+  Future<void> reload() async {
     _userData
       ..clear()
       ..addAll(await _localData.searchUserData() ?? []);
@@ -111,7 +111,7 @@ class CalendarController extends BaseController<CalendarState> {
 
   @override
   void onDispose() {
-    LocalData.revision.removeListener(_reload);
+    LocalData.revision.removeListener(reload);
     super.onDispose();
   }
 }
