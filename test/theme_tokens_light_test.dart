@@ -15,8 +15,11 @@ void main() {
 
     await tester.pumpWidget(const ConsistencyApp());
     await tester.pump();
-    await tester.pump();
-    await tester.pump();
+    // A few real frames: lets ThemeModel._load and the splash navigation
+    // (both async over LocalData.i) settle without a wall-clock timer.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
 
     expect(tester.takeException(), isNull);
     // Non-vacuous check that ThemeModel actually resolved the persisted
