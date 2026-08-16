@@ -31,8 +31,10 @@ class LocalData {
     _sharedPreferences ??= await SharedPreferences.getInstance();
   }
 
-  Future<bool> saveNickname(String nickname) =>
-      _sharedPreferences!.setString(_nickname, nickname);
+  Future<bool> saveNickname(String nickname) async {
+    await _forgetRecovery();
+    return _sharedPreferences!.setString(_nickname, nickname);
+  }
 
   Future<String?> searchNickname() async =>
       _sharedPreferences!.getString(_nickname);
@@ -40,8 +42,16 @@ class LocalData {
   // jsonEncode calls DateGoalModel.toJson() per element, which itself returns a
   // JSON String — so the stored value is an array of JSON strings. searchUserData
   // mirrors that. Changing it breaks every installed app's saved history.
-  Future<bool> saveUserData(List<DateGoalModel> goalsModel) =>
-      _sharedPreferences!.setString(_userData, jsonEncode(goalsModel));
+  Future<bool> saveUserData(List<DateGoalModel> goalsModel) async {
+    await _forgetRecovery();
+    return _sharedPreferences!.setString(_userData, jsonEncode(goalsModel));
+  }
+
+  /// The wipe snapshot only makes sense until the user writes something new;
+  /// after that, undo would silently overwrite fresh data.
+  Future<void> _forgetRecovery() async {
+    await _sharedPreferences!.remove(_recoveryData);
+  }
 
   Future<List<DateGoalModel>?> searchUserData() async {
     final userDataJson = _sharedPreferences!.getString(_userData);
