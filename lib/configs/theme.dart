@@ -23,11 +23,15 @@ class ThemeModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setDark(bool value) async {
-    _themeMode = value ? ThemeMode.dark : ThemeMode.light;
+  Future<void> setMode(ThemeMode mode) async {
+    _themeMode = mode;
     notifyListeners();
     final localData = await LocalData.i;
-    await localData.saveTheme(value);
+    await localData.saveThemeDark(switch (mode) {
+      ThemeMode.system => null,
+      ThemeMode.dark => true,
+      ThemeMode.light => false,
+    });
   }
 }
 

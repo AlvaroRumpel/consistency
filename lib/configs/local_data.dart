@@ -63,8 +63,11 @@ class LocalData {
     ];
   }
 
-  Future<bool> saveTheme(bool value) =>
-      _sharedPreferences!.setBool(_themeDark, value);
+  /// null = follow the system. Stored on the legacy `themeDark` bool key so
+  /// installed apps keep their choice.
+  Future<void> saveThemeDark(bool? dark) => dark == null
+      ? _sharedPreferences!.remove(_themeDark)
+      : _sharedPreferences!.setBool(_themeDark, dark);
 
   /// null = user never chose; caller falls back to ThemeMode.system.
   bool? searchTheme() => _sharedPreferences?.getBool(_themeDark);
@@ -102,7 +105,7 @@ class LocalData {
     final theme = searchTheme();
     final recoveryModel = await _saveRecoveryData();
     await _sharedPreferences!.clear();
-    if (theme != null) await saveTheme(theme);
+    await saveThemeDark(theme);
     await _sharedPreferences!.setString(_recoveryData, recoveryModel.toJson());
     revision.value++;
   }
