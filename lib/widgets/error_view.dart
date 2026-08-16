@@ -22,6 +22,8 @@ class ErrorView extends StatelessWidget {
             message,
             style: context.textStyles.normalText,
             textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(

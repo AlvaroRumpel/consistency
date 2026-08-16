@@ -83,9 +83,12 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 ValueListenableBuilder(
                   valueListenable: _controller.stateNotifier,
                   builder: (context, value, _) => value is SettingError
-                      ? ErrorView(
-                          message: value.message,
-                          onRetry: _controller.reload,
+                      ? SizedBox(
+                          width: double.infinity,
+                          child: ErrorView(
+                            message: value.message,
+                            onRetry: _controller.reload,
+                          ),
                         )
                       : const SizedBox.shrink(),
                 ),
