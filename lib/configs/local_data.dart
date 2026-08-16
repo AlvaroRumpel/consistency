@@ -56,7 +56,8 @@ class LocalData {
   Future<bool> saveTheme(bool value) =>
       _sharedPreferences!.setBool(_themeDark, value);
 
-  bool searchTheme() => _sharedPreferences?.getBool(_themeDark) ?? false;
+  /// null = user never chose; caller falls back to ThemeMode.system.
+  bool? searchTheme() => _sharedPreferences?.getBool(_themeDark);
 
   Future<RecoveryModel> _saveRecoveryData() async => RecoveryModel(
         nickname: await searchNickname(),
@@ -86,7 +87,7 @@ class LocalData {
     final theme = searchTheme();
     final recoveryModel = await _saveRecoveryData();
     await _sharedPreferences!.clear();
-    await saveTheme(theme);
+    if (theme != null) await saveTheme(theme);
     await _sharedPreferences!.setString(_recoveryData, recoveryModel.toJson());
     revision.value++;
   }

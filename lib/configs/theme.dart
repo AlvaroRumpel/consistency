@@ -5,7 +5,7 @@ import 'local_data.dart';
 import 'text_styles.dart';
 
 class ThemeModel extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.dark;
+  ThemeMode _themeMode = ThemeMode.system;
 
   ThemeModel() {
     _load();
@@ -15,7 +15,11 @@ class ThemeModel extends ChangeNotifier {
 
   Future<void> _load() async {
     final localData = await LocalData.i;
-    _themeMode = localData.searchTheme() ? ThemeMode.dark : ThemeMode.light;
+    _themeMode = switch (localData.searchTheme()) {
+      null => ThemeMode.system,
+      true => ThemeMode.dark,
+      false => ThemeMode.light,
+    };
     notifyListeners();
   }
 
