@@ -50,6 +50,16 @@ void main() {
     expect((await repo.load()).goals.single.name, 'Run');
   });
 
+  test('main file with valid JSON but unknown enum value falls back to .bak',
+      () async {
+    await repo.save(sample('Run'));
+    await repo.save(sample('Sprint'));
+    File('${dir.path}/consistency.json').writeAsStringSync('''
+{"schemaVersion":2,"goals":[{"id":"x","name":"n","type":"bogus","createdAt":"2026-08-01","archivedAt":null,"updatedAt":"2026-08-01T00:00:00.000Z"}],"entries":[]}
+''');
+    expect((await repo.load()).goals.single.name, 'Run');
+  });
+
   test(
       'moveToUndo hides data; restoreFromUndo brings it back; save purges undo',
       () async {

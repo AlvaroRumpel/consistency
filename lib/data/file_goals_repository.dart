@@ -40,9 +40,10 @@ class FileGoalsRepository implements GoalsRepository {
     try {
       final j = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
       return AppData.fromJson(j);
-    } on FormatException {
-      return null;
-    } on TypeError {
+    } catch (_) {
+      // Any parse or shape failure (bad JSON, wrong schema, unknown enum
+      // value via GoalType.values.byName, etc.) means this file is
+      // unreadable — fall through to the next candidate.
       return null;
     }
   }
@@ -64,8 +65,8 @@ class FileGoalsRepository implements GoalsRepository {
   Future<void> moveToUndo() async {
     if (!await _main.exists()) return;
     if (await _deleted.exists()) await _deleted.delete();
-    await _main.rename(_deleted.path);
     if (await _bak.exists()) await _bak.delete();
+    await _main.rename(_deleted.path);
   }
 
   @override
