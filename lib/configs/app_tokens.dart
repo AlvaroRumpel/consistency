@@ -91,8 +91,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
     return AppTokens(
       success: l(success, other.success),
       cardBorder: l(cardBorder, other.cardBorder),
-      quality: [for (var i = 0; i < 5; i++) l(quality[i], other.quality[i])],
-      flame: [for (var i = 0; i < 5; i++) l(flame[i], other.flame[i])],
+      quality: [
+        for (var i = 0; i < quality.length; i++) l(quality[i], other.quality[i])
+      ],
+      flame: [
+        for (var i = 0; i < flame.length; i++) l(flame[i], other.flame[i])
+      ],
     );
   }
 }

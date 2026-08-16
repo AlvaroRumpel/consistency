@@ -51,10 +51,7 @@ ThemeData buildTheme(Brightness brightness) {
     seedColor: AppColors.primaryColor,
     brightness: brightness,
   ).copyWith(
-    // .withAlpha strips the MaterialColor's shade map down to a plain
-    // Color: Color's operator== is runtimeType-strict, so a bare
-    // MaterialColor never compares equal to Color(0xFF2CA8CB) in tests.
-    primary: AppColors.primaryColor.withAlpha(255),
+    primary: AppColors.primaryColor.shade500,
     onPrimary: Colors.white,
     surface: surface,
     onSurface: onSurface,
@@ -64,6 +61,7 @@ ThemeData buildTheme(Brightness brightness) {
     outline: AppColors.primaryColor,
     outlineVariant: divider,
     error: AppColors.redColor,
+    onError: Colors.white,
   );
 
   OutlineInputBorder border(Color c) => OutlineInputBorder(

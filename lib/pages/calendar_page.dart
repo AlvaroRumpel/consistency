@@ -89,7 +89,8 @@ class _CalendarPageState extends State<CalendarPage> {
                         fontSize: 20,
                       ),
                       todayButtonColor: Colors.transparent,
-                      todayBorderColor: AppColors.whiteColor,
+                      todayBorderColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
                       weekDayFormat: WeekdayFormat.short,
                       onDayPressed: (date, eventList) =>
                           _controller.selectDay(date),

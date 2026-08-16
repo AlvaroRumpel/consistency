@@ -12,7 +12,9 @@ void main() {
         continue;
       }
       final src = f.readAsStringSync();
-      if (src.contains('Brightness.dark') || src.contains('isDark')) {
+      if (src.contains('Brightness.dark') ||
+          src.contains('Brightness.light') ||
+          src.contains('isDark')) {
         offenders.add(f.path);
       }
     }

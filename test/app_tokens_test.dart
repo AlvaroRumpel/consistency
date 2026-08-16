@@ -26,6 +26,7 @@ void main() {
     expect(AppTokens.flameTier(99), 3);
     expect(AppTokens.flameTier(100), 4);
     expect(AppTokens.flameTier(365), 4);
+    expect(AppTokens.light.flameFor(12), AppTokens.light.flame[2]);
   });
 
   test('both themes expose AppTokens and the design surface values', () {
@@ -37,5 +38,6 @@ void main() {
     expect(themeDark.cardColor, const Color(0xFF434345));
     expect(themeLight.colorScheme.primary, const Color(0xFF2CA8CB));
     expect(themeDark.colorScheme.onSurface, const Color(0xFFF2F5F7));
+    expect(themeDark.colorScheme.onError, Colors.white);
   });
 }

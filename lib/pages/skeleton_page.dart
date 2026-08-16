@@ -131,7 +131,7 @@ class SkelentonPageState extends State<SkelentonPage>
                 child: FloatingActionButton(
                   backgroundColor: value == 1
                       ? AppColors.primaryColor
-                      : Theme.of(context).colorScheme.surfaceContainerLow,
+                      : Theme.of(context).colorScheme.surfaceContainer,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
