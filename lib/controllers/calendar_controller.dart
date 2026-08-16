@@ -36,23 +36,22 @@ class CalendarController extends BaseController<CalendarState> {
   CalendarController(super.initialState);
 
   @override
-  void onInit() async {
-    _localData = await LocalData.i;
+  void onInit() {
     LocalData.revision.addListener(reload);
-    await reload();
+    reload();
   }
 
-  Future<void> reload() async {
-    _userData
-      ..clear()
-      ..addAll(await _localData.searchUserData() ?? []);
-    treatData();
-  }
+  void reload() => treatData();
 
   void treatData() {
     emitGuard(
       loadingState: CalendarLoading(),
-      newState: (oldState) {
+      newState: (oldState) async {
+        _localData = await LocalData.i;
+        _userData
+          ..clear()
+          ..addAll(await _localData.searchUserData() ?? []);
+
         final eventListTemp = EventList<Event>(events: {});
 
         for (final item in _userData) {

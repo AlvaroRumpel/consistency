@@ -26,11 +26,13 @@ class SettingsController extends BaseController<SettingState> {
   void onInit() => reload();
 
   Future<void> reload() async {
-    _localData = await LocalData.i;
     await emitGuard(
       loadingState: SettingLoading(),
-      newState: (_) async =>
-          SettingData(nickname: await _localData.searchNickname() ?? 'User'),
+      newState: (_) async {
+        _localData = await LocalData.i;
+        return SettingData(
+            nickname: await _localData.searchNickname() ?? 'User');
+      },
       errorState: (e) => SettingError(message: e.toString()),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import '../configs/local_data.dart';
@@ -15,8 +17,12 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Warm the storage singleton; that's the only thing worth waiting for.
-      await LocalData.i;
+      // Warm the storage singleton; if it fails, the pages surface the error.
+      try {
+        await LocalData.i;
+      } catch (e, s) {
+        log('LocalData init failed', error: e, stackTrace: s);
+      }
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
       }

@@ -59,19 +59,17 @@ class HomeController extends BaseController<HomeState> {
   }
 
   @override
-  void onInit() async {
-    localData = await LocalData.i;
+  void onInit() {
     LocalData.revision.addListener(reload);
-    emitGuard(
-      loadingState: HomeLoading(),
-      newState: recoveryData,
-      errorState: (e) => HomeError(message: e.toString()),
-    );
+    reload();
   }
 
   void reload() => emitGuard(
         loadingState: HomeLoading(),
-        newState: recoveryData,
+        newState: (oldState) async {
+          localData = await LocalData.i;
+          return recoveryData(oldState);
+        },
         errorState: (e) => HomeError(message: e.toString()),
       );
 
