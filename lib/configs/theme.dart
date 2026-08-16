@@ -8,29 +8,34 @@ class ThemeModel extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
 
   ThemeModel() {
-    setThemeMode();
+    _load();
   }
 
   ThemeMode get themeMode => _themeMode;
 
-  Future<void> setThemeMode() async {
-    var localData = await LocalData.i;
+  Future<void> _load() async {
+    final localData = await LocalData.i;
     _themeMode = localData.searchTheme() ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }
 
-  void switchThemeMode() {
-    _themeMode =
-        _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+  Future<void> setDark(bool value) async {
+    _themeMode = value ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
+    final localData = await LocalData.i;
+    await localData.saveTheme(value);
   }
 }
 
 ThemeData themeDark = ThemeData(
+  brightness: Brightness.dark,
   primarySwatch: AppColors.primaryColor,
   primaryColor: AppColors.primaryColor,
   scaffoldBackgroundColor: AppColors.blackColor,
   useMaterial3: true,
+  cardColor: AppColors.blackColor,
+  iconTheme: const IconThemeData(color: AppColors.whiteColor),
+  dividerColor: AppColors.whiteColor.shade900.withValues(alpha: .3),
   inputDecorationTheme: InputDecorationTheme(
     disabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
@@ -68,9 +73,10 @@ ThemeData themeDark = ThemeData(
       ),
     ),
     contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-    labelStyle: TextStyles.i.normalText,
-    floatingLabelStyle: TextStyles.i.normalText,
-    errorStyle: TextStyles.i.normalText.copyWith(color: AppColors.redColor),
+    labelStyle: const TextStyles(true).normalText,
+    floatingLabelStyle: const TextStyles(true).normalText,
+    errorStyle:
+        const TextStyles(true).normalText.copyWith(color: AppColors.redColor),
   ),
   progressIndicatorTheme: const ProgressIndicatorThemeData(
     color: AppColors.primaryColor,
@@ -78,7 +84,7 @@ ThemeData themeDark = ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: AppColors.primaryColor,
-      textStyle: TextStyles.i.normalText,
+      textStyle: const TextStyles(true).normalText,
       alignment: Alignment.center,
       foregroundColor: AppColors.primaryColor.shade900,
     ),
@@ -96,11 +102,11 @@ ThemeData themeDark = ThemeData(
     labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
       (value) {
         if (value.contains(WidgetState.selected)) {
-          return TextStyles.i.normalText;
+          return const TextStyles(true).normalText;
         }
-        return TextStyles.i.normalText.copyWith(
-          color: AppColors.whiteColor.shade900,
-        );
+        return const TextStyles(true).normalText.copyWith(
+              color: AppColors.whiteColor.shade900,
+            );
       },
     ),
     iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
@@ -119,10 +125,14 @@ ThemeData themeDark = ThemeData(
 );
 
 ThemeData themeLight = ThemeData(
+  brightness: Brightness.light,
   primarySwatch: AppColors.primaryColor,
   primaryColor: AppColors.primaryColor,
   scaffoldBackgroundColor: AppColors.whiteColor.shade700,
   useMaterial3: true,
+  cardColor: AppColors.whiteColor.shade700,
+  iconTheme: const IconThemeData(color: AppColors.blackColor),
+  dividerColor: AppColors.blackColor.withValues(alpha: .3),
   inputDecorationTheme: InputDecorationTheme(
     disabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
@@ -160,9 +170,10 @@ ThemeData themeLight = ThemeData(
       ),
     ),
     contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-    labelStyle: TextStyles.i.normalText,
-    floatingLabelStyle: TextStyles.i.normalText,
-    errorStyle: TextStyles.i.normalText.copyWith(color: AppColors.redColor),
+    labelStyle: const TextStyles(false).normalText,
+    floatingLabelStyle: const TextStyles(false).normalText,
+    errorStyle:
+        const TextStyles(false).normalText.copyWith(color: AppColors.redColor),
   ),
   progressIndicatorTheme: const ProgressIndicatorThemeData(
     color: AppColors.primaryColor,
@@ -170,7 +181,9 @@ ThemeData themeLight = ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: AppColors.primaryColor,
-      textStyle: TextStyles.i.normalText.copyWith(color: AppColors.whiteColor),
+      textStyle: const TextStyles(false)
+          .normalText
+          .copyWith(color: AppColors.whiteColor),
       alignment: Alignment.center,
       foregroundColor: AppColors.primaryColor.shade700,
     ),
@@ -188,11 +201,11 @@ ThemeData themeLight = ThemeData(
     labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
       (value) {
         if (value.contains(WidgetState.selected)) {
-          return TextStyles.i.normalText;
+          return const TextStyles(false).normalText;
         }
-        return TextStyles.i.normalText.copyWith(
-          color: AppColors.blackColor,
-        );
+        return const TextStyles(false).normalText.copyWith(
+              color: AppColors.blackColor,
+            );
       },
     ),
     iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(

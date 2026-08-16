@@ -4,7 +4,6 @@ import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
-import '../providers/theme_provider.dart';
 import '../widgets/goals_done_list_view.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -49,9 +48,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  color: ThemeProvider.of(context).themeMode == ThemeMode.dark
-                      ? AppColors.blackColor
-                      : AppColors.whiteColor.shade700,
+                  color: Theme.of(context).cardColor,
                   border: Border.all(
                     color: AppColors.primaryColor,
                     width: 2,
@@ -60,33 +57,21 @@ class _CalendarPageState extends State<CalendarPage> {
                 child: ValueListenableBuilder(
                   valueListenable: _controller.stateNotifier,
                   builder: (context, state, _) {
-                    return state.whenNull(
-                      orElse: () => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      data: (data) => CalendarCarousel(
+                    if (state is! CalendarData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return CalendarCarousel(
                         scrollDirection: Axis.horizontal,
-                        markedDatesMap: data.eventList,
+                        markedDatesMap: state.eventList,
                         pageSnapping: true,
                         headerMargin: const EdgeInsets.all(0),
                         weekDayMargin: const EdgeInsets.all(0),
                         childAspectRatio: 1,
-                        dayButtonColor: ThemeProvider.of(context).themeMode ==
-                                ThemeMode.dark
-                            ? AppColors.blackColor
-                            : AppColors.whiteColor.shade700,
-                        selectedDateTime: data.selectedDay,
+                        dayButtonColor: Theme.of(context).cardColor,
+                        selectedDateTime: state.selectedDay,
                         iconColor: AppColors.primaryColor,
-                        weekDayBackgroundColor:
-                            ThemeProvider.of(context).themeMode ==
-                                    ThemeMode.dark
-                                ? AppColors.blackColor
-                                : AppColors.whiteColor.shade700,
-                        selectedDayButtonColor:
-                            ThemeProvider.of(context).themeMode ==
-                                    ThemeMode.dark
-                                ? AppColors.blackColor
-                                : AppColors.whiteColor.shade700,
+                        weekDayBackgroundColor: Theme.of(context).cardColor,
+                        selectedDayButtonColor: Theme.of(context).cardColor,
                         selectedDayBorderColor: AppColors.primaryColor,
                         daysHaveCircularBorder: true,
                         daysTextStyle: context.textStyles.normalText,
@@ -101,8 +86,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         weekDayFormat: WeekdayFormat.short,
                         onDayPressed: (date, eventList) =>
                             _controller.selectDay(date),
-                      ),
-                    );
+                      );
                   },
                 ),
               ),
@@ -111,15 +95,13 @@ class _CalendarPageState extends State<CalendarPage> {
           ValueListenableBuilder(
             valueListenable: _controller.stateNotifier,
             builder: (context, state, _) {
-              return state.whenNull(
-                orElse: () => const SliverToBoxAdapter(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                data: (data) {
-                  final value = data.selectedDaysGoals;
-                  return SliverVisibility(
+              if (state is! CalendarData) {
+                return const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final value = state.selectedDaysGoals;
+              return SliverVisibility(
                     visible: value != null,
                     sliver: SliverToBoxAdapter(
                       child: Container(
@@ -130,10 +112,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: ThemeProvider.of(context).themeMode ==
-                                  ThemeMode.dark
-                              ? AppColors.blackColor
-                              : AppColors.whiteColor.shade700,
+                          color: Theme.of(context).cardColor,
                           border: Border.all(
                             color: AppColors.primaryColor,
                             width: 2,
@@ -152,8 +131,6 @@ class _CalendarPageState extends State<CalendarPage> {
                       ),
                     ),
                   );
-                },
-              );
             },
           ),
         ],

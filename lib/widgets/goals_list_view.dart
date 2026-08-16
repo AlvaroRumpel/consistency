@@ -4,7 +4,6 @@ import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../configs/utilities.dart';
 import '../models/goal_model.dart';
-import '../providers/theme_provider.dart';
 
 class GoalsListView extends StatefulWidget {
   final List<GoalModel> goals;
@@ -45,9 +44,7 @@ class _GoalsListViewState extends State<GoalsListView> {
                     style: context.textStyles.normalText,
                     enabled: !widget.hasMarkedToday,
                     cursorColor:
-                        ThemeProvider.of(context).themeMode == ThemeMode.dark
-                            ? AppColors.whiteColor.shade50
-                            : AppColors.blackColor,
+                        Theme.of(context).textSelectionTheme.cursorColor,
                     decoration: InputDecoration(
                       counterText: '',
                       label: Text(

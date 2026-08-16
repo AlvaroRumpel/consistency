@@ -1,39 +1,33 @@
 import 'package:flutter/material.dart';
 
-import '../providers/theme_provider.dart';
 import 'colors.dart';
 
 class TextStyles {
-  static TextStyles? _instance;
-  static bool _isDark = true;
+  final bool isDark;
 
-  TextStyles._();
-  static TextStyles get i {
-    _instance ??= TextStyles._();
-    return _instance!;
-  }
+  const TextStyles(this.isDark);
 
-  void setIsDark(bool value) {
-    _isDark = value;
-  }
+  static const String font = 'WorkSans';
 
-  final String font = 'WorkSans';
+  Color get _color => isDark ? AppColors.whiteColor : AppColors.blackColor;
 
   TextStyle get normalText => TextStyle(
-        color: _isDark ? AppColors.whiteColor : AppColors.blackColor,
+        color: _color,
         fontWeight: FontWeight.w500,
         fontFamily: font,
         fontSize: 16,
       );
+
   TextStyle get boldText => TextStyle(
-        color: _isDark ? AppColors.whiteColor : AppColors.blackColor,
+        color: _color,
         fontWeight: FontWeight.w700,
         fontFamily: font,
         fontSize: 16,
       );
+
   TextStyle get thinText => TextStyle(
-        color: _isDark ? AppColors.whiteColor : AppColors.blackColor,
-        fontWeight: _isDark ? FontWeight.w100 : FontWeight.w400,
+        color: _color,
+        fontWeight: isDark ? FontWeight.w100 : FontWeight.w400,
         fontFamily: font,
         fontSize: 16,
       );
@@ -42,8 +36,6 @@ class TextStyles {
 }
 
 extension TextStylesExtension on BuildContext {
-  TextStyles get textStyles {
-    TextStyles.i.setIsDark(ThemeProvider.of(this).themeMode == ThemeMode.dark);
-    return TextStyles.i;
-  }
+  TextStyles get textStyles =>
+      TextStyles(Theme.of(this).brightness == Brightness.dark);
 }

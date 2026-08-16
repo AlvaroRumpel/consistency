@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../controllers/skeleton_controller.dart';
-import '../providers/theme_provider.dart';
 import 'calendar_page.dart';
 import 'home_page.dart';
 import 'settings_page.dart';
@@ -126,18 +125,18 @@ class SkelentonPageState extends State<SkelentonPage>
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
               return SizedBox(
                 height: animationBoxSize.value.height,
                 width: animationBoxSize.value.width,
                 child: FloatingActionButton(
-                  backgroundColor:
-                      ThemeProvider.of(context).themeMode == ThemeMode.dark
-                          ? value == 1
-                              ? AppColors.primaryColor.shade500
-                              : AppColors.primaryColor.shade900
-                          : value == 1
-                              ? AppColors.primaryColor.shade50
-                              : AppColors.primaryColor.shade500,
+                  backgroundColor: isDark
+                      ? value == 1
+                          ? AppColors.primaryColor.shade500
+                          : AppColors.primaryColor.shade900
+                      : value == 1
+                          ? AppColors.primaryColor.shade50
+                          : AppColors.primaryColor.shade500,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -150,8 +149,7 @@ class SkelentonPageState extends State<SkelentonPage>
                         top: animationIconPosition.value,
                         child: Icon(
                           Icons.home_outlined,
-                          color: ThemeProvider.of(context).themeMode ==
-                                  ThemeMode.dark
+                          color: isDark
                               ? value == 1
                                   ? AppColors.whiteColor.shade500
                                   : AppColors.whiteColor.shade900

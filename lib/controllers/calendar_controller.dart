@@ -7,40 +7,7 @@ import '../configs/utilities.dart';
 import '../models/date_goal_model.dart';
 import 'base_controller.dart';
 
-sealed class CalendarState {
-  T when<T>({
-    required T Function(CalendarData) data,
-    required T Function(CalendarLoading) loading,
-    required T Function(CalendarError) error,
-  }) {
-    if (this is CalendarData) {
-      return data(this as CalendarData);
-    } else if (this is CalendarLoading) {
-      return loading(this as CalendarLoading);
-    } else if (this is CalendarError) {
-      return error(this as CalendarError);
-    } else {
-      throw Exception('Unknown CalendarState: $this');
-    }
-  }
-
-  T whenNull<T>({
-    T Function(CalendarData)? data,
-    T Function(CalendarLoading)? loading,
-    T Function(CalendarError)? error,
-    required T Function() orElse,
-  }) {
-    if (this is CalendarData && data != null) {
-      return data(this as CalendarData);
-    } else if (this is CalendarLoading && loading != null) {
-      return loading(this as CalendarLoading);
-    } else if (this is CalendarError && error != null) {
-      return error(this as CalendarError);
-    } else {
-      return orElse();
-    }
-  }
-}
+sealed class CalendarState {}
 
 class CalendarLoading extends CalendarState {}
 
@@ -71,7 +38,14 @@ class CalendarController extends BaseController<CalendarState> {
   @override
   void onInit() async {
     _localData = await LocalData.i;
-    _userData.addAll((await _localData.searchUserData() ?? []));
+    LocalData.revision.addListener(_reload);
+    await _reload();
+  }
+
+  Future<void> _reload() async {
+    _userData
+      ..clear()
+      ..addAll(await _localData.searchUserData() ?? []);
     treatData();
   }
 
@@ -79,33 +53,31 @@ class CalendarController extends BaseController<CalendarState> {
     emitGuard(
       loadingState: CalendarLoading(),
       newState: (oldState) {
-        EventList<Event> eventListTemp = EventList(events: {});
-        if (_userData.isNotEmpty) {
-          for (final item in _userData) {
-            var totalPercent = 0.0;
+        final eventListTemp = EventList<Event>(events: {});
 
-            for (final goal in item.goals) {
-              totalPercent += goal.percentCompleted;
-            }
+        for (final item in _userData) {
+          if (item.goals.isEmpty) continue;
 
-            final avgPercent = totalPercent / item.goals.length;
+          final totalPercent = item.goals
+              .map((goal) => goal.percentCompleted)
+              .reduce((a, b) => a + b);
+          final avgPercent = totalPercent / item.goals.length;
 
-            eventListTemp.add(
-              item.date,
-              Event(
-                date: item.date,
-                dot: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: Utilities.activeColor(avgPercent),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  height: 2.0,
-                  width: 16.0,
+          eventListTemp.add(
+            item.date,
+            Event(
+              date: item.date,
+              dot: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  color: Utilities.activeColor(avgPercent),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                height: 2.0,
+                width: 16.0,
               ),
-            );
-          }
+            ),
+          );
         }
 
         return CalendarData(
@@ -122,20 +94,24 @@ class CalendarController extends BaseController<CalendarState> {
   }
 
   void selectDay(DateTime date) {
-    final oldState = state as CalendarData;
-    if (_userData.isNotEmpty && _userData.any((e) => e.date == date)) {
-      emit(CalendarData(
-        eventList: oldState.eventList,
-        selectedDaysGoals: _userData.firstWhere((e) => e.date == date),
-        selectedDay: date,
-      ));
-      return;
-    }
+    final current = state;
+    if (current is! CalendarData) return;
 
-    emit(CalendarData(
-      eventList: oldState.eventList,
-      selectedDaysGoals: null,
-      selectedDay: date,
-    ));
+    emit(
+      CalendarData(
+        eventList: current.eventList,
+        selectedDaysGoals: _userData.cast<DateGoalModel?>().firstWhere(
+              (e) => e?.date == date,
+              orElse: () => null,
+            ),
+        selectedDay: date,
+      ),
+    );
+  }
+
+  @override
+  void onDispose() {
+    LocalData.revision.removeListener(_reload);
+    super.onDispose();
   }
 }

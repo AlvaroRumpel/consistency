@@ -5,60 +5,17 @@ import '../models/date_goal_model.dart';
 import '../models/goal_model.dart';
 import 'base_controller.dart';
 
-sealed class HomeState {
-  T when<T>({
-    required T Function(HomeInitial) initial,
-    required T Function(HomeData) data,
-    required T Function(HomeDataEmpty) dataEmpty,
-    required T Function(HomeDataLoading) dataLoading,
-    required T Function(HomeLoading) loading,
-    required T Function(HomeError) error,
-  }) {
-    if (this is HomeInitial) {
-      return initial(this as HomeInitial);
-    } else if (this is HomeDataEmpty) {
-      return dataEmpty(this as HomeDataEmpty);
-    } else if (this is HomeDataLoading) {
-      return dataLoading(this as HomeDataLoading);
-    } else if (this is HomeData) {
-      return data(this as HomeData);
-    } else if (this is HomeLoading) {
-      return loading(this as HomeLoading);
-    } else if (this is HomeError) {
-      return error(this as HomeError);
-    } else {
-      throw Exception('Unknown HomeState: $this');
-    }
-  }
-
-  T whenNull<T>({
-    T Function(HomeInitial)? initial,
-    T Function(HomeData)? data,
-    T Function(HomeDataEmpty)? dataEmpty,
-    T Function(HomeDataLoading)? dataLoading,
-    T Function(HomeLoading)? loading,
-    T Function(HomeError)? error,
-    required T Function() orElse,
-  }) {
-    if (this is HomeInitial && initial != null) {
-      return initial(this as HomeInitial);
-    } else if (this is HomeDataEmpty && dataEmpty != null) {
-      return dataEmpty(this as HomeDataEmpty);
-    } else if (this is HomeDataLoading && dataLoading != null) {
-      return dataLoading(this as HomeDataLoading);
-    } else if (this is HomeData && data != null) {
-      return data(this as HomeData);
-    } else if (this is HomeLoading && loading != null) {
-      return loading(this as HomeLoading);
-    } else if (this is HomeError && error != null) {
-      return error(this as HomeError);
-    } else {
-      return orElse();
-    }
-  }
-}
+sealed class HomeState {}
 
 class HomeInitial extends HomeState {}
+
+class HomeLoading extends HomeState {}
+
+class HomeError extends HomeState {
+  final String message;
+
+  HomeError({required this.message});
+}
 
 class HomeData extends HomeState {
   final String nickname;
@@ -77,33 +34,34 @@ class HomeDataEmpty extends HomeData {
       : super(goals: []);
 }
 
-class HomeDataLoading extends HomeData {
-  HomeDataLoading({
-    required super.nickname,
-    super.goals = const [],
-    super.hasMarkedToday = false,
-  });
-}
-
-class HomeLoading extends HomeState {}
-
-class HomeError extends HomeState {
-  final String message;
-
-  HomeError({required this.message});
-}
-
 class HomeController extends BaseController<HomeState> {
   late LocalData localData;
-  double completePercent = 100.0;
   List<TextEditingController> goalsControllers = <TextEditingController>[];
   final userData = <DateGoalModel>[];
+  bool _saving = false;
 
   HomeController() : super(HomeInitial());
+
+  /// Average completion of the goals currently on screen. Drives the splash
+  /// colour of the mark-today button.
+  double get completePercent {
+    final current = state;
+    if (current is! HomeData || current.goals.isEmpty) return 100;
+    return current.goals
+            .map((goal) => goal.percentCompleted)
+            .reduce((a, b) => a + b) /
+        current.goals.length;
+  }
+
+  static DateTime get _today {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
 
   @override
   void onInit() async {
     localData = await LocalData.i;
+    LocalData.revision.addListener(_reload);
     emitGuard(
       loadingState: HomeLoading(),
       newState: recoveryData,
@@ -111,26 +69,33 @@ class HomeController extends BaseController<HomeState> {
     );
   }
 
+  void _reload() => emitGuard(
+        loadingState: HomeLoading(),
+        newState: recoveryData,
+        errorState: (e) => HomeError(message: e.toString()),
+      );
+
   Future<HomeState> recoveryData([HomeState? oldState]) async {
     final nickname = await localData.searchNickname() ?? 'User';
     final userGoals = await localData.searchUserData();
 
-    userData.addAll(userGoals ?? []);
+    userData
+      ..clear()
+      ..addAll(userGoals ?? []);
 
-    if (userGoals == null) {
+    if (userGoals == null || userGoals.isEmpty) {
+      // Drop any controllers left over from a previous load, or saveData would
+      // read a stale one and persist the new goal under the old name.
+      setGoalsControllers(const []);
       return HomeDataEmpty(nickname: nickname);
     }
 
-    final hasMarkedToday = userGoals.any(
-      (item) =>
-          item.date ==
-          DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day,
-          ),
-    );
-    final goals = [...userGoals.last.goals];
+    final hasMarkedToday = userGoals.any((item) => item.date == _today);
+
+    // Deep copy: the sliders mutate these objects in place, and userData holds
+    // the persisted history. Sharing instances lets today's edits rewrite
+    // yesterday's record.
+    final goals = userGoals.last.goals.map((goal) => goal.copyWith()).toList();
 
     setGoalsControllers(goals);
 
@@ -144,114 +109,108 @@ class HomeController extends BaseController<HomeState> {
   }
 
   void setGoalsControllers(List<GoalModel>? goals) {
-    if (goals == null) {
-      return;
-    }
+    if (goals == null) return;
 
-    goalsControllers.clear();
-
-    for (var goal in goals) {
-      goalsControllers.add(TextEditingController(text: goal.name));
+    for (final controller in goalsControllers) {
+      controller.dispose();
     }
+    goalsControllers = [
+      for (final goal in goals) TextEditingController(text: goal.name),
+    ];
   }
 
   Future<void> saveData() async {
-    final newState = state as HomeData;
-    emit(
-      HomeDataLoading(
-        nickname: newState.nickname,
-        goals: newState.goals,
-        hasMarkedToday: newState.hasMarkedToday,
-      ),
-    );
-
-    final currentDate = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
-
-    var totalPercentCompleted = 0.0;
-    final goals = newState.goals;
-    for (var i = 0; i < goals.length; i++) {
-      goals[i].name = goalsControllers[i].text;
-      totalPercentCompleted = goals[i].percentCompleted + totalPercentCompleted;
+    final current = state;
+    // _saving holds across the await; hasMarkedToday is only emitted after it,
+    // so on its own it lets a double tap append today twice.
+    if (_saving ||
+        current is! HomeData ||
+        current.hasMarkedToday ||
+        current.goals.isEmpty) {
+      return;
     }
+    _saving = true;
 
-    userData.add(DateGoalModel(date: currentDate, goals: goals));
+    try {
+      // Snapshot, so later slider drags and renames cannot reach the history.
+      final snapshot = [
+        for (var i = 0; i < current.goals.length; i++)
+          current.goals[i].copyWith(name: goalsControllers[i].text),
+      ];
 
-    final hasMarkedToday = await localData.saveUserData(userData);
+      for (var i = 0; i < current.goals.length; i++) {
+        current.goals[i].name = goalsControllers[i].text;
+      }
 
-    emit(
-      goals.isNotEmpty
-          ? HomeData(
-              nickname: newState.nickname,
-              goals: goals,
-              hasMarkedToday: hasMarkedToday,
-            )
-          : HomeDataEmpty(
-              nickname: newState.nickname,
-              hasMarkedToday: newState.hasMarkedToday,
-            ),
-    );
+      userData.add(DateGoalModel(date: _today, goals: snapshot));
+      await localData.saveUserData(userData);
+
+      emit(
+        HomeData(
+          nickname: current.nickname,
+          goals: current.goals,
+          hasMarkedToday: true,
+        ),
+      );
+    } finally {
+      _saving = false;
+    }
   }
 
   void addNewGoal() {
-    final newState = state as HomeData;
-    emit(HomeDataLoading(
-      nickname: newState.nickname,
-      goals: newState.goals,
-      hasMarkedToday: newState.hasMarkedToday,
-    ));
-    var goals = (state as HomeData).goals;
+    final current = state;
+    if (current is! HomeData) return;
 
-    goals = [...goals, GoalModel(name: 'New Goal', percentCompleted: 0)];
+    // Read the live text back before rebuilding, so in-progress typing on the
+    // other rows survives.
+    for (var i = 0; i < current.goals.length; i++) {
+      current.goals[i].name = goalsControllers[i].text;
+    }
 
-    setGoalsControllers(goals);
+    final goals = [
+      ...current.goals,
+      GoalModel(name: 'New Goal', percentCompleted: 0),
+    ];
+
+    goalsControllers.add(TextEditingController(text: 'New Goal'));
 
     emit(
-      goals.isNotEmpty
-          ? HomeData(
-              nickname: newState.nickname,
-              goals: goals,
-              hasMarkedToday: newState.hasMarkedToday,
-            )
-          : HomeDataEmpty(
-              nickname: newState.nickname,
-              hasMarkedToday: newState.hasMarkedToday,
-            ),
+      HomeData(
+        nickname: current.nickname,
+        goals: goals,
+        hasMarkedToday: current.hasMarkedToday,
+      ),
     );
   }
 
   void removeGoal(int index) {
-    final newState = state as HomeData;
-    emit(
-      HomeDataLoading(
-        nickname: newState.nickname,
-        goals: newState.goals,
-        hasMarkedToday: newState.hasMarkedToday,
-      ),
-    );
+    final current = state;
+    if (current is! HomeData || current.hasMarkedToday) return;
 
-    if (newState.hasMarkedToday) return;
-
-    var goals = (state as HomeData).goals;
-    var goalsCopy = [...goals];
-    goalsCopy.removeAt(index);
-    goals = goalsCopy;
-    goalsControllers.removeAt(index);
+    final goals = [...current.goals]..removeAt(index);
+    goalsControllers.removeAt(index).dispose();
 
     emit(
       goals.isNotEmpty
           ? HomeData(
-              nickname: newState.nickname,
+              nickname: current.nickname,
               goals: goals,
-              hasMarkedToday: newState.hasMarkedToday,
+              hasMarkedToday: current.hasMarkedToday,
             )
           : HomeDataEmpty(
-              nickname: newState.nickname,
-              hasMarkedToday: newState.hasMarkedToday,
+              nickname: current.nickname,
+              hasMarkedToday: current.hasMarkedToday,
             ),
     );
+  }
+
+  @override
+  void onDispose() {
+    LocalData.revision.removeListener(_reload);
+    for (final controller in goalsControllers) {
+      controller.dispose();
+    }
+    goalsControllers = [];
+    super.onDispose();
   }
 }

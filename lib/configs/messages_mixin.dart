@@ -6,27 +6,6 @@ import 'colors.dart';
 import 'text_styles.dart';
 
 mixin MessagesMixin<T extends StatefulWidget> on State<T> {
-  void showError(String message) {
-    showTopSnackBar(
-      animationDuration: const Duration(milliseconds: 800),
-      curve: Curves.linearToEaseOut,
-      Overlay.of(context),
-      CustomSnackBar.error(
-        iconRotationAngle: 0,
-        iconPositionLeft: 16,
-        message: message,
-        backgroundColor: AppColors.redColor.withValues(alpha:.8),
-        textStyle: context.textStyles.boldText,
-        icon: const Icon(
-          Icons.error_outline_outlined,
-          size: 40,
-          color: AppColors.whiteColor,
-        ),
-        borderRadius: BorderRadius.circular(100),
-      ),
-    );
-  }
-
   void showMessageUndo({
     required String message,
     required Function() onTap,
