@@ -31,8 +31,10 @@ class LocalData {
     _sharedPreferences ??= await SharedPreferences.getInstance();
   }
 
-  Future<bool> saveNickname(String nickname) =>
-      _sharedPreferences!.setString(_nickname, nickname);
+  Future<bool> saveNickname(String nickname) async {
+    await _forgetRecovery();
+    return _sharedPreferences!.setString(_nickname, nickname);
+  }
 
   Future<String?> searchNickname() async =>
       _sharedPreferences!.getString(_nickname);
@@ -40,8 +42,16 @@ class LocalData {
   // jsonEncode calls DateGoalModel.toJson() per element, which itself returns a
   // JSON String — so the stored value is an array of JSON strings. searchUserData
   // mirrors that. Changing it breaks every installed app's saved history.
-  Future<bool> saveUserData(List<DateGoalModel> goalsModel) =>
-      _sharedPreferences!.setString(_userData, jsonEncode(goalsModel));
+  Future<bool> saveUserData(List<DateGoalModel> goalsModel) async {
+    await _forgetRecovery();
+    return _sharedPreferences!.setString(_userData, jsonEncode(goalsModel));
+  }
+
+  /// The wipe snapshot only makes sense until the user writes something new;
+  /// after that, undo would silently overwrite fresh data.
+  Future<void> _forgetRecovery() async {
+    await _sharedPreferences!.remove(_recoveryData);
+  }
 
   Future<List<DateGoalModel>?> searchUserData() async {
     final userDataJson = _sharedPreferences!.getString(_userData);
@@ -56,7 +66,8 @@ class LocalData {
   Future<bool> saveTheme(bool value) =>
       _sharedPreferences!.setBool(_themeDark, value);
 
-  bool searchTheme() => _sharedPreferences?.getBool(_themeDark) ?? false;
+  /// null = user never chose; caller falls back to ThemeMode.system.
+  bool? searchTheme() => _sharedPreferences?.getBool(_themeDark);
 
   Future<RecoveryModel> _saveRecoveryData() async => RecoveryModel(
         nickname: await searchNickname(),
@@ -70,6 +81,11 @@ class LocalData {
     }
 
     final recoveryModel = RecoveryModel.fromJson(recoveryModelString);
+
+    if (recoveryModel.nickname == null && recoveryModel.userData == null) {
+      await _forgetRecovery();
+      return false;
+    }
 
     if (recoveryModel.nickname != null) {
       await saveNickname(recoveryModel.nickname!);
@@ -86,7 +102,7 @@ class LocalData {
     final theme = searchTheme();
     final recoveryModel = await _saveRecoveryData();
     await _sharedPreferences!.clear();
-    await saveTheme(theme);
+    if (theme != null) await saveTheme(theme);
     await _sharedPreferences!.setString(_recoveryData, recoveryModel.toJson());
     revision.value++;
   }

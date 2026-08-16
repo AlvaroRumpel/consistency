@@ -6,6 +6,7 @@ import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
 import '../controllers/settings_controller.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/error_view.dart';
 import '../widgets/list_tile_custom.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -80,6 +81,18 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 ValueListenableBuilder(
+                  valueListenable: _controller.stateNotifier,
+                  builder: (context, value, _) => value is SettingError
+                      ? SizedBox(
+                          width: double.infinity,
+                          child: ErrorView(
+                            message: value.message,
+                            onRetry: _controller.reload,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                ValueListenableBuilder(
                     valueListenable: _controller.stateNotifier,
                     builder: (context, value, _) {
                       return ListTileCustom(
@@ -122,8 +135,9 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 ),
                 Builder(
                   builder: (context) {
+                    // Effective brightness, so "system" shows the right side.
                     final themeDark =
-                        ThemeProvider.of(context).themeMode == ThemeMode.dark;
+                        Theme.of(context).brightness == Brightness.dark;
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Row(

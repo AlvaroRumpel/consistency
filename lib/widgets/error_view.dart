@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+
+import '../configs/colors.dart';
+import '../configs/text_styles.dart';
+
+class ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const ErrorView({super.key, required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.redColor, size: 40),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: context.textStyles.normalText,
+            textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh, color: AppColors.whiteColor),
+            label: Text(
+              'Try again',
+              style: context.textStyles.normalText
+                  .copyWith(color: AppColors.whiteColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

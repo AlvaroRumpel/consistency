@@ -5,6 +5,7 @@ import '../configs/text_styles.dart';
 import '../configs/utilities.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/add_day_button.dart';
+import '../widgets/error_view.dart';
 import '../widgets/goals_list_view.dart';
 
 class HomePage extends StatefulWidget {
@@ -133,9 +134,11 @@ class HomePageState extends State<HomePage> {
                             onRemove: _controller.removeGoal,
                             onAdd: _controller.addNewGoal,
                           ),
-                        HomeInitial() ||
-                        HomeLoading() ||
-                        HomeError() =>
+                        HomeError(:final message) => ErrorView(
+                            message: message,
+                            onRetry: _controller.reload,
+                          ),
+                        HomeInitial() || HomeLoading() =>
                           const SizedBox.shrink(),
                       };
                     },

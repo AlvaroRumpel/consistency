@@ -4,6 +4,7 @@ import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
+import '../widgets/error_view.dart';
 import '../widgets/goals_done_list_view.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -57,6 +58,12 @@ class _CalendarPageState extends State<CalendarPage> {
                 child: ValueListenableBuilder(
                   valueListenable: _controller.stateNotifier,
                   builder: (context, state, _) {
+                    if (state is CalendarError) {
+                      return ErrorView(
+                        message: state.message,
+                        onRetry: _controller.reload,
+                      );
+                    }
                     if (state is! CalendarData) {
                       return const Center(child: CircularProgressIndicator());
                     }
@@ -96,9 +103,8 @@ class _CalendarPageState extends State<CalendarPage> {
             valueListenable: _controller.stateNotifier,
             builder: (context, state, _) {
               if (state is! CalendarData) {
-                return const SliverToBoxAdapter(
-                  child: Center(child: CircularProgressIndicator()),
-                );
+                // Error is already shown by the calendar box above.
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
               }
               final value = state.selectedDaysGoals;
               return SliverVisibility(

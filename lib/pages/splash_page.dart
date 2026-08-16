@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
+import '../configs/local_data.dart';
 import '../configs/text_styles.dart';
 
 class SplashPage extends StatefulWidget {
@@ -13,16 +16,16 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.delayed(
-        const Duration(milliseconds: 1500),
-        () async {
-          if(mounted) {
-            Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
-          }
-        },
-      );
+      // Warm the storage singleton; if it fails, the pages surface the error.
+      try {
+        await LocalData.i;
+      } catch (e, s) {
+        log('LocalData init failed', error: e, stackTrace: s);
+      }
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
+      }
     });
   }
 
