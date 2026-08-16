@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'configs/theme.dart';
 import 'pages/skeleton_page.dart';
@@ -8,7 +7,6 @@ import 'providers/theme_provider.dart';
 
 void main() {
   runApp(const ConsistencyApp());
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 }
 
 class ConsistencyApp extends StatefulWidget {
