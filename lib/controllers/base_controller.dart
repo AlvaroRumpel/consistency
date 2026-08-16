@@ -3,15 +3,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
-abstract class BaseController<State> {
-  final ValueNotifier<State> _state;
+abstract class BaseController<S> {
+  final ValueNotifier<S> _state;
 
-  State get state => _state.value;
+  S get state => _state.value;
 
-  ValueNotifier<State> get stateNotifier => _state;
+  ValueNotifier<S> get stateNotifier => _state;
 
   BaseController(
-    State initialState,
+    S initialState,
   ) : _state = ValueNotifier(initialState) {
     onInit();
   }
@@ -21,14 +21,14 @@ abstract class BaseController<State> {
     _state.dispose();
   }
 
-  void emit(State newState) {
+  void emit(S newState) {
     _state.value = newState;
   }
 
   FutureOr<void> emitGuard({
-    required State loadingState,
-    required FutureOr<State> Function(State oldState) newState,
-    required State Function(Object? err) errorState,
+    required S loadingState,
+    required FutureOr<S> Function(S oldState) newState,
+    required S Function(Object? err) errorState,
   }) async {
     try {
       final oldState = state;

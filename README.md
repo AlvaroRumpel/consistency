@@ -1,3 +1,5 @@
+![Consistency](store/banner.png)
+
 # Consistency
 
 O Consistency é um aplicativo simples e direto projetado para ajudar você a marcar a sua consistência com seus objetivos pessoais diários. Com ele, você pode acompanhar o seu progresso diário. O objetivo é manter você motivado e no caminho certo para alcançar seus objetivos.
