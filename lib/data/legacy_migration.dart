@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -18,51 +19,53 @@ class LegacyMigration {
   static AppData convert(String userDataJson, {String Function()? newId}) {
     final mkId = newId ?? const Uuid().v4;
     final raw = jsonDecode(userDataJson) as List;
-    final days = <({DateTime date, List<(String, double)> goals})>[];
+
+    // Group by calendar day first: v1 could write more than one item for the
+    // same day, and the later item's values must win per goal name.
+    final groups = <DateTime, List<(String, double)>>{};
     for (final item in raw) {
       final m = jsonDecode(item as String) as Map<String, dynamic>;
       final date = dateOnly(
         DateTime.fromMillisecondsSinceEpoch(m['date'] as int),
       );
-      final goals = <(String, double)>[
-        for (final g in (m['goals'] as List? ?? const []))
-          (
-            (g['name'] as String? ?? '').trim(),
-            ((g['percentCompleted'] as num?) ?? 0).toDouble(),
-          ),
-      ];
-      days.add((date: date, goals: goals));
+      final goals = groups.putIfAbsent(date, () => <(String, double)>[]);
+      for (final g in (m['goals'] as List? ?? const [])) {
+        goals.add((
+          (g['name'] as String? ?? '').trim(),
+          ((g['percentCompleted'] as num?) ?? 0).toDouble(),
+        ));
+      }
     }
-    days.sort((a, b) => a.date.compareTo(b.date));
+    final dates = groups.keys.toList()..sort();
 
     final byName = <String, Goal>{};
     final lastSeen = <String, DateTime>{};
     final entries = <DayEntry>[];
     final now = DateTime.now().toUtc();
 
-    for (final day in days) {
+    for (final date in dates) {
       final values = <String, double>{};
-      for (final (name, pct) in day.goals) {
+      for (final (name, pct) in groups[date]!) {
         final goal = byName.putIfAbsent(
           name,
           () => Goal(
             id: mkId(),
             name: name,
             type: GoalType.percent,
-            createdAt: day.date,
+            createdAt: date,
             archivedAt: null,
             updatedAt: now,
           ),
         );
-        values[goal.id] = pct;
-        lastSeen[name] = day.date;
+        values[goal.id] = pct; // later item on the same day overwrites
+        lastSeen[name] = date;
       }
-      entries.add(DayEntry(date: day.date, values: values, updatedAt: now));
+      entries.add(DayEntry(date: date, values: values, updatedAt: now));
     }
 
-    final lastDayNames = days.isEmpty
+    final lastDayNames = dates.isEmpty
         ? const <String>{}
-        : {for (final (n, _) in days.last.goals) n};
+        : {for (final (n, _) in groups[dates.last]!) n};
     final goals = [
       for (final g in byName.values)
         lastDayNames.contains(g.name)
@@ -81,7 +84,16 @@ class LegacyMigration {
     if (await repo.exists()) return false;
     final blob = prefs.getString(userDataKey);
     if (blob == null || blob.isEmpty) return false;
-    await repo.save(convert(blob));
+    final AppData data;
+    try {
+      data = convert(blob);
+    } catch (e) {
+      // Malformed blob: leave it in prefs untouched so a future app version
+      // can retry (or a human can inspect it) instead of silently losing it.
+      debugPrint('LegacyMigration failed: $e');
+      return false;
+    }
+    await repo.save(data);
     await prefs.remove(userDataKey);
     await prefs.remove(beforeDeleteKey);
     return true;
