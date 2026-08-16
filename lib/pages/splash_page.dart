@@ -23,12 +23,18 @@ class _SplashPageState extends State<SplashPage> {
       if (!store.loaded && store.loadError == null) {
         final completer = Completer<void>();
         void onStoreChanged() {
-          if (store.loaded || store.loadError != null) completer.complete();
+          if ((store.loaded || store.loadError != null) &&
+              !completer.isCompleted) {
+            completer.complete();
+          }
         }
 
         store.addListener(onStoreChanged);
-        await completer.future;
-        store.removeListener(onStoreChanged);
+        try {
+          await completer.future;
+        } finally {
+          store.removeListener(onStoreChanged);
+        }
       }
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);

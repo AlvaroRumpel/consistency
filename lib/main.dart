@@ -16,8 +16,15 @@ import 'state/settings_store.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+  // If the documents directory is unavailable there is nowhere to store data
+  // at all, so that one is left to crash. The migration is only best-effort:
+  // its own guard covers a malformed blob, this covers the save/remove I/O.
   final repo = await FileGoalsRepository.open();
-  await LegacyMigration.runIfNeeded(prefs, repo);
+  try {
+    await LegacyMigration.runIfNeeded(prefs, repo);
+  } catch (e, s) {
+    debugPrint('LegacyMigration.runIfNeeded failed: $e\n$s');
+  }
   final store = AppStore(repo);
   unawaited(store.load()); // the splash waits on it
   runApp(

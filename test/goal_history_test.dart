@@ -16,6 +16,7 @@ void main() {
   final yesterday = today.subtract(const Duration(days: 1));
 
   late InMemoryGoalsRepository repo;
+  late SettingsStore settings;
 
   Goal goal(String id, String name) => Goal(
         id: id,
@@ -37,10 +38,8 @@ void main() {
     );
     final store = AppStore(repo);
     await store.load();
-    final controller = HomeController(
-      store,
-      SettingsStore(SettingsRepository(prefs)),
-    );
+    settings = SettingsStore(SettingsRepository(prefs));
+    final controller = HomeController(store, settings);
     return (store, controller);
   }
 
@@ -97,6 +96,34 @@ void main() {
 
     expect(store.data.goalById('run')!.name, 'Sprint');
     expect(store.data.goalById('read')!.name, 'Study');
+
+    controller.onDispose();
+  });
+
+  test('adding a goal keeps the values already dragged today', () async {
+    final (store, controller) = await boot();
+
+    (controller.state as HomeData).goals.single.percentCompleted = 75;
+    await store.addGoal('B', GoalType.check, createdAt: today);
+
+    final goals = (controller.state as HomeData).goals;
+    expect(goals.length, 2);
+    expect(goals.first.percentCompleted, 75, reason: 'slider was zeroed');
+    expect(goals.last.percentCompleted, 0);
+
+    controller.onDispose();
+  });
+
+  test('a settings change does not reset the text fields', () async {
+    final (_, controller) = await boot();
+
+    final before = controller.goalsControllers.first;
+    before.text = 'Sprint';
+    await settings.setNickname('X');
+
+    expect(identical(before, controller.goalsControllers.first), isTrue,
+        reason: 'typing was thrown away by an unrelated reload');
+    expect((controller.state as HomeData).nickname, 'X');
 
     controller.onDispose();
   });

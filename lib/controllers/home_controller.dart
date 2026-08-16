@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/date_key.dart';
@@ -40,6 +41,7 @@ class HomeController extends BaseController<HomeState> {
   final AppStore store;
   final SettingsStore settings;
   List<TextEditingController> goalsControllers = <TextEditingController>[];
+  List<String> _controllerIds = <String>[];
   bool _saving = false;
 
   HomeController(this.store, this.settings) : super(HomeInitial());
@@ -64,8 +66,9 @@ class HomeController extends BaseController<HomeState> {
     reload();
   }
 
-  /// Rebuilds the view models from the store. Runs on every store change; a
-  /// slider drag is never lost because the store only notifies on writes.
+  /// Rebuilds the view models from the store. Any value the user has changed
+  /// but not yet marked (a slider drag) is carried forward by goal id, so an
+  /// archive/add/rename mid-session does not zero the other sliders.
   void reload() {
     final error = store.loadError;
     if (error != null) {
@@ -90,12 +93,18 @@ class HomeController extends BaseController<HomeState> {
       return;
     }
 
+    final previous = state;
+    final inProgress = {
+      if (previous is HomeData)
+        for (final goal in previous.goals) goal.goalId: goal.percentCompleted,
+    };
+
     final goals = [
       for (final goal in active)
         GoalModel(
           goalId: goal.id,
           name: goal.name,
-          percentCompleted: entry?.values[goal.id] ?? 0,
+          percentCompleted: entry?.values[goal.id] ?? inProgress[goal.id] ?? 0,
         ),
     ];
 
@@ -109,13 +118,19 @@ class HomeController extends BaseController<HomeState> {
     );
   }
 
+  /// Rebuilds the text fields only when the goal list itself changed: a
+  /// nickname or theme change must not throw away what the user is typing.
   void setGoalsControllers(List<GoalModel> goals) {
+    final ids = [for (final goal in goals) goal.goalId];
+    if (listEquals(ids, _controllerIds)) return;
+
     for (final controller in goalsControllers) {
       controller.dispose();
     }
     goalsControllers = [
       for (final goal in goals) TextEditingController(text: goal.name),
     ];
+    _controllerIds = ids;
   }
 
   /// Persists names typed inline. Every field is read up front: each rename
@@ -179,6 +194,7 @@ class HomeController extends BaseController<HomeState> {
       controller.dispose();
     }
     goalsControllers = [];
+    _controllerIds = [];
     super.onDispose();
   }
 }
