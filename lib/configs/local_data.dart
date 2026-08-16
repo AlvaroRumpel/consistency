@@ -82,6 +82,11 @@ class LocalData {
 
     final recoveryModel = RecoveryModel.fromJson(recoveryModelString);
 
+    if (recoveryModel.nickname == null && recoveryModel.userData == null) {
+      await _forgetRecovery();
+      return false;
+    }
+
     if (recoveryModel.nickname != null) {
       await saveNickname(recoveryModel.nickname!);
     }
