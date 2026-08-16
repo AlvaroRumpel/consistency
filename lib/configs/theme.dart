@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_tokens.dart';
 import 'colors.dart';
 import 'local_data.dart';
 import 'text_styles.dart';
@@ -35,198 +36,108 @@ class ThemeModel extends ChangeNotifier {
   }
 }
 
-ThemeData themeDark = ThemeData(
-  brightness: Brightness.dark,
-  primarySwatch: AppColors.primaryColor,
-  primaryColor: AppColors.primaryColor,
-  scaffoldBackgroundColor: AppColors.blackColor,
-  useMaterial3: true,
-  cardColor: AppColors.blackColor,
-  iconTheme: const IconThemeData(color: AppColors.whiteColor),
-  dividerColor: AppColors.whiteColor.shade900.withValues(alpha: .3),
-  inputDecorationTheme: InputDecorationTheme(
-    disabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.blackColor.shade200,
-        width: 2,
-      ),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.blackColor.shade100,
-        width: 2,
-      ),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.primaryColor.shade50,
-        width: 2,
-      ),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.redColor.shade200,
-        width: 2,
-      ),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: const BorderSide(
-        color: AppColors.redColor,
-        width: 2,
-      ),
-    ),
-    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-    labelStyle: const TextStyles(true).normalText,
-    floatingLabelStyle: const TextStyles(true).normalText,
-    errorStyle:
-        const TextStyles(true).normalText.copyWith(color: AppColors.redColor),
-  ),
-  progressIndicatorTheme: const ProgressIndicatorThemeData(
-    color: AppColors.primaryColor,
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.primaryColor,
-      textStyle: const TextStyles(true).normalText,
-      alignment: Alignment.center,
-      foregroundColor: AppColors.primaryColor.shade900,
-    ),
-  ),
-  textSelectionTheme: TextSelectionThemeData(
-    selectionColor: AppColors.primaryColor.shade50.withValues(alpha: .5),
-    selectionHandleColor: AppColors.primaryColor,
-    cursorColor: AppColors.whiteColor,
-  ),
-  navigationBarTheme: NavigationBarThemeData(
-    backgroundColor: AppColors.blackColor.shade700,
-    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-    indicatorColor: AppColors.primaryColor,
-    indicatorShape: const CircleBorder(),
-    labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
-      (value) {
-        if (value.contains(WidgetState.selected)) {
-          return const TextStyles(true).normalText;
-        }
-        return const TextStyles(true).normalText.copyWith(
-              color: AppColors.whiteColor.shade900,
-            );
-      },
-    ),
-    iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
-      (value) {
-        if (value.contains(WidgetState.selected)) {
-          return const IconThemeData(
-            color: AppColors.whiteColor,
-          );
-        }
-        return IconThemeData(
-          color: AppColors.whiteColor.shade900,
-        );
-      },
-    ),
-  ),
-);
+ThemeData buildTheme(Brightness brightness) {
+  final dark = brightness == Brightness.dark;
+  final tokens = dark ? AppTokens.dark : AppTokens.light;
+  final onSurface = dark ? AppColors.textDark : AppColors.textLight;
+  final onSurfaceVariant = dark ? AppColors.text2Dark : AppColors.text2Light;
+  final surface = dark ? AppColors.surfaceDark : AppColors.surfaceLight;
+  final card = dark ? AppColors.cardDark : AppColors.cardLight;
+  final inset = dark ? AppColors.insetDark : AppColors.insetLight;
+  final divider = dark ? AppColors.dividerDark : AppColors.dividerLight;
+  final text = TextStyles(onSurface);
 
-ThemeData themeLight = ThemeData(
-  brightness: Brightness.light,
-  primarySwatch: AppColors.primaryColor,
-  primaryColor: AppColors.primaryColor,
-  scaffoldBackgroundColor: AppColors.whiteColor.shade700,
-  useMaterial3: true,
-  cardColor: AppColors.whiteColor.shade700,
-  iconTheme: const IconThemeData(color: AppColors.blackColor),
-  dividerColor: AppColors.blackColor.withValues(alpha: .3),
-  inputDecorationTheme: InputDecorationTheme(
-    disabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.blackColor.shade200,
-        width: 2,
+  final scheme = ColorScheme.fromSeed(
+    seedColor: AppColors.primaryColor,
+    brightness: brightness,
+  ).copyWith(
+    // .withAlpha strips the MaterialColor's shade map down to a plain
+    // Color: Color's operator== is runtimeType-strict, so a bare
+    // MaterialColor never compares equal to Color(0xFF2CA8CB) in tests.
+    primary: AppColors.primaryColor.withAlpha(255),
+    onPrimary: Colors.white,
+    surface: surface,
+    onSurface: onSurface,
+    onSurfaceVariant: onSurfaceVariant,
+    surfaceContainer: card,
+    surfaceContainerLow: inset,
+    outline: AppColors.primaryColor,
+    outlineVariant: divider,
+    error: AppColors.redColor,
+  );
+
+  OutlineInputBorder border(Color c) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(color: c, width: 2),
+      );
+
+  return ThemeData(
+    useMaterial3: true,
+    brightness: brightness,
+    colorScheme: scheme,
+    primaryColor: AppColors.primaryColor,
+    scaffoldBackgroundColor: surface,
+    cardColor: card,
+    dividerColor: divider,
+    fontFamily: TextStyles.font,
+    iconTheme: IconThemeData(color: onSurface),
+    extensions: [tokens],
+    inputDecorationTheme: InputDecorationTheme(
+      disabledBorder: border(divider),
+      enabledBorder: border(onSurfaceVariant),
+      focusedBorder: border(AppColors.primaryColor),
+      errorBorder: border(AppColors.redColor.shade200),
+      focusedErrorBorder: border(AppColors.redColor),
+      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      labelStyle: text.normalText,
+      floatingLabelStyle: text.normalText,
+      errorStyle: text.normalText.copyWith(color: AppColors.redColor),
+    ),
+    progressIndicatorTheme:
+        const ProgressIndicatorThemeData(color: AppColors.primaryColor),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        textStyle: text.normalText,
+        alignment: Alignment.center,
+        shape: const StadiumBorder(),
       ),
     ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.blackColor.shade100,
-        width: 2,
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
       ),
     ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.primaryColor.shade50,
-        width: 2,
+    textSelectionTheme: TextSelectionThemeData(
+      selectionColor: AppColors.primaryColor.withValues(alpha: .35),
+      selectionHandleColor: AppColors.primaryColor,
+      cursorColor: onSurface,
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: inset,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      indicatorColor: AppColors.primaryColor,
+      indicatorShape: const StadiumBorder(),
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (s) => text.normalText.copyWith(
+          fontSize: 12,
+          color:
+              s.contains(WidgetState.selected) ? onSurface : onSurfaceVariant,
+        ),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith(
+        (s) => IconThemeData(
+          color: s.contains(WidgetState.selected)
+              ? Colors.white
+              : onSurfaceVariant,
+        ),
       ),
     ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(
-        color: AppColors.redColor.shade200,
-        width: 2,
-      ),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: const BorderSide(
-        color: AppColors.redColor,
-        width: 2,
-      ),
-    ),
-    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-    labelStyle: const TextStyles(false).normalText,
-    floatingLabelStyle: const TextStyles(false).normalText,
-    errorStyle:
-        const TextStyles(false).normalText.copyWith(color: AppColors.redColor),
-  ),
-  progressIndicatorTheme: const ProgressIndicatorThemeData(
-    color: AppColors.primaryColor,
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.primaryColor,
-      textStyle: const TextStyles(false)
-          .normalText
-          .copyWith(color: AppColors.whiteColor),
-      alignment: Alignment.center,
-      foregroundColor: AppColors.primaryColor.shade700,
-    ),
-  ),
-  textSelectionTheme: TextSelectionThemeData(
-    selectionColor: AppColors.primaryColor.shade50.withValues(alpha: .5),
-    selectionHandleColor: AppColors.primaryColor,
-    cursorColor: AppColors.blackColor,
-  ),
-  navigationBarTheme: NavigationBarThemeData(
-    backgroundColor: AppColors.whiteColor.shade900,
-    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-    indicatorColor: AppColors.primaryColor,
-    indicatorShape: const CircleBorder(),
-    labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
-      (value) {
-        if (value.contains(WidgetState.selected)) {
-          return const TextStyles(false).normalText;
-        }
-        return const TextStyles(false).normalText.copyWith(
-              color: AppColors.blackColor,
-            );
-      },
-    ),
-    iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
-      (value) {
-        if (value.contains(WidgetState.selected)) {
-          return const IconThemeData(
-            color: AppColors.blackColor,
-          );
-        }
-        return IconThemeData(
-          color: AppColors.blackColor.shade900,
-        );
-      },
-    ),
-  ),
-);
+  );
+}
+
+final ThemeData themeLight = buildTheme(Brightness.light);
+final ThemeData themeDark = buildTheme(Brightness.dark);
