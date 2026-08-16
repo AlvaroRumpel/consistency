@@ -12,11 +12,14 @@ void main() {
       () async {
     SharedPreferences.setMockInitialValues({});
     final model = ThemeModel();
+    var notified = false;
+    model.addListener(() => notified = true);
     expect(model.themeMode, ThemeMode.system);
     // Let _load() finish; it must not flip system → light/dark on its own.
     for (var i = 0; i < 10; i++) {
       await Future<void>.delayed(Duration.zero);
     }
     expect(model.themeMode, ThemeMode.system);
+    expect(notified, isTrue);
   });
 }
