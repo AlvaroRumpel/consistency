@@ -60,7 +60,7 @@ Write `tokens.css` (CSS custom properties, `[data-theme="light"]` / `[data-theme
 
 - [x] **Step 5: Write `index.html`** — a nav page linking every screen page listed below, with a light/dark toggle that sets `data-theme` on `<html>`. Share `open_url` of `index.html` with the user.
 
-- [ ] **Step 6: Commit this plan file with the recorded `project_id`.**
+- [x] **Step 6: Commit this plan file with the recorded `project_id`.**
 
 ---
 
@@ -70,9 +70,9 @@ For each row: write the page, call `mcp__claude-design__render_preview` (open `s
 
 | # | Page | Content (from spec Seção 3/4) | approved |
 |---|---|---|---|
-| 1 | `home.dc.html` (3 opções 1a/1b/1c, light+dark) | "Olá, {nick}"; streak global grande + recorde; lista de metas ativas (nome, 🔥 streak, checkbox ou slider 5 passos); botão grande "Salvar hoje" em 2 estados (pendente / salvo) e 3 cores (baixo/médio/alto); "+ nova meta". Nav bar embaixo. | |
-| 2 | `home-empty.html` | Home sem metas: onboarding inline (nickname + criar 1ª meta), `onboardingDone=false`. | |
-| 3 | `goal-sheet.html` | Bottom sheet nova meta: nome, tipo (check \| percent) como segmented control. | |
+| 1 | `home.dc.html` (2a = 1c anel + cartões 1b; tiers do fogo) | "Olá, {nick}"; streak global grande + recorde; lista de metas ativas (nome, 🔥 streak, checkbox ou slider 5 passos); botão grande "Salvar hoje" em 2 estados (pendente / salvo) e 3 cores (baixo/médio/alto); "+ nova meta". Nav bar embaixo. | 2026-08-15 (2a) |
+| 2 | `home-empty.dc.html` | Home sem metas: onboarding inline (nickname + criar 1ª meta), `onboardingDone=false`. | 2026-08-16 |
+| 3 | `goal-sheet.dc.html` | Bottom sheet nova meta: nome, tipo (check \| percent) como segmented control. | 2026-08-16 |
 | 4 | `goal-detail.html` | Tela push: nome editável, tipo, streak atual, recorde, % 7d, % 30d, mini-heatmap 30d, botão Arquivar (e variante Restaurar). | |
 | 5 | `calendar-month.html` | Toggle Mês \| Ano; grid mensal próprio, dia colorido pela média (cinza sem dados), hoje com borda; painel do dia selecionado abaixo com metas e valores. Duas variantes no mesmo page: dia dentro da janela de 7d (editável + salvar) e fora (leitura). | |
 | 6 | `calendar-year.html` | Heatmap anual semanas×dias estilo GitHub, legenda da escala. | |
@@ -100,3 +100,6 @@ Rules while iterating:
 - Every screen in spec Seção 3 + widget in Seção 4 has a row. Onboarding (fase 7) = row 2. Error view (fase 0 já implementa uma versão simples; design refina) = row 10.
 - Tokens table maps 1:1 onto Phase 1 deliverables (`ColorScheme.fromSeed`, `ThemeExtension`, `activeColor` replacement).
 - No app code produced here.
+
+## Decisions log
+- 2026-08-16: tokens aprovados incl. tiers do fogo (f0–f4). Contraste branco/primary 2.77:1 revisado e mantido por decisão do usuário.
