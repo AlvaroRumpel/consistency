@@ -49,11 +49,16 @@ class FileGoalsRepository implements GoalsRepository {
     }
   }
 
-  // Writes and undo-file renames share one chain so a save in flight can
-  // never interleave with a moveToUndo/restoreFromUndo/purgeUndo touching the
-  // same files.
+  /// Serializes disk operations. A failed op still surfaces to its caller,
+  /// but never poisons the queue for the next one.
+  Future<T> _enqueue<T>(Future<T> Function() op) {
+    final next = _chain.then((_) => op(), onError: (_, __) => op());
+    _chain = next.then((_) {}, onError: (_, __) {});
+    return next;
+  }
+
   @override
-  Future<void> save(AppData data) => _chain = _chain.then((_) => _save(data));
+  Future<void> save(AppData data) => _enqueue(() => _save(data));
 
   Future<void> _save(AppData data) async {
     await dir.create(recursive: true);
@@ -65,12 +70,12 @@ class FileGoalsRepository implements GoalsRepository {
     }
     await _tmp.rename(_main.path);
     // Call the unserialized body directly: the public purgeUndo() would
-    // chain onto _chain, which is this very call, and deadlock.
+    // enqueue onto the queue this call is already running in, and deadlock.
     await _purgeUndo();
   }
 
   @override
-  Future<void> moveToUndo() => _chain = _chain.then((_) => _moveToUndo());
+  Future<void> moveToUndo() => _enqueue(_moveToUndo);
 
   Future<void> _moveToUndo() async {
     if (!await _main.exists()) return;
@@ -80,11 +85,7 @@ class FileGoalsRepository implements GoalsRepository {
   }
 
   @override
-  Future<bool> restoreFromUndo() {
-    final result = _chain.then((_) => _restoreFromUndo());
-    _chain = result.then((_) {});
-    return result;
-  }
+  Future<bool> restoreFromUndo() => _enqueue(_restoreFromUndo);
 
   Future<bool> _restoreFromUndo() async {
     if (!await _deleted.exists()) return false;
@@ -93,7 +94,7 @@ class FileGoalsRepository implements GoalsRepository {
   }
 
   @override
-  Future<void> purgeUndo() => _chain = _chain.then((_) => _purgeUndo());
+  Future<void> purgeUndo() => _enqueue(_purgeUndo);
 
   Future<void> _purgeUndo() async {
     if (await _deleted.exists()) await _deleted.delete();

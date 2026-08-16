@@ -87,4 +87,16 @@ void main() {
     expect((await repo.load()).goals.single.name, 'C');
     expect(await repo.exists(), isTrue);
   });
+
+  test('a failed write does not poison later saves', () async {
+    // consistency.json.tmp as a directory makes the tmp write throw.
+    final blocker = Directory('${dir.path}/consistency.json.tmp');
+    await blocker.create(recursive: true);
+
+    await expectLater(repo.save(sample('A')), throwsA(anything));
+
+    await blocker.delete();
+    await repo.save(sample('B'));
+    expect((await repo.load()).goals.single.name, 'B');
+  });
 }
