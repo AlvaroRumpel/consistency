@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import 'base_controller.dart';
@@ -36,13 +38,16 @@ class SettingsController extends BaseController<SettingState> {
 
   Future<bool> undoClearAllData() => store.undoClear();
 
-  Future<bool> saveNickname(String? newNickname) async {
+  Future<void> saveNickname(String? newNickname) async {
     final nickname = newNickname?.trim();
     if (nickname == null || nickname.isEmpty || nickname == settings.nickname) {
-      return true;
+      return;
     }
-    await settings.setNickname(nickname);
-    return true;
+    try {
+      await settings.setNickname(nickname);
+    } catch (e) {
+      debugPrint('setNickname failed: $e');
+    }
   }
 
   @override

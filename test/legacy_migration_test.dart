@@ -26,7 +26,7 @@ void main() {
     expect(run.createdAt, d1);
     expect(sprint.createdAt, d3);
     // Run does not appear on the last day → archived the day after its last use.
-    expect(run.archivedAt, d2.add(const Duration(days: 1)));
+    expect(run.archivedAt, DateTime(d2.year, d2.month, d2.day + 1));
     expect(read.archivedAt, isNull);
     expect(sprint.archivedAt, isNull);
 
@@ -51,15 +51,21 @@ void main() {
     expect(prefs.containsKey('beforeDelete'), isFalse);
     expect(prefs.getString('nickname'), 'Alvaro');
 
-    // Second run: file exists → no-op.
+    // Second run: the migratedV1 flag makes this a no-op even if the repo's
+    // file were to vanish — idempotence must not depend on repo.exists().
+    repo.stored = null;
     expect(await LegacyMigration.runIfNeeded(prefs, repo), isFalse);
   });
 
-  test('runIfNeeded is a no-op on a fresh install', () async {
-    SharedPreferences.setMockInitialValues({});
+  test(
+      'runIfNeeded is a no-op on a fresh install and clears a stray beforeDelete',
+      () async {
+    SharedPreferences.setMockInitialValues(
+        {'beforeDelete': '{"nickname":"x"}'});
     final prefs = await SharedPreferences.getInstance();
     expect(await LegacyMigration.runIfNeeded(prefs, InMemoryGoalsRepository()),
         isFalse);
+    expect(prefs.containsKey('beforeDelete'), isFalse);
   });
 
   test('convert merges two same-day items, later values win', () {

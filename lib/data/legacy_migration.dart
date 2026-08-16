@@ -15,6 +15,7 @@ import 'goals_repository.dart';
 class LegacyMigration {
   static const userDataKey = 'userData';
   static const beforeDeleteKey = 'beforeDelete';
+  static const migratedKey = 'migratedV1';
 
   static AppData convert(String userDataJson, {String Function()? newId}) {
     final mkId = newId ?? const Uuid().v4;
@@ -66,14 +67,15 @@ class LegacyMigration {
     final lastDayNames = dates.isEmpty
         ? const <String>{}
         : {for (final (n, _) in groups[dates.last]!) n};
-    final goals = [
-      for (final g in byName.values)
-        lastDayNames.contains(g.name)
-            ? g
-            : g.copyWith(
-                archivedAt: lastSeen[g.name]!.add(const Duration(days: 1)),
-              ),
-    ];
+    final goals = <Goal>[];
+    for (final g in byName.values) {
+      if (lastDayNames.contains(g.name)) {
+        goals.add(g);
+      } else {
+        final d = lastSeen[g.name]!;
+        goals.add(g.copyWith(archivedAt: DateTime(d.year, d.month, d.day + 1)));
+      }
+    }
     return AppData(goals: goals, entries: entries);
   }
 
@@ -81,6 +83,8 @@ class LegacyMigration {
     SharedPreferences prefs,
     GoalsRepository repo,
   ) async {
+    await prefs.remove(beforeDeleteKey);
+    if (prefs.getBool(migratedKey) == true) return false;
     if (await repo.exists()) return false;
     final blob = prefs.getString(userDataKey);
     if (blob == null || blob.isEmpty) return false;
@@ -95,7 +99,7 @@ class LegacyMigration {
     }
     await repo.save(data);
     await prefs.remove(userDataKey);
-    await prefs.remove(beforeDeleteKey);
+    await prefs.setBool(migratedKey, true);
     return true;
   }
 }

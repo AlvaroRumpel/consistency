@@ -17,6 +17,7 @@ class AppStore extends ChangeNotifier {
   AppData _data = AppData.empty;
   bool _loaded = false;
   Object? _loadError;
+  Object? _saveError;
 
   AppStore(
     this._repo, {
@@ -28,6 +29,7 @@ class AppStore extends ChangeNotifier {
   AppData get data => _data;
   bool get loaded => _loaded;
   Object? get loadError => _loadError;
+  Object? get saveError => _saveError;
 
   Future<void> load() async {
     try {
@@ -45,7 +47,17 @@ class AppStore extends ChangeNotifier {
   Future<void> _commit(AppData next) async {
     _data = next;
     notifyListeners();
-    await _repo.save(next);
+    try {
+      await _repo.save(next);
+      if (_saveError != null) {
+        _saveError = null;
+        notifyListeners();
+      }
+    } catch (e, s) {
+      debugPrint('AppStore save failed: $e\n$s');
+      _saveError = e;
+      notifyListeners();
+    }
   }
 
   Future<Goal> addGoal(String name, GoalType type,

@@ -76,4 +76,15 @@ void main() {
     expect(await repo.restoreFromUndo(), isFalse);
     expect((await repo.load()).goals.single.name, 'Fresh');
   });
+
+  test('concurrent saves are serialized, not interleaved', () async {
+    await Future.wait([
+      repo.save(sample('A')),
+      repo.save(sample('B')),
+      repo.save(sample('C')),
+    ]);
+
+    expect((await repo.load()).goals.single.name, 'C');
+    expect(await repo.exists(), isTrue);
+  });
 }

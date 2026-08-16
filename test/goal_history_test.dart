@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final today = dateOnly(DateTime.now());
-  final yesterday = today.subtract(const Duration(days: 1));
+  final yesterday = DateTime(today.year, today.month, today.day - 1);
 
   late InMemoryGoalsRepository repo;
   late SettingsStore settings;

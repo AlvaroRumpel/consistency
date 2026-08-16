@@ -88,9 +88,33 @@ void main() {
     expect(s.loaded, isFalse);
     expect(s.loadError, isNotNull);
   });
+
+  test(
+      'save failure is exposed via saveError but the in-memory data still updates',
+      () async {
+    final bad = _ThrowingSaveRepo();
+    final s = AppStore(bad, newId: () => 'g0', now: () => DateTime.utc(2026));
+    await s.load();
+    await s.addGoal('Run', GoalType.check, createdAt: today);
+    expect(s.saveError, isNotNull);
+    expect(s.data.goals.length, 1);
+  });
+
+  test('saveError stays null after a normal save', () async {
+    final s2 = AppStore(InMemoryGoalsRepository(),
+        newId: () => 'g0', now: () => DateTime.utc(2026));
+    await s2.load();
+    await s2.addGoal('Run', GoalType.check, createdAt: today);
+    expect(s2.saveError, isNull);
+  });
 }
 
 class _ThrowingRepo extends InMemoryGoalsRepository {
   @override
   Future<AppData> load() async => throw const FormatException('boom');
+}
+
+class _ThrowingSaveRepo extends InMemoryGoalsRepository {
+  @override
+  Future<void> save(AppData data) async => throw const FormatException('boom');
 }

@@ -43,6 +43,7 @@ class HomeController extends BaseController<HomeState> {
   List<TextEditingController> goalsControllers = <TextEditingController>[];
   List<String> _controllerIds = <String>[];
   bool _saving = false;
+  final _archiving = <String>{};
 
   HomeController(this.store, this.settings) : super(HomeInitial());
 
@@ -183,7 +184,15 @@ class HomeController extends BaseController<HomeState> {
   Future<void> removeGoal(int index) async {
     final current = state;
     if (current is! HomeData || current.hasMarkedToday) return;
-    await store.archiveGoal(current.goals[index].goalId, on: _today);
+    if (index < 0 || index >= current.goals.length) return;
+    final id = current.goals[index].goalId;
+    if (_archiving.contains(id)) return;
+    _archiving.add(id);
+    try {
+      await store.archiveGoal(id, on: _today);
+    } finally {
+      _archiving.remove(id);
+    }
   }
 
   @override
