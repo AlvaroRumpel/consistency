@@ -22,4 +22,20 @@ void main() {
     expect(model.themeMode, ThemeMode.system);
     expect(notified, isTrue);
   });
+
+  test('setMode persists tri-state on the legacy themeDark key', () async {
+    final model = ThemeModel();
+    final prefs = await SharedPreferences.getInstance();
+
+    await model.setMode(ThemeMode.dark);
+    expect(model.themeMode, ThemeMode.dark);
+    expect(prefs.getBool('themeDark'), isTrue);
+
+    await model.setMode(ThemeMode.light);
+    expect(prefs.getBool('themeDark'), isFalse);
+
+    await model.setMode(ThemeMode.system);
+    expect(model.themeMode, ThemeMode.system);
+    expect(prefs.containsKey('themeDark'), isFalse);
+  });
 }

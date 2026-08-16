@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../configs/colors.dart';
 import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
+import '../configs/theme.dart';
 import '../controllers/settings_controller.dart';
-import '../providers/theme_provider.dart';
 import '../widgets/error_view.dart';
 import '../widgets/list_tile_custom.dart';
 
@@ -133,58 +134,30 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   },
                   title: 'Send your opinion',
                 ),
-                Builder(
-                  builder: (context) {
-                    // Effective brightness, so "system" shows the right side.
-                    final themeDark =
-                        Theme.of(context).brightness == Brightness.dark;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(
-                            themeDark
-                                ? Icons.light_mode_outlined
-                                : Icons.light_mode_rounded,
-                            color: themeDark
-                                ? AppColors.primaryColor
-                                : AppColors.blackColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Switch(
-                            thumbColor: WidgetStateProperty.resolveWith<Color>(
-                              (states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return AppColors.blackColor;
-                                }
-                                return AppColors.whiteColor.shade700;
-                              },
-                            ),
-                            trackColor: WidgetStateProperty.resolveWith<Color>(
-                              (states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return AppColors.primaryColor;
-                                }
-                                return AppColors.primaryColor.shade100;
-                              },
-                            ),
-                            value: themeDark,
-                            onChanged: ThemeProvider.of(context).setDark,
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            themeDark
-                                ? Icons.dark_mode_rounded
-                                : Icons.dark_mode_outlined,
-                            color: themeDark
-                                ? AppColors.primaryColor
-                                : AppColors.blackColor,
-                          ),
-                        ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('System'),
+                        icon: Icon(Icons.brightness_auto_outlined),
                       ),
-                    );
-                  },
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                        icon: Icon(Icons.light_mode_outlined),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text('Dark'),
+                        icon: Icon(Icons.dark_mode_outlined),
+                      ),
+                    ],
+                    selected: {context.watch<ThemeModel>().themeMode},
+                    onSelectionChanged: (s) =>
+                        context.read<ThemeModel>().setMode(s.first),
+                  ),
                 ),
               ],
             ),

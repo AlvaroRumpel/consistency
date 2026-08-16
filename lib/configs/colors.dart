@@ -80,4 +80,23 @@ extension AppColors on Colors {
       900: Color(0xFF962226),
     },
   );
+
+  // ---- v2 design tokens (Claude Design tokens.md) ----
+  static const surfaceLight = Color(0xFFE8EEF2);
+  static const surfaceDark = Color(0xFF39393A);
+  static const cardLight = Color(0xFFF6F8FA);
+  static const cardDark = Color(0xFF434345);
+  static const insetLight = Color(0xFFDCE4EA);
+  static const insetDark = Color(0xFF2E2E30);
+  static const dividerLight = Color(0xFFB9C6CF);
+  static const dividerDark = Color(0xFF5A5A5C);
+  static const textLight = Color(0xFF26282B);
+  static const textDark = Color(0xFFF2F5F7);
+  static const text2Light = Color(0xFF5C646B);
+  static const text2Dark = Color(0xFFB4BAC0);
+  static const amber = Color(0xFFE0862E);
+  static const orange = Color(0xFFE85D2A);
+  static const flameGrey = Color(0xFF8A9299);
+  static const q0Light = Color(0xFFC4CFD6);
+  static const q0Dark = Color(0xFF55585B);
 }

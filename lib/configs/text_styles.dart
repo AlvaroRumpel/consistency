@@ -1,41 +1,26 @@
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
-
 class TextStyles {
-  final bool isDark;
+  final Color color;
 
-  const TextStyles(this.isDark);
+  const TextStyles(this.color);
 
   static const String font = 'WorkSans';
 
-  Color get _color => isDark ? AppColors.whiteColor : AppColors.blackColor;
-
   TextStyle get normalText => TextStyle(
-        color: _color,
+        color: color,
         fontWeight: FontWeight.w500,
         fontFamily: font,
         fontSize: 16,
       );
 
-  TextStyle get boldText => TextStyle(
-        color: _color,
-        fontWeight: FontWeight.w700,
-        fontFamily: font,
-        fontSize: 16,
-      );
+  TextStyle get boldText => normalText.copyWith(fontWeight: FontWeight.w700);
 
-  TextStyle get thinText => TextStyle(
-        color: _color,
-        fontWeight: isDark ? FontWeight.w100 : FontWeight.w400,
-        fontFamily: font,
-        fontSize: 16,
-      );
+  TextStyle get thinText => normalText.copyWith(fontWeight: FontWeight.w400);
 
   TextStyle get titleText => boldText.copyWith(fontSize: 32);
 }
 
 extension TextStylesExtension on BuildContext {
-  TextStyles get textStyles =>
-      TextStyles(Theme.of(this).brightness == Brightness.dark);
+  TextStyles get textStyles => TextStyles(Theme.of(this).colorScheme.onSurface);
 }

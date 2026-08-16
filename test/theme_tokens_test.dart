@@ -9,22 +9,22 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ThemeData tokens', () {
-    test('themeDark carries the exact dark-mode token values', () {
+    test('themeDark carries the design token values', () {
       expect(themeDark.brightness, Brightness.dark);
-      expect(themeDark.cardColor, AppColors.blackColor);
-      expect(themeDark.iconTheme.color, AppColors.whiteColor);
-      expect(themeDark.dividerColor,
-          AppColors.whiteColor.shade900.withValues(alpha: .3));
-      expect(themeDark.textSelectionTheme.cursorColor, AppColors.whiteColor);
+      expect(themeDark.cardColor, AppColors.cardDark);
+      expect(themeDark.scaffoldBackgroundColor, AppColors.surfaceDark);
+      expect(themeDark.iconTheme.color, AppColors.textDark);
+      expect(themeDark.dividerColor, AppColors.dividerDark);
+      expect(themeDark.textSelectionTheme.cursorColor, AppColors.textDark);
     });
 
-    test('themeLight carries the exact light-mode token values', () {
+    test('themeLight carries the design token values', () {
       expect(themeLight.brightness, Brightness.light);
-      expect(themeLight.cardColor, AppColors.whiteColor.shade700);
-      expect(themeLight.iconTheme.color, AppColors.blackColor);
-      expect(
-          themeLight.dividerColor, AppColors.blackColor.withValues(alpha: .3));
-      expect(themeLight.textSelectionTheme.cursorColor, AppColors.blackColor);
+      expect(themeLight.cardColor, AppColors.cardLight);
+      expect(themeLight.scaffoldBackgroundColor, AppColors.surfaceLight);
+      expect(themeLight.iconTheme.color, AppColors.textLight);
+      expect(themeLight.dividerColor, AppColors.dividerLight);
+      expect(themeLight.textSelectionTheme.cursorColor, AppColors.textLight);
     });
   });
 

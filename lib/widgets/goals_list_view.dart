@@ -80,7 +80,7 @@ class _GoalsListViewState extends State<GoalsListView> {
               max: 100,
               min: 0,
               divisions: 4,
-              inactiveColor: AppColors.whiteColor,
+              inactiveColor: Theme.of(context).colorScheme.surfaceContainerLow,
               activeColor:
                   Utilities.activeColor(widget.goals[index].percentCompleted),
               label:
