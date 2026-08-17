@@ -19,8 +19,6 @@ class GoalRow {
       required this.type,
       required this.value,
       required this.streak});
-  GoalRow withValue(double v) =>
-      GoalRow(goalId: goalId, name: name, type: type, value: v, streak: streak);
 }
 
 class DayView {
@@ -30,6 +28,7 @@ class DayView {
   final bool editable;
   final bool saved;
   final bool dirty;
+  final bool saveFailed;
   final double? average;
   final int streak;
   final int best;
@@ -40,6 +39,7 @@ class DayView {
     required this.editable,
     required this.saved,
     required this.dirty,
+    this.saveFailed = false,
     required this.average,
     required this.streak,
     required this.best,
@@ -127,9 +127,13 @@ class DayEditorController extends BaseController<DayEditorState> {
           streak: engine.goalStreak(g),
         ),
     ];
-    final dirty = entry == null
-        ? _draft.isNotEmpty
-        : goals.any((g) => (entry.values[g.goalId] ?? 0) != g.value);
+    // A failed write leaves the new values in memory only, so the day still
+    // counts as unsaved even though the in-memory entry already matches.
+    final saveFailed = store.saveError != null;
+    final dirty = saveFailed ||
+        (entry == null
+            ? _draft.isNotEmpty
+            : goals.any((g) => (entry.values[g.goalId] ?? 0) != g.value));
     final avg = goals.isEmpty
         ? null
         : goals.map((g) => g.value).reduce((a, b) => a + b) / goals.length;
@@ -141,6 +145,7 @@ class DayEditorController extends BaseController<DayEditorState> {
       editable: _isEditable(d),
       saved: entry != null,
       dirty: dirty,
+      saveFailed: saveFailed,
       average: avg,
       streak: engine.globalStreak(),
       best: engine.globalBest(),
@@ -181,7 +186,7 @@ class DayEditorController extends BaseController<DayEditorState> {
     try {
       await store.saveDay(
           s.view.day, {for (final g in s.view.goals) g.goalId: g.value});
-      _draft.clear();
+      if (store.saveError == null) _draft.clear();
       reload();
     } finally {
       _saving = false;

@@ -10,11 +10,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// A repository that loads fine but can never write.
+class SaveThrowsRepository extends InMemoryGoalsRepository {
+  SaveThrowsRepository([super.stored]);
+
+  @override
+  Future<void> save(AppData data) async =>
+      throw const FormatException('disk full');
+}
+
 Future<(SettingsStore, AppStore)> _stores(
-    Map<String, Object> prefs, AppData? data) async {
+    Map<String, Object> prefs, AppData? data, bool failSaves) async {
   SharedPreferences.setMockInitialValues(prefs);
   final p = await SharedPreferences.getInstance();
-  final store = AppStore(InMemoryGoalsRepository(data));
+  final store = AppStore(
+      failSaves ? SaveThrowsRepository(data) : InMemoryGoalsRepository(data));
   await store.load();
   return (SettingsStore(SettingsRepository(p)), store);
 }
@@ -23,8 +33,9 @@ Future<(SettingsStore, AppStore)> _stores(
 Future<ConsistencyApp> buildApp({
   Map<String, Object> prefs = const {},
   AppData? data,
+  bool failSaves = false,
 }) async {
-  final (settings, store) = await _stores(prefs, data);
+  final (settings, store) = await _stores(prefs, data, failSaves);
   return ConsistencyApp(settings: settings, store: store);
 }
 
@@ -34,7 +45,7 @@ Future<Widget> wrap(
   Map<String, Object> prefs = const {},
   AppData? data,
 }) async {
-  final (settings, store) = await _stores(prefs, data);
+  final (settings, store) = await _stores(prefs, data, false);
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: settings),

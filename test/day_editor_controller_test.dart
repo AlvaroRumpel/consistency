@@ -9,6 +9,8 @@ import 'package:consistency/state/settings_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helpers.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   DateTime d(int day) => DateTime(2026, 8, day);
@@ -16,7 +18,7 @@ void main() {
   var now = DateTime(2026, 8, 10, 9);
 
   Future<(AppStore, SettingsStore, InMemoryGoalsRepository)> boot(
-      {List<DayEntry> entries = const []}) async {
+      {List<DayEntry> entries = const [], bool failSaves = false}) async {
     SharedPreferences.setMockInitialValues({'nickname': 'Alvaro'});
     final prefs = await SharedPreferences.getInstance();
     final run = Goal(
@@ -33,8 +35,9 @@ void main() {
         createdAt: d(1),
         archivedAt: null,
         updatedAt: u);
+    final data = AppData(goals: [run, read], entries: entries);
     final repo =
-        InMemoryGoalsRepository(AppData(goals: [run, read], entries: entries));
+        failSaves ? SaveThrowsRepository(data) : InMemoryGoalsRepository(data);
     final store = AppStore(repo);
     await store.load();
     return (store, SettingsStore(SettingsRepository(prefs)), repo);
@@ -156,6 +159,24 @@ void main() {
             .goals
             .map((g) => g.goalId),
         ['run', 'read']);
+  });
+
+  test('a failed save keeps the day dirty and shows what the user typed',
+      () async {
+    final (s, st, _) = await boot(failSaves: true);
+    final c = DayEditorController(s, st, now: () => now);
+    c.toggle('run');
+    await c.save();
+    expect(view(c).saveFailed, isTrue);
+    expect(view(c).dirty, isTrue);
+    expect(view(c).goals.firstWhere((g) => g.goalId == 'run').value, 100);
+  });
+
+  test('a disposed controller ignores a late reload', () async {
+    final (s, st, _) = await boot();
+    final c = DayEditorController(s, st, now: () => now);
+    c.onDispose();
+    expect(c.reload, returnsNormally);
   });
 
   test('load error surfaces', () async {

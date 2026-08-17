@@ -7,7 +7,7 @@ import 'goal_card.dart';
 
 /// Renders a [DayEditorController]: a caller-supplied header, one [GoalCard]
 /// per goal and an optional footer, both built from the current [DayView].
-class DayEditor extends StatelessWidget {
+class DayEditor extends StatefulWidget {
   final DayEditorController controller;
   final Widget Function(BuildContext, DayView) header;
   final Widget Function(BuildContext, DayView)? footer;
@@ -22,7 +22,28 @@ class DayEditor extends StatelessWidget {
   });
 
   @override
+  State<DayEditor> createState() => _DayEditorState();
+}
+
+class _DayEditorState extends State<DayEditor> {
+  bool _lastFailed = false;
+
+  void _reportSaveFailure(bool failed) {
+    if (failed == _lastFailed) return;
+    _lastFailed = failed;
+    if (!failed) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text("Couldn't save. We'll try again on the next save."),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
     return ValueListenableBuilder(
       valueListenable: controller.stateNotifier,
       builder: (context, state, _) {
@@ -36,10 +57,11 @@ class DayEditor extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         final view = state.view;
+        _reportSaveFailure(view.saveFailed);
         final isToday = view.day == controller.today;
         return ListView(
           children: [
-            header(context, view),
+            widget.header(context, view),
             if (view.goals.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
@@ -57,14 +79,16 @@ class DayEditor extends StatelessWidget {
                 child: GoalCard(
                   row: row,
                   enabled: view.editable,
-                  onTapName: onGoalTap == null ? null : () => onGoalTap!(row),
+                  onTapName: widget.onGoalTap == null
+                      ? null
+                      : () => widget.onGoalTap!(row),
                   onChanged: (v) => controller.setValue(row.goalId, v),
                 ),
               ),
-            if (footer != null)
+            if (widget.footer != null)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: footer!(context, view),
+                child: widget.footer!(context, view),
               ),
           ],
         );

@@ -70,7 +70,7 @@ void main() {
     expect(find.text('Save ${formatDayMonth(recent)}'), findsOneWidget);
 
     await select(tester, old);
-    expect(find.text('Read-only — only the last 7 days can be edited'),
+    expect(find.text('Read-only — you can only edit the last week'),
         findsOneWidget);
     expect(find.textContaining('Save '), findsNothing);
     expect(find.text('no entry'), findsOneWidget);

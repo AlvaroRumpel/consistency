@@ -37,21 +37,29 @@ class GoalCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: GestureDetector(
-                  onTap: onTapName,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(row.name, style: context.textStyles.boldText),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${row.streak} ${row.streak == 1 ? 'day' : 'days'}',
-                        style: context.textStyles.thinText.copyWith(
-                          fontSize: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
+                child: Semantics(
+                  button: onTapName != null,
+                  child: InkWell(
+                    onTap: onTapName,
+                    borderRadius: BorderRadius.circular(12),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 44),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(row.name, style: context.textStyles.boldText),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${row.streak} ${row.streak == 1 ? 'day' : 'days'}',
+                            style: context.textStyles.thinText.copyWith(
+                              fontSize: 12,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -69,20 +77,35 @@ class GoalCard extends StatelessWidget {
 
   Widget _check(BuildContext context, ColorScheme scheme) {
     final done = row.value >= 100;
-    return InkWell(
-      key: ValueKey('check-${row.goalId}'),
-      customBorder: const CircleBorder(),
-      onTap: enabled ? () => onChanged(done ? 0 : 100) : null,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: done ? scheme.primary : Colors.transparent,
-          border: Border.all(color: done ? scheme.primary : scheme.outline),
+    final tokens = context.tokens;
+    // The circle stays 28px; the 48px box around it is the tap target.
+    return Semantics(
+      button: true,
+      toggled: done,
+      label: row.name,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: InkResponse(
+          key: ValueKey('check-${row.goalId}'),
+          radius: 24,
+          onTap: enabled ? () => onChanged(done ? 0 : 100) : null,
+          child: Center(
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: done ? tokens.qualityFor(100) : Colors.transparent,
+                border: Border.all(
+                    color: done ? tokens.qualityFor(100) : scheme.outline),
+              ),
+              child: done
+                  ? Icon(Icons.check, size: 18, color: tokens.onQualityFor(100))
+                  : null,
+            ),
+          ),
         ),
-        child:
-            done ? Icon(Icons.check, size: 18, color: scheme.onPrimary) : null,
       ),
     );
   }
@@ -107,7 +130,7 @@ class GoalCard extends StatelessWidget {
                 : null),
         foregroundColor: WidgetStateProperty.resolveWith((states) =>
             states.contains(WidgetState.selected) && selected > 0
-                ? Theme.of(context).colorScheme.onPrimary
+                ? tokens.onQualityFor(selected.toDouble())
                 : null),
         textStyle: WidgetStatePropertyAll(context.textStyles.normalText),
         padding: const WidgetStatePropertyAll(EdgeInsets.zero),

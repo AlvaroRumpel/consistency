@@ -188,7 +188,9 @@ class _DayPanelState extends State<_DayPanel> {
   Widget _footer(BuildContext context, DayView view) {
     if (!view.editable) {
       return Text(
-        'Read-only — only the last 7 days can be edited',
+        view.day.isAfter(_controller.today)
+            ? "This day hasn't happened yet"
+            : 'Read-only — you can only edit the last week',
         style: context.textStyles.thinText.copyWith(
           fontSize: 12,
           color: Theme.of(context).colorScheme.onSurfaceVariant,

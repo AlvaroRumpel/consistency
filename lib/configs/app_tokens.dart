@@ -8,14 +8,27 @@ class AppTokens extends ThemeExtension<AppTokens> {
   final Color success;
   final Color cardBorder;
   final List<Color> quality; // q0 (no data) .. q4 (>= 75 %)
+  final List<Color> onQuality; // readable ink over each quality colour
   final List<Color> flame; // f0 (0 days) .. f4 (100+ days)
 
   const AppTokens({
     required this.success,
     required this.cardBorder,
     required this.quality,
+    required this.onQuality,
     required this.flame,
   });
+
+  static const _ink = Color(0xFF1B1D1F);
+
+  // Amber and cyan are too light for white; red and green are not.
+  static const _onQuality = <Color>[
+    Colors.white,
+    Colors.white,
+    _ink,
+    _ink,
+    Colors.white,
+  ];
 
   static const _flame = <Color>[
     AppColors.flameGrey,
@@ -35,6 +48,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       AppColors.primaryColor,
       AppColors.greenColor,
     ],
+    onQuality: _onQuality,
     flame: _flame,
   );
 
@@ -48,17 +62,23 @@ class AppTokens extends ThemeExtension<AppTokens> {
       AppColors.primaryColor,
       AppColors.greenColor,
     ],
+    onQuality: _onQuality,
     flame: _flame,
   );
 
   /// null = no data for that day.
-  Color qualityFor(double? avgPercent) {
-    if (avgPercent == null) return quality[0];
-    if (avgPercent < 25) return quality[1];
-    if (avgPercent < 50) return quality[2];
-    if (avgPercent < 75) return quality[3];
-    return quality[4];
+  static int qualityTier(double? avgPercent) {
+    if (avgPercent == null) return 0;
+    if (avgPercent < 25) return 1;
+    if (avgPercent < 50) return 2;
+    if (avgPercent < 75) return 3;
+    return 4;
   }
+
+  Color qualityFor(double? avgPercent) => quality[qualityTier(avgPercent)];
+
+  /// Foreground to draw on top of [qualityFor] of the same value.
+  Color onQualityFor(double? avgPercent) => onQuality[qualityTier(avgPercent)];
 
   static int flameTier(int streakDays) {
     if (streakDays <= 0) return 0;
@@ -75,12 +95,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? success,
     Color? cardBorder,
     List<Color>? quality,
+    List<Color>? onQuality,
     List<Color>? flame,
   }) =>
       AppTokens(
         success: success ?? this.success,
         cardBorder: cardBorder ?? this.cardBorder,
         quality: quality ?? this.quality,
+        onQuality: onQuality ?? this.onQuality,
         flame: flame ?? this.flame,
       );
 
@@ -93,6 +115,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
       cardBorder: l(cardBorder, other.cardBorder),
       quality: [
         for (var i = 0; i < quality.length; i++) l(quality[i], other.quality[i])
+      ],
+      onQuality: [
+        for (var i = 0; i < onQuality.length; i++)
+          l(onQuality[i], other.onQuality[i])
       ],
       flame: [
         for (var i = 0; i < flame.length; i++) l(flame[i], other.flame[i])

@@ -21,7 +21,6 @@ Future<void> showGoalSheet(BuildContext context, {Goal? goal}) {
 
 /// Asks before archiving. False when dismissed or cancelled.
 Future<bool> confirmArchiveGoal(BuildContext context) async {
-  final scheme = Theme.of(context).colorScheme;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -34,7 +33,10 @@ Future<bool> confirmArchiveGoal(BuildContext context) async {
         ),
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: Text('Archive', style: TextStyle(color: scheme.error)),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(dialogContext).colorScheme.error,
+          ),
+          child: const Text('Archive'),
         ),
       ],
     ),
@@ -80,7 +82,17 @@ class _GoalSheetState extends State<_GoalSheet> {
       await store.addGoal(name, _type);
     } else {
       if (name != goal.name) await store.renameGoal(goal.id, name);
-      if (_type != goal.type) await store.setGoalType(goal.id, _type);
+      if (_type != goal.type) {
+        await store.setGoalType(goal.id, _type);
+        // A check goal only knows 0/100: a part-done value today can't stay.
+        final today = DateTime.now();
+        final entry = store.data.entryOn(today);
+        final v = entry?.values[goal.id];
+        if (_type == GoalType.check && v != null && v != 0 && v != 100) {
+          await store
+              .saveDay(today, {...entry!.values, goal.id: v >= 100 ? 100 : 0});
+        }
+      }
     }
     if (mounted) Navigator.pop(context);
   }
@@ -194,10 +206,8 @@ class _GoalSheetState extends State<_GoalSheet> {
               const SizedBox(height: 8),
               TextButton(
                 onPressed: _archive,
-                child: Text(
-                  'Archive goal',
-                  style: TextStyle(color: scheme.error),
-                ),
+                style: TextButton.styleFrom(foregroundColor: scheme.error),
+                child: const Text('Archive goal'),
               ),
             ],
           ],

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:consistency/models/goal.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/widgets/goal_sheet.dart';
 import 'package:flutter/material.dart';
@@ -46,5 +47,24 @@ void main() {
     await tester.tap(find.text('Archive'));
     await pumpFrames(tester, 20); // let the sheet's exit animation settle
     expect(find.text('Breathe'), findsNothing);
+  });
+
+  testWidgets("switching a percent goal to check snaps today's value",
+      (tester) async {
+    await tester.pumpWidget(await buildApp());
+    await pumpFrames(tester);
+    final store = tester.element(find.text('New goal')).read<AppStore>();
+    final goal = await store.addGoal('Read', GoalType.percent);
+    await store.saveDay(DateTime.now(), {goal.id: 50});
+    await pumpFrames(tester);
+
+    unawaited(showGoalSheet(tester.element(find.text('Read')), goal: goal));
+    await pumpFrames(tester, 20);
+    await tester.tap(find.text('Done / not done'));
+    await tester.tap(find.text('Save changes'));
+    await pumpFrames(tester, 20);
+
+    expect(store.data.goalById(goal.id)!.type, GoalType.check);
+    expect(store.data.entryOn(DateTime.now())!.values[goal.id], 0);
   });
 }

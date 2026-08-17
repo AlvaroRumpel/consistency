@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 abstract class BaseController<S> {
   final ValueNotifier<S> _state;
+  bool _disposed = false;
 
   S get state => _state.value;
 
@@ -18,10 +19,14 @@ abstract class BaseController<S> {
   void onInit() {}
 
   void onDispose() {
+    _disposed = true;
     _state.dispose();
   }
 
+  /// Late listeners (a store notifying after the page is gone) must not
+  /// touch a disposed notifier.
   void emit(S newState) {
+    if (_disposed) return;
     _state.value = newState;
   }
 

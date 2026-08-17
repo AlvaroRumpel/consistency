@@ -63,6 +63,18 @@ void main() {
     expect(find.text('88%'), findsOneWidget); // (100+75)/2 = 87.5 → 88
   });
 
+  testWidgets('a save that cannot be written tells the user', (tester) async {
+    await tester.pumpWidget(await buildApp(data: seed(), failSaves: true));
+    await pumpFrames(tester);
+    await tester.tap(find.byKey(const ValueKey('check-run')));
+    await pumpFrames(tester);
+    await tester.tap(find.byType(ProgressRing));
+    await pumpFrames(tester);
+    expect(find.text("Couldn't save. We'll try again on the next save."),
+        findsOneWidget);
+    expect(find.text('TAP TO SAVE'), findsOneWidget); // still dirty
+  });
+
   testWidgets('empty home shows a "New goal" pill', (tester) async {
     await tester.pumpWidget(await buildApp());
     await pumpFrames(tester);

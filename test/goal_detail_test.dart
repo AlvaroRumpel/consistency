@@ -3,6 +3,7 @@ import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/day_entry.dart';
 import 'package:consistency/models/goal.dart';
 import 'package:consistency/pages/goal_detail_page.dart';
+import 'package:consistency/widgets/goal_stats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,6 +32,17 @@ void main() {
         ],
       );
 
+  // Seed + the default threshold of 50: done on ago(1) (75) and today (100),
+  // missed on ago(2) (25), no data before that; the goal exists since ago(10).
+  void expectStat(WidgetTester tester, String label, String value) {
+    expect(
+      find.byWidgetPredicate(
+          (w) => w is StatTile && w.label == label && w.value == value),
+      findsOneWidget,
+      reason: '$label should read $value',
+    );
+  }
+
   Color squareColor(WidgetTester tester, int i) {
     final box = tester.widget<Container>(find.byKey(ValueKey('hm-$i')));
     return (box.decoration as BoxDecoration).color!;
@@ -44,9 +56,10 @@ void main() {
     await tester.tap(find.text('Read'));
     await pumpFrames(tester, 20); // route transition
 
-    expect(find.text('CURRENT STREAK'), findsOneWidget);
-    expect(find.text('RECORD'), findsOneWidget);
-    expect(find.text('LAST 7 DAYS'), findsOneWidget);
+    expectStat(tester, 'CURRENT STREAK', '2 days'); // ago(1) + today
+    expectStat(tester, 'RECORD', '2 days');
+    expectStat(tester, 'LAST 7 DAYS', '29%'); // 2 of 7
+    expectStat(tester, 'LAST 30 DAYS', '18%'); // 2 of the 11 days it existed
     // Once as a stat tile label, once as the strip's section header.
     expect(find.text('LAST 30 DAYS'), findsNWidgets(2));
     expect(find.text('Change it with the edit button'), findsOneWidget);
@@ -89,7 +102,7 @@ void main() {
     expect(find.textContaining('Archived on'), findsNothing);
   });
 
-  testWidgets('a goal that disappears pops the page', (tester) async {
+  testWidgets('renders empty when the goal id is unknown', (tester) async {
     await tester.pumpWidget(await wrap(
       const GoalDetailPage(goalId: 'gone'),
       data: seed(),
