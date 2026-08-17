@@ -19,6 +19,29 @@ Future<void> showGoalSheet(BuildContext context, {Goal? goal}) {
   );
 }
 
+/// Asks before archiving. False when dismissed or cancelled.
+Future<bool> confirmArchiveGoal(BuildContext context) async {
+  final scheme = Theme.of(context).colorScheme;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Archive this goal?'),
+      content: const Text('It will no longer appear in your daily list.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text('Archive', style: TextStyle(color: scheme.error)),
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
+}
+
 class _GoalSheet extends StatefulWidget {
   final Goal? goal;
 
@@ -63,25 +86,7 @@ class _GoalSheetState extends State<_GoalSheet> {
   }
 
   Future<void> _archive() async {
-    final scheme = Theme.of(context).colorScheme;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Archive this goal?'),
-        content: const Text('It will no longer appear in your daily list.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('Archive', style: TextStyle(color: scheme.error)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    if (!await confirmArchiveGoal(context) || !mounted) return;
     final goal = widget.goal;
     if (goal == null) return;
     await context.read<AppStore>().archiveGoal(goal.id);

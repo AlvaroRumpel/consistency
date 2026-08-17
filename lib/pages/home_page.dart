@@ -9,6 +9,7 @@ import '../widgets/day_editor.dart';
 import '../widgets/goal_sheet.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/streak_badge.dart';
+import 'goal_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -83,8 +84,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: DayEditor(
         controller: _controller,
         header: _header,
-        onGoalTap: (row) => showGoalSheet(context,
-            goal: context.read<AppStore>().data.goalById(row.goalId)),
+        onGoalTap: (row) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => GoalDetailPage(goalId: row.goalId)),
+        ),
         footer: OutlinedButton.icon(
           onPressed: () => showGoalSheet(context),
           icon: const Icon(Icons.add),
