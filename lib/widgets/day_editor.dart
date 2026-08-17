@@ -1,0 +1,98 @@
+import 'package:flutter/material.dart';
+
+import '../configs/text_styles.dart';
+import '../controllers/day_editor_controller.dart';
+import 'error_view.dart';
+import 'goal_card.dart';
+
+/// Renders a [DayEditorController]: a caller-supplied header, one [GoalCard]
+/// per goal and an optional footer, both built from the current [DayView].
+class DayEditor extends StatefulWidget {
+  final DayEditorController controller;
+  final Widget Function(BuildContext, DayView) header;
+  final Widget Function(BuildContext, DayView)? footer;
+  final void Function(GoalRow)? onGoalTap;
+
+  const DayEditor({
+    super.key,
+    required this.controller,
+    required this.header,
+    this.footer,
+    this.onGoalTap,
+  });
+
+  @override
+  State<DayEditor> createState() => _DayEditorState();
+}
+
+class _DayEditorState extends State<DayEditor> {
+  bool _lastFailed = false;
+
+  void _reportSaveFailure(bool failed) {
+    if (failed == _lastFailed) return;
+    _lastFailed = failed;
+    if (!failed) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text("Couldn't save. We'll try again on the next save."),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = widget.controller;
+    return ValueListenableBuilder(
+      valueListenable: controller.stateNotifier,
+      builder: (context, state, _) {
+        if (state is DayEditorError) {
+          return Center(
+            child:
+                ErrorView(message: state.message, onRetry: controller.reload),
+          );
+        }
+        if (state is! DayEditorReady) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final view = state.view;
+        _reportSaveFailure(view.saveFailed);
+        final isToday = view.day == controller.today;
+        return ListView(
+          children: [
+            widget.header(context, view),
+            if (view.goals.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Text(
+                isToday ? "TODAY'S GOALS" : 'GOALS',
+                style: context.textStyles.boldText.copyWith(
+                  fontSize: 12,
+                  letterSpacing: 1.2,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            for (final row in view.goals)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: GoalCard(
+                  row: row,
+                  enabled: view.editable,
+                  onTapName: widget.onGoalTap == null
+                      ? null
+                      : () => widget.onGoalTap!(row),
+                  onChanged: (v) => controller.setValue(row.goalId, v),
+                ),
+              ),
+            if (widget.footer != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: widget.footer!(context, view),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}

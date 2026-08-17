@@ -16,6 +16,16 @@ void main() {
     expect(t.qualityFor(100), t.quality[4]);
   });
 
+  test('onQualityFor is readable ink over the same quality colour', () {
+    const t = AppTokens.light;
+    expect(t.onQualityFor(30), const Color(0xFF1B1D1F)); // amber
+    expect(t.onQualityFor(60), const Color(0xFF1B1D1F)); // cyan
+    expect(t.onQualityFor(90), Colors.white); // green
+    expect(t.onQualityFor(10), Colors.white); // red
+    expect(t.onQuality.length, t.quality.length);
+    expect(AppTokens.dark.onQuality, t.onQuality);
+  });
+
   test('flame tiers', () {
     expect(AppTokens.flameTier(0), 0);
     expect(AppTokens.flameTier(1), 1);

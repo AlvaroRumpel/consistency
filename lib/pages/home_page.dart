@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../configs/app_tokens.dart';
-import '../configs/colors.dart';
 import '../configs/text_styles.dart';
-import '../controllers/home_controller.dart';
+import '../controllers/day_editor_controller.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
-import '../widgets/add_day_button.dart';
-import '../widgets/error_view.dart';
-import '../widgets/goals_list_view.dart';
+import '../widgets/day_editor.dart';
+import '../widgets/goal_sheet.dart';
+import '../widgets/progress_ring.dart';
+import '../widgets/streak_badge.dart';
+import 'goal_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  HomePageState createState() => HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  late HomeController _controller;
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+  late final DayEditorController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = HomeController(
-      context.read<AppStore>(),
-      context.read<SettingsStore>(),
-    );
+    _controller = DayEditorController(
+        context.read<AppStore>(), context.read<SettingsStore>());
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Coming back after midnight must roll the day over.
+    if (state == AppLifecycleState.resumed) _controller.reload();
   }
 
   @override
@@ -38,161 +42,60 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _controller.reload();
+  Widget _header(BuildContext context, DayView view) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text('Hi, ${view.nickname}',
+                  style: context.textStyles.titleText),
+            ),
+            StreakBadge(streak: view.streak),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Center(
+          child: ProgressRing(
+            average: view.average,
+            saved: view.saved,
+            dirty: view.dirty,
+            onTap: view.editable ? _controller.save : null,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'RECORD ${view.best} DAYS',
+          style: context.textStyles.thinText.copyWith(
+            fontSize: 12,
+            letterSpacing: 1.2,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24.0),
-      child: CustomScrollView(
-        slivers: [
-          SliverList(
-            delegate: SliverChildListDelegate.fixed(
-              [
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  children: [
-                    Text(
-                      'How are you ',
-                      style:
-                          context.textStyles.normalText.copyWith(fontSize: 32),
-                    ),
-                    ValueListenableBuilder(
-                      valueListenable: _controller.stateNotifier,
-                      builder: (context, value, _) {
-                        final nickname =
-                            value is HomeData ? value.nickname : 'user';
-                        return Text(
-                          '$nickname?',
-                          style: context.textStyles.normalText.copyWith(
-                            fontSize: 32,
-                            color: AppColors.primaryColor,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                Text(
-                  'Did you complete your goals today?',
-                  style: context.textStyles.normalText,
-                  textAlign: TextAlign.center,
-                ),
-                ValueListenableBuilder(
-                  valueListenable: _controller.stateNotifier,
-                  builder: (context, state, _) {
-                    if (state is! HomeData) return const SizedBox.shrink();
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.local_fire_department,
-                          color: context.tokens.flameFor(state.streak),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            '${state.streak} day streak · best ${state.best}',
-                            style: context.textStyles.normalText,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                ValueListenableBuilder(
-                  valueListenable: _controller.stateNotifier,
-                  builder: (context, state, _) {
-                    return AddDayButton(
-                      color: context.tokens.qualityFor(
-                        state is HomeData ? state.todayAverage : null,
-                      ),
-                      onTap: () {
-                        if (state is HomeData &&
-                            !state.hasMarkedToday &&
-                            state.goals.isNotEmpty) {
-                          _controller.saveData();
-
-                          return true;
-                        }
-
-                        return false;
-                      },
-                      hasMarkedToday:
-                          state is HomeData ? state.hasMarkedToday : true,
-                    );
-                  },
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: DayEditor(
+        controller: _controller,
+        header: _header,
+        onGoalTap: (row) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => GoalDetailPage(goalId: row.goalId)),
+        ),
+        footer: (_, __) => OutlinedButton.icon(
+          onPressed: () => showGoalSheet(context),
+          icon: const Icon(Icons.add),
+          label: const Text('New goal'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: const StadiumBorder(),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                Text(
-                  'How much completed?',
-                  style: context.textStyles.normalText.copyWith(fontSize: 24),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 16,
-                  ),
-                  child: ValueListenableBuilder(
-                    valueListenable: _controller.stateNotifier,
-                    builder: (context, state, _) {
-                      return switch (state) {
-                        HomeDataEmpty() => IconButton(
-                            onPressed: _controller.addNewGoal,
-                            style: IconButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(100),
-                                side: const BorderSide(
-                                  color: AppColors.primaryColor,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            icon: const Icon(
-                              Icons.add,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                        HomeData(
-                          :final goals,
-                          :final hasMarkedToday,
-                          :final goalStreaks,
-                        ) =>
-                          GoalsListView(
-                            goals: goals,
-                            textControllers: _controller.goalsControllers,
-                            hasMarkedToday: hasMarkedToday,
-                            onRemove: _controller.removeGoal,
-                            onAdd: _controller.addNewGoal,
-                            streaks: goalStreaks,
-                          ),
-                        HomeError(:final message) => ErrorView(
-                            message: message,
-                            onRetry: _controller.reload,
-                          ),
-                        HomeInitial() ||
-                        HomeLoading() =>
-                          const SizedBox.shrink(),
-                      };
-                    },
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
+        ),
       ),
     );
   }

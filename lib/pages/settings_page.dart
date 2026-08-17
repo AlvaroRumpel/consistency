@@ -10,6 +10,7 @@ import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
 import '../widgets/list_tile_custom.dart';
+import 'archived_goals_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -114,6 +115,14 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                             'Change your nickname, ${value is SettingData ? value.nickname : 'User'}',
                       );
                     }),
+                ListTileCustom(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const ArchivedGoalsPage()),
+                  ),
+                  title: 'Archived goals '
+                      '(${context.watch<AppStore>().data.goals.where((g) => g.isArchived).length})',
+                ),
                 ListTileCustom(
                   onTap: () => _aboutTheAppDialog(context),
                   title: 'About the app',
