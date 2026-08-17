@@ -49,7 +49,7 @@ void main() {
     await openCalendar(tester);
 
     expect(find.byType(MonthGrid), findsOneWidget);
-    expect(find.text(formatMonthYear(DateTime(today.year, today.month))),
+    expect(find.text(formatMonthYear(DateTime(today.year, today.month), 'en')),
         findsOneWidget);
     expect(find.byType(QualityLegend), findsOneWidget);
   });
@@ -61,7 +61,7 @@ void main() {
     await pumpFrames(tester);
 
     final previousMonth = DateTime(today.year, today.month - 1);
-    expect(find.text(formatMonthYear(previousMonth)), findsOneWidget);
+    expect(find.text(formatMonthYear(previousMonth, 'en')), findsOneWidget);
   });
 
   testWidgets('tapping a past day with an entry shows its goals and Save',
@@ -75,15 +75,15 @@ void main() {
     await pumpFrames(tester);
     await select(tester, recent);
 
-    expect(find.text(formatWeekdayDayMonth(recent)), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(recent, 'en')), findsOneWidget);
     expect(find.byType(GoalCard), findsOneWidget);
-    expect(find.text('Save ${formatDayMonth(recent)}'), findsOneWidget);
+    expect(find.text('Save ${formatDayMonth(recent, 'en')}'), findsOneWidget);
   });
 
   testWidgets('switching to Year shows the heatmap and its summary',
       (tester) async {
     await openCalendar(tester);
-    expect(find.text('Save ${formatDayMonth(today)}'), findsOneWidget);
+    expect(find.text('Save ${formatDayMonth(today, 'en')}'), findsOneWidget);
 
     await tester.tap(find.text('Year'));
     await pumpFrames(tester);
@@ -115,9 +115,9 @@ void main() {
     await pumpFrames(tester);
 
     final january = DateTime(today.year - 1, 1, 1);
-    expect(find.text(formatMonthYear(january)), findsOneWidget);
-    expect(find.text(formatWeekdayDayMonth(january)), findsOneWidget);
-    expect(find.text(formatWeekdayDayMonth(today)), findsNothing);
+    expect(find.text(formatMonthYear(january, 'en')), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(january, 'en')), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(today, 'en')), findsNothing);
   });
 
   testWidgets('tapping a heatmap day opens that day in the month view',
@@ -132,7 +132,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.byType(MonthGrid), findsOneWidget);
-    expect(find.text(formatMonthYear(target)), findsOneWidget);
-    expect(find.text(formatWeekdayDayMonth(target)), findsOneWidget);
+    expect(find.text(formatMonthYear(target, 'en')), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(target, 'en')), findsOneWidget);
   });
 }

@@ -62,7 +62,8 @@ class ArchivedGoalsPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   context.l10n.archivedOn(
-                    formatDayMonthYear(goal.archivedAt!),
+                    formatDayMonthYear(goal.archivedAt!,
+                        Localizations.localeOf(context).toLanguageTag()),
                     engine.goalBest(goal),
                   ),
                   style: context.textStyles.thinText.copyWith(

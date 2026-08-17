@@ -105,7 +105,9 @@ DateTime displayedMonth(WidgetTester tester) {
       .data!;
   final year = int.parse(title.split(' ').last);
   for (var m = 1; m <= 12; m++) {
-    if (formatMonthYear(DateTime(year, m)) == title) return DateTime(year, m);
+    if (formatMonthYear(DateTime(year, m), 'en') == title) {
+      return DateTime(year, m);
+    }
   }
   throw ArgumentError('not a month title: $title');
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../configs/app_tokens.dart';
+import '../configs/date_format.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../models/date_key.dart';
 
@@ -8,21 +11,6 @@ const _cell = 12.0;
 const _gap = 3.0;
 const _step = _cell + _gap;
 const _monthLabels = 12.0; // height of the month label strip
-
-const _shortMonths = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
 
 /// Sunday first; only three labels, like GitHub's contribution graph.
 const _weekdayLabels = [null, 'M', null, 'W', null, 'F', null];
@@ -93,7 +81,8 @@ class YearHeatmap extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _monthStrip(weeks, labelStyle),
+                  _monthStrip(weeks, labelStyle,
+                      Localizations.localeOf(context).toLanguageTag()),
                   const SizedBox(height: _gap),
                   // 365 unlabelled squares are noise to a screen reader; the
                   // label on the whole heatmap says what this is.
@@ -119,7 +108,8 @@ class YearHeatmap extends StatelessWidget {
   }
 
   /// A month name over the first column whose week starts that month.
-  Widget _monthStrip(List<List<DateTime>> weeks, TextStyle style) {
+  Widget _monthStrip(
+      List<List<DateTime>> weeks, TextStyle style, String locale) {
     return SizedBox(
       height: _monthLabels,
       // Room for the last label, which is wider than its column.
@@ -127,7 +117,7 @@ class YearHeatmap extends StatelessWidget {
       child: Stack(
         children: [
           for (var c = 0; c < weeks.length; c++)
-            if (_monthLabel(weeks, c) case final label?)
+            if (_monthLabel(weeks, c, locale) case final label?)
               Positioned(
                   left: c * _step, top: 0, child: Text(label, style: style)),
         ],
@@ -144,11 +134,12 @@ class YearHeatmap extends StatelessWidget {
     return null;
   }
 
-  String? _monthLabel(List<List<DateTime>> weeks, int c) {
+  String? _monthLabel(List<List<DateTime>> weeks, int c, String locale) {
     final month = _columnMonth(weeks[c]);
     if (month == null) return null;
     if (c > 0 && _columnMonth(weeks[c - 1]) == month) return null;
-    return _shortMonths[month - 1];
+    ensureDateSymbols();
+    return DateFormat.MMM(locale).format(DateTime(year, month));
   }
 
   Widget _dayCell(BuildContext context, DateTime day) {
@@ -199,13 +190,13 @@ class YearSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$year · $consistent consistent days of $recorded',
+          context.l10n.yearSummary(year, consistent, recorded),
           style: context.textStyles.boldText.copyWith(fontSize: 18),
         ),
         if (best != null && current != null) ...[
           const SizedBox(height: 6),
           Text(
-            'best streak $best days · current $current',
+            context.l10n.bestAndCurrent(best!, current!),
             style: context.textStyles.thinText.copyWith(
               fontSize: 12,
               color: Theme.of(context).colorScheme.onSurfaceVariant,

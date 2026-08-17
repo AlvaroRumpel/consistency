@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../models/goal.dart';
 import '../state/app_store.dart';
@@ -47,8 +48,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   String get _caption => _type == GoalType.check
-      ? 'Marked done or not done each day.'
-      : 'Track progress from 0 to 100 percent.';
+      ? context.l10n.typeCheckCaption
+      : context.l10n.typePercentCaption;
 
   Widget _heading(BuildContext context, String text) {
     final scheme = Theme.of(context).colorScheme;
@@ -72,11 +73,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Welcome to Consistency',
+              Text(context.l10n.welcomeTitle,
                   style: context.textStyles.titleText),
               const SizedBox(height: 8),
               Text(
-                'Mark your goals every day and keep the streak.',
+                context.l10n.welcomeSubtitle,
                 style: context.textStyles.thinText
                     .copyWith(color: scheme.onSurfaceVariant),
               ),
@@ -90,7 +91,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('What should we call you?',
+                    Text(context.l10n.whatShouldWeCallYou,
                         style: context.textStyles.boldText),
                     const SizedBox(height: 8),
                     TextField(
@@ -98,8 +99,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       controller: _nicknameController,
                       maxLength: 25,
                       style: context.textStyles.normalText,
-                      decoration: const InputDecoration(
-                        hintText: 'Your name',
+                      decoration: InputDecoration(
+                        hintText: context.l10n.yourName,
                         counterText: '',
                       ),
                     ),
@@ -107,30 +108,30 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              _heading(context, 'YOUR FIRST GOAL'),
+              _heading(context, context.l10n.yourFirstGoal),
               const SizedBox(height: 8),
               TextField(
                 key: const ValueKey('onboarding-goal-name'),
                 controller: _goalController,
                 maxLength: 50,
                 style: context.textStyles.normalText,
-                decoration: const InputDecoration(
-                  labelText: 'Goal name',
-                  hintText: 'e.g. Run 5 km',
+                decoration: InputDecoration(
+                  labelText: context.l10n.goalName,
+                  hintText: context.l10n.goalNameHint,
                   counterText: '',
                 ),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
               SegmentedButton<GoalType>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: GoalType.check,
-                    label: Text('Done / not done'),
+                    label: Text(context.l10n.typeCheck),
                   ),
                   ButtonSegment(
                     value: GoalType.percent,
-                    label: Text('Percent 0–100'),
+                    label: Text(context.l10n.typePercent),
                   ),
                 ],
                 selected: {_type},
@@ -154,7 +155,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: const StadiumBorder(),
                 ),
-                child: const Text('Start'),
+                child: Text(context.l10n.start),
               ),
             ],
           ),

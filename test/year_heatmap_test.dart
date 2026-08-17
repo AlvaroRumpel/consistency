@@ -1,10 +1,15 @@
 import 'package:consistency/configs/theme.dart';
+import 'package:consistency/l10n/app_localizations.dart';
 import 'package:consistency/widgets/year_heatmap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Widget _wrap(Widget child) =>
-    MaterialApp(theme: themeLight, home: Scaffold(body: child));
+Widget _wrap(Widget child) => MaterialApp(
+      theme: themeLight,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    );
 
 void main() {
   testWidgets('YearHeatmap renders day cells and only past ones are tappable',

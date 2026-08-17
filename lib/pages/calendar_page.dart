@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../configs/app_tokens.dart';
 import '../configs/date_format.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
 import '../controllers/day_editor_controller.dart';
@@ -106,15 +107,18 @@ class _CalendarBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: SegmentedButton<CalendarView>(
-            segments: const [
-              ButtonSegment(value: CalendarView.month, label: Text('Month')),
-              ButtonSegment(value: CalendarView.year, label: Text('Year')),
+            segments: [
+              ButtonSegment(
+                  value: CalendarView.month, label: Text(context.l10n.month)),
+              ButtonSegment(
+                  value: CalendarView.year, label: Text(context.l10n.year)),
             ],
             selected: {state.view},
             onSelectionChanged: (s) => controller.setView(s.first),
@@ -130,7 +134,7 @@ class _CalendarBox extends StatelessWidget {
                 onPressed: controller.previousMonth,
               ),
               Text(
-                formatMonthYear(state.month),
+                formatMonthYear(state.month, locale),
                 key: const ValueKey('calendar-month-title'),
                 style: context.textStyles.normalText.copyWith(fontSize: 20),
               ),
@@ -216,7 +220,7 @@ class _CalendarBox extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap a day to open the month',
+            context.l10n.tapDayToOpenMonth,
             style: context.textStyles.thinText.copyWith(
               fontSize: 12,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -267,15 +271,16 @@ class _DayPanelState extends State<_DayPanel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatWeekdayDayMonth(view.day),
+          formatWeekdayDayMonth(
+              view.day, Localizations.localeOf(context).toLanguageTag()),
           style: context.textStyles.boldText.copyWith(fontSize: 20),
         ),
         const SizedBox(height: 4),
         Text(
           avg == null
-              ? 'no entry'
-              : '${avg.round()}% average · '
-                  '${consistent ? 'consistent day' : 'below target'}',
+              ? context.l10n.noEntry
+              : '${context.l10n.dayAverage(avg.round())} · '
+                  '${consistent ? context.l10n.consistentDay : context.l10n.belowTarget}',
           style: context.textStyles.thinText.copyWith(
             fontSize: 12,
             color: context.tokens.qualityFor(avg),
@@ -289,8 +294,8 @@ class _DayPanelState extends State<_DayPanel> {
     if (!view.editable) {
       return Text(
         view.day.isAfter(_controller.today)
-            ? "This day hasn't happened yet"
-            : 'Read-only — you can only edit the last week',
+            ? context.l10n.dayInFuture
+            : context.l10n.readOnlyWindow,
         style: context.textStyles.thinText.copyWith(
           fontSize: 12,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -303,7 +308,8 @@ class _DayPanelState extends State<_DayPanel> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: const StadiumBorder(),
       ),
-      child: Text('Save ${formatDayMonth(view.day)}'),
+      child: Text(context.l10n.saveDay(formatDayMonth(
+          view.day, Localizations.localeOf(context).toLanguageTag()))),
     );
   }
 

@@ -121,5 +121,157 @@
   "archiveGoal": "Archive goal",
   "archiveConfirmTitle": "Archive this goal?",
   "archiveConfirmBody": "It will no longer appear in your daily list.",
-  "archive": "Archive"
+  "archive": "Archive",
+
+  "month": "Month",
+  "@month": {
+    "description": "Segmented button label for the calendar's month view."
+  },
+  "year": "Year",
+  "@year": {
+    "description": "Segmented button label for the calendar's year view."
+  },
+  "noEntry": "no entry",
+  "@noEntry": {
+    "description": "Shown under a selected calendar day that has no saved entry yet."
+  },
+  "dayAverage": "{percent}% average",
+  "@dayAverage": {
+    "description": "The average quality of a selected calendar day.",
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "consistentDay": "consistent day",
+  "@consistentDay": {
+    "description": "Follows dayAverage when the day's average meets the threshold."
+  },
+  "belowTarget": "below target",
+  "@belowTarget": {
+    "description": "Follows dayAverage when the day's average is under the threshold."
+  },
+  "readOnlyWindow": "Read-only — you can only edit the last week",
+  "@readOnlyWindow": {
+    "description": "Shown for a past calendar day outside the editable window."
+  },
+  "dayInFuture": "This day hasn't happened yet",
+  "@dayInFuture": {
+    "description": "Shown for a selected calendar day that is still in the future."
+  },
+  "saveDay": "Save {date}",
+  "@saveDay": {
+    "description": "Button that saves the selected calendar day, e.g. 'Save 14/08'.",
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "less": "less",
+  "@less": {
+    "description": "Low end of the goal-detail quality legend (less … more)."
+  },
+  "more": "more",
+  "@more": {
+    "description": "High end of the goal-detail quality legend (less … more)."
+  },
+  "noData": "no data",
+  "@noData": {
+    "description": "Quality legend swatch for a day with no recorded entry."
+  },
+  "currentStreak": "CURRENT STREAK",
+  "@currentStreak": {
+    "description": "Stat tile label on the goal detail page."
+  },
+  "record": "RECORD",
+  "@record": {
+    "description": "Stat tile label on the goal detail page."
+  },
+  "last7Days": "LAST 7 DAYS",
+  "@last7Days": {
+    "description": "Stat tile label on the goal detail page."
+  },
+  "last30Days": "LAST 30 DAYS",
+  "@last30Days": {
+    "description": "Stat tile label on the goal detail page."
+  },
+  "last30DaysSection": "LAST 30 DAYS",
+  "@last30DaysSection": {
+    "description": "Section heading above the goal detail page's day strip."
+  },
+  "changeWithEditButton": "Change it with the edit button",
+  "@changeWithEditButton": {
+    "description": "Caption under the read-only goal type on the goal detail page."
+  },
+  "archiveGoalCaption": "It leaves Home; history and stats stay.",
+  "@archiveGoalCaption": {
+    "description": "Caption under the Archive goal button."
+  },
+  "restoreGoal": "Restore goal",
+  "@restoreGoal": {
+    "description": "Button that restores an archived goal."
+  },
+  "restoreGoalCaption": "It shows up on Home again right away.",
+  "@restoreGoalCaption": {
+    "description": "Caption under the Restore goal button."
+  },
+  "archivedOnBanner": "Archived on {date}",
+  "@archivedOnBanner": {
+    "description": "Banner on the goal detail page for an archived goal.",
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "yearSummary": "{year} · {consistent} consistent days of {recorded}",
+  "@yearSummary": {
+    "description": "Totals under the calendar's year heatmap.",
+    "placeholders": {
+      "year": {"type": "int"},
+      "consistent": {"type": "int"},
+      "recorded": {"type": "int"}
+    }
+  },
+  "bestAndCurrent": "best streak {best} days · current {current}",
+  "@bestAndCurrent": {
+    "description": "All-time streak line under the calendar's year heatmap.",
+    "placeholders": {
+      "best": {"type": "int"},
+      "current": {"type": "int"}
+    }
+  },
+  "tapDayToOpenMonth": "Tap a day to open the month",
+  "@tapDayToOpenMonth": {
+    "description": "Caption under the calendar's year summary card."
+  },
+
+  "welcomeTitle": "Welcome to Consistency",
+  "@welcomeTitle": {
+    "description": "Onboarding heading."
+  },
+  "welcomeSubtitle": "Mark your goals every day and keep the streak.",
+  "@welcomeSubtitle": {
+    "description": "Onboarding subheading."
+  },
+  "whatShouldWeCallYou": "What should we call you?",
+  "@whatShouldWeCallYou": {
+    "description": "Onboarding nickname field heading."
+  },
+  "yourName": "Your name",
+  "@yourName": {
+    "description": "Onboarding nickname field hint text."
+  },
+  "yourFirstGoal": "YOUR FIRST GOAL",
+  "@yourFirstGoal": {
+    "description": "Onboarding first-goal section heading."
+  },
+  "goalName": "Goal name",
+  "@goalName": {
+    "description": "Onboarding goal name field label."
+  },
+  "goalNameHint": "e.g. Run 5 km",
+  "@goalNameHint": {
+    "description": "Onboarding goal name field hint text."
+  },
+  "start": "Start",
+  "@start": {
+    "description": "Onboarding button that finishes first-run setup."
+  }
 }
