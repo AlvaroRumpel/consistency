@@ -73,9 +73,9 @@ For each row: write the page, call `mcp__claude-design__render_preview` (open `s
 | 1 | `home.dc.html` (2a = 1c anel + cartões 1b; tiers do fogo) | "Olá, {nick}"; streak global grande + recorde; lista de metas ativas (nome, 🔥 streak, checkbox ou slider 5 passos); botão grande "Salvar hoje" em 2 estados (pendente / salvo) e 3 cores (baixo/médio/alto); "+ nova meta". Nav bar embaixo. | 2026-08-15 (2a) |
 | 2 | `home-empty.dc.html` | Home sem metas: onboarding inline (nickname + criar 1ª meta), `onboardingDone=false`. | 2026-08-16 |
 | 3 | `goal-sheet.dc.html` | Bottom sheet nova meta: nome, tipo (check \| percent) como segmented control. | 2026-08-16 |
-| 4 | `goal-detail.html` | Tela push: nome editável, tipo, streak atual, recorde, % 7d, % 30d, mini-heatmap 30d, botão Arquivar (e variante Restaurar). | |
-| 5 | `calendar-month.html` | Toggle Mês \| Ano; grid mensal próprio, dia colorido pela média (cinza sem dados), hoje com borda; painel do dia selecionado abaixo com metas e valores. Duas variantes no mesmo page: dia dentro da janela de 7d (editável + salvar) e fora (leitura). | |
-| 6 | `calendar-year.html` | Heatmap anual semanas×dias estilo GitHub, legenda da escala. | |
+| 4 | `goal-detail.dc.html` | Tela push: nome editável, tipo, streak atual, recorde, % 7d, % 30d, mini-heatmap 30d, botão Arquivar (e variante Restaurar). | 2026-08-16 |
+| 5 | `calendar-month.dc.html` | Toggle Mês \| Ano; grid mensal próprio, dia colorido pela média (cinza sem dados), hoje com borda; painel do dia selecionado abaixo com metas e valores. Duas variantes no mesmo page: dia dentro da janela de 7d (editável + salvar) e fora (leitura). | 2026-08-16 |
+| 6 | `calendar-year.dc.html` | Heatmap anual semanas×dias estilo GitHub, legenda da escala. | 2026-08-16 (scroll horizontal 8px) |
 | 7 | `settings.html` | Seções: Perfil (nickname), Consistência (threshold slider + aviso "recalcula histórico", metas arquivadas), Lembrete (on/off + horário), Dados (exportar, importar, apagar tudo), Aparência (sistema/claro/escuro), Sobre, Enviar opinião. | |
 | 8 | `settings-archived.html` | Lista de metas arquivadas com Restaurar. | |
 | 9 | `settings-import.html` | Dialog importar: Substituir \| Mesclar + confirmação. | |
