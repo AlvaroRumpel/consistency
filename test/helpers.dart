@@ -13,6 +13,7 @@ import 'package:consistency/notifications/fake_reminder_scheduler.dart';
 import 'package:consistency/notifications/reminder_service.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/state/settings_store.dart';
+import 'package:consistency/widget/fake_widget_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -48,6 +49,7 @@ Future<ConsistencyApp> buildApp({
   FakeReminderScheduler? scheduler,
   BackupService? backups,
   GoalsRepository? repo,
+  FakeWidgetBridge? bridge,
 }) async {
   final seededPrefs = prefs.containsKey('onboardingDone')
       ? prefs
@@ -58,6 +60,7 @@ Future<ConsistencyApp> buildApp({
     store: store,
     scheduler: scheduler ?? FakeReminderScheduler(),
     backups: backups ?? FakeBackupService(),
+    bridge: bridge ?? FakeWidgetBridge(),
   );
 }
 
