@@ -112,9 +112,11 @@ void main() {
     expect(data(c).year, 2026);
     c.previousYear();
     c.setView(CalendarView.month);
-    // The selection is in 2026, so a 2025 window opens on its January.
+    // The selection is in 2026, so a 2025 window opens on its January — and
+    // the selection moves in with it, or the panel would edit a day the grid
+    // doesn't even show.
     expect(data(c).month, DateTime(2025, 1, 1));
-    expect(data(c).selectedDay, d(16));
+    expect(data(c).selectedDay, DateTime(2025, 1, 1));
   });
 
   test('load error surfaces', () async {

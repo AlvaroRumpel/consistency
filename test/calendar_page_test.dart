@@ -108,6 +108,16 @@ void main() {
     expect(find.text('${today.year - 1}'), findsOneWidget);
     expect(find.textContaining('consistent days of'), findsOneWidget);
     expect(find.textContaining('best streak'), findsNothing);
+
+    // Back to the month view: the panel must edit a day of the month on
+    // screen, not the one selected before the year hop.
+    await tester.tap(find.text('Month'));
+    await pumpFrames(tester);
+
+    final january = DateTime(today.year - 1, 1, 1);
+    expect(find.text(formatMonthYear(january)), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(january)), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(today)), findsNothing);
   });
 
   testWidgets('tapping a heatmap day opens that day in the month view',

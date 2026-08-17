@@ -148,6 +148,11 @@ class CalendarController extends BaseController<CalendarState> {
     if (v == CalendarView.month) {
       _month =
           _selectedDay.year == _year ? _monthOf(_selectedDay) : DateTime(_year);
+      // The panel edits the selection, so it has to be a day the grid shows.
+      if (_monthOf(_selectedDay) != _month) {
+        final today = _today(_now);
+        _selectedDay = _monthOf(today) == _month ? today : _month;
+      }
     } else {
       _year = _month.year;
     }
