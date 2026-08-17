@@ -138,32 +138,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   },
                   title: 'Send your opinion',
                 ),
-                Builder(builder: (context) {
-                  final t = context.watch<SettingsStore>().threshold;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Daily target: $t%',
-                          style: context.textStyles.normalText),
-                      Slider(
-                        value: t.toDouble(),
-                        min: 0,
-                        max: 100,
-                        divisions: 20,
-                        label: '$t%',
-                        onChanged: (v) => context
-                            .read<SettingsStore>()
-                            .setThreshold(v.round()),
-                      ),
-                      Text(
-                        'A day counts when the average of your goals reaches this. Changing it recalculates your history.',
-                        style:
-                            context.textStyles.thinText.copyWith(fontSize: 12),
-                        textAlign: TextAlign.end,
-                      ),
-                    ],
-                  );
-                }),
+                const _ThresholdSlider(),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: SegmentedButton<ThemeMode>(
@@ -360,6 +335,46 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
           ),
         );
       },
+    );
+  }
+}
+
+class _ThresholdSlider extends StatefulWidget {
+  const _ThresholdSlider();
+
+  @override
+  State<_ThresholdSlider> createState() => _ThresholdSliderState();
+}
+
+class _ThresholdSliderState extends State<_ThresholdSlider> {
+  double? _dragging;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<SettingsStore>();
+    final t = (_dragging ?? store.threshold).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text('Daily target: $t%', style: context.textStyles.normalText),
+        Slider(
+          value: _dragging ?? store.threshold.toDouble(),
+          min: 0,
+          max: 100,
+          divisions: 20,
+          label: '$t%',
+          onChanged: (v) => setState(() => _dragging = v),
+          onChangeEnd: (v) {
+            context.read<SettingsStore>().setThreshold(v.round());
+            setState(() => _dragging = null);
+          },
+        ),
+        Text(
+          'A day counts when the average of your goals reaches this. Changing it recalculates your history.',
+          style: context.textStyles.thinText.copyWith(fontSize: 12),
+          textAlign: TextAlign.end,
+        ),
+      ],
     );
   }
 }

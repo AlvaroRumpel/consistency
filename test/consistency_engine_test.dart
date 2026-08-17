@@ -272,4 +272,75 @@ void main() {
       expect(e.heatmap(2027), isEmpty);
     });
   });
+
+  group('edge cases', () {
+    test(
+        'threshold 0: percent goal is always done; any day with an entry is consistent',
+        () {
+      final p = goal('p', GoalType.percent);
+      final e = eng([
+        p
+      ], [
+        entry(5, {'p': 0})
+      ], threshold: 0);
+      expect(e.isGoalDone(p, 0), isTrue);
+      expect(e.isDayConsistent(d(5)), isTrue);
+    });
+
+    test('goal created today: only today can count', () {
+      final g = goal('g', GoalType.check, created: 10);
+      final e = eng([
+        g
+      ], [
+        entry(10, {'g': 100})
+      ]);
+      expect(e.globalStreak(), 1);
+    });
+
+    test(
+        'goal archived today: today has no active goal so it is skipped, back-run still counts',
+        () {
+      final g = goal('g', GoalType.check, archived: 10);
+      final e = eng([
+        g
+      ], [
+        entry(8, {'g': 100}),
+        entry(9, {'g': 100})
+      ]);
+      expect(e.globalStreak(), 2);
+    });
+
+    test('a value for a non-active goal is ignored by dayAverage', () {
+      final a = goal('a', GoalType.check);
+      final x = goal('x', GoalType.check, created: 8);
+      final e = eng([
+        a,
+        x
+      ], [
+        entry(5, {'x': 100})
+      ]);
+      expect(e.dayAverage(d(5)), 0); // only 'a' is active on day 5
+    });
+
+    test('globalBest also treats a no-active-goal day as a skip, not a break',
+        () {
+      final g1 = goal('g1', GoalType.check, archived: 6),
+          g2 = goal('g2', GoalType.check, created: 7);
+      final e = eng([
+        g1,
+        g2
+      ], [
+        entry(4, {'g1': 100}),
+        entry(5, {'g1': 100}),
+        entry(7, {'g2': 100}),
+        entry(8, {'g2': 100}),
+        entry(9, {'g2': 100})
+      ]);
+      expect(e.globalBest(), 5);
+    });
+
+    test('heatmap for a past leap year returns the full 366 days', () {
+      expect(eng([], []).heatmap(2024).length, 366);
+    });
+  });
 }

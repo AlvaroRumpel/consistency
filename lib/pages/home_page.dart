@@ -94,9 +94,12 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           size: 20,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          '${state.streak} day streak · best ${state.best}',
-                          style: context.textStyles.normalText,
+                        Flexible(
+                          child: Text(
+                            '${state.streak} day streak · best ${state.best}',
+                            style: context.textStyles.normalText,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     );

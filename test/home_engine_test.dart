@@ -15,7 +15,7 @@ void main() {
   final u = DateTime.utc(2026);
 
   Future<(AppStore, SettingsStore, HomeController)> boot(
-      {int threshold = 50}) async {
+      {int threshold = 50, DateTime Function()? now}) async {
     SharedPreferences.setMockInitialValues({'threshold': threshold});
     final prefs = await SharedPreferences.getInstance();
     final run = Goal(
@@ -42,7 +42,7 @@ void main() {
     await store.load();
     final settings = SettingsStore(SettingsRepository(prefs));
     final c = HomeController(store, settings,
-        now: () => DateTime(2026, 8, 10, 9, 30));
+        now: now ?? (() => DateTime(2026, 8, 10, 9, 30)));
     return (store, settings, c);
   }
 
@@ -77,5 +77,25 @@ void main() {
     expect(s.streak, 3);
     expect(s.todayAverage, 100);
     expect(s.hasMarkedToday, isTrue);
+  });
+
+  test('day rollover: yesterday still counts, today resets hasMarkedToday',
+      () async {
+    var now = DateTime(2026, 8, 10, 23, 59);
+    final (_, _, c) = await boot(now: () => now);
+    for (final g in (c.state as HomeData).goals) {
+      g.percentCompleted = 100;
+    }
+    await c.saveData();
+    var s = c.state as HomeData;
+    expect(s.hasMarkedToday, isTrue);
+    expect(s.streak, 3);
+
+    now = DateTime(2026, 8, 11, 0, 1);
+    c.reload();
+    s = c.state as HomeData;
+    expect(s.hasMarkedToday, isFalse);
+    expect(s.streak, 3); // yesterday counts via the back-run
+    expect(s.todayAverage, isNull);
   });
 }
