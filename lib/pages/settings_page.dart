@@ -6,10 +6,14 @@ import '../configs/colors.dart';
 import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
 import '../controllers/settings_controller.dart';
+import '../data/backup_codec.dart';
+import '../data/backup_service.dart';
+import '../models/app_data.dart';
 import '../notifications/reminder_service.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
+import '../widgets/import_dialog.dart';
 import '../widgets/list_tile_custom.dart';
 import 'archived_goals_page.dart';
 
@@ -22,6 +26,9 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
   late SettingsController _controller;
+  // One flag for both backup flows: neither should run twice, nor at the
+  // same time as the other.
+  bool _busy = false;
 
   @override
   void initState() {
@@ -83,9 +90,9 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: false,
+          SliverToBoxAdapter(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 ValueListenableBuilder(
@@ -128,6 +135,14 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 ListTileCustom(
                   onTap: () => _aboutTheAppDialog(context),
                   title: 'About the app',
+                ),
+                ListTileCustom(
+                  onTap: () => _exportBackup(context),
+                  title: 'Export backup',
+                ),
+                ListTileCustom(
+                  onTap: () => _importBackup(context),
+                  title: 'Import backup',
                 ),
                 ListTileCustom(
                   onTap: () => _confirmDialog(context),
@@ -309,6 +324,93 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         );
       },
     );
+  }
+
+  Future<void> _exportBackup(BuildContext context) async {
+    if (_busy) return;
+    _busy = true;
+    final store = context.read<AppStore>();
+    final backups = context.read<BackupService>();
+    try {
+      await backups.exportBackup(
+        BackupCodec.fileName(DateTime.now()),
+        BackupCodec.encode(store.data),
+      );
+      if (!context.mounted) return;
+      _snack(context, 'Backup ready to share.');
+    } catch (e, s) {
+      debugPrint('exportBackup failed: $e\n$s');
+      if (!context.mounted) return;
+      _snack(context, "Couldn't export the backup.", error: true);
+    } finally {
+      _busy = false;
+    }
+  }
+
+  Future<void> _importBackup(BuildContext context) async {
+    if (_busy) return;
+    _busy = true;
+    try {
+      await _import(context);
+    } finally {
+      _busy = false;
+    }
+  }
+
+  Future<void> _import(BuildContext context) async {
+    final backups = context.read<BackupService>();
+    final PickedBackup? result;
+    try {
+      result = await backups.pickBackup();
+    } catch (e, s) {
+      // The picker is platform code: it throws PlatformException on a denied
+      // permission, FormatException on undecodable bytes, and more.
+      debugPrint('pickBackup failed: $e\n$s');
+      if (!context.mounted) return;
+      _snack(context, "Couldn't read that file.", error: true);
+      return;
+    }
+    if (result == null || !context.mounted) return;
+    // Rebound so the non-null type survives into the dialog builder below.
+    final picked = result;
+
+    final AppData imported;
+    try {
+      imported = BackupCodec.decode(picked.contents);
+    } on FormatException {
+      if (!context.mounted) return;
+      _snack(context, "That file isn't a Consistency backup.", error: true);
+      return;
+    }
+
+    final store = context.read<AppStore>();
+    final choice = await showDialog<ImportChoice>(
+      context: context,
+      builder: (_) => ImportDialog(
+        fileName: picked.name,
+        summary: BackupCodec.summarize(imported),
+      ),
+    );
+    if (choice == null || !context.mounted) return;
+
+    await store.replaceAll(choice == ImportChoice.replace
+        ? imported
+        : BackupCodec.merge(store.data, imported));
+    if (!context.mounted) return;
+    _snack(
+      context,
+      store.saveError == null
+          ? 'Backup imported.'
+          : 'Backup imported, but saving failed.',
+      error: store.saveError != null,
+    );
+  }
+
+  void _snack(BuildContext context, String message, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: error ? Theme.of(context).colorScheme.error : null,
+    ));
   }
 
   Future<void> _aboutTheAppDialog(BuildContext context) async {

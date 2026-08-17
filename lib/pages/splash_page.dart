@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../configs/text_styles.dart';
 import '../state/app_store.dart';
+import '../state/settings_store.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -36,8 +37,24 @@ class _SplashPageState extends State<SplashPage> {
           store.removeListener(onStoreChanged);
         }
       }
+      if (!mounted) return;
+      final settings = context.read<SettingsStore>();
+      final hasGoals = store.data.goals.isNotEmpty;
+      // A user who already has goals (e.g. the v1 migration) must never see
+      // onboarding, even if the flag was never set.
+      if (!settings.onboardingDone && hasGoals) {
+        await settings.setOnboardingDone(true);
+      }
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/manager', (_) => false);
+        // An empty store after a failed load is not a fresh install: sending
+        // that user to onboarding would have them create a goal on top of
+        // data we simply could not read. Home shows the error instead, and
+        // onboardingDone stays false so a later good load still routes right.
+        final target =
+            (!settings.onboardingDone && !hasGoals && store.loadError == null)
+                ? '/onboarding'
+                : '/manager';
+        Navigator.pushNamedAndRemoveUntil(context, target, (_) => false);
       }
     });
   }
