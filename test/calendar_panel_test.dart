@@ -6,8 +6,6 @@ import 'package:consistency/pages/calendar_page.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/widgets/goal_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_calendar_carousel/classes/event.dart';
-import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -40,10 +38,12 @@ void main() {
         ],
       );
 
+  // The Task 3 grid doesn't exist yet, so drive the selection through the
+  // controller directly (the page exposes it for tests).
   Future<void> select(WidgetTester tester, DateTime day) async {
-    tester
-        .widget<CalendarCarousel<Event>>(find.byType(CalendarCarousel<Event>))
-        .onDayPressed!(day, const <Event>[]);
+    (tester.state(find.byType(CalendarPage)) as dynamic)
+        .controller
+        .selectDay(day);
     await pumpFrames(tester);
   }
 

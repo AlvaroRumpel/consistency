@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import 'package:provider/provider.dart';
 
 import '../configs/app_tokens.dart';
-import '../configs/colors.dart';
 import '../configs/date_format.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
@@ -26,9 +24,13 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        CalendarController(context.read<AppStore>(), CalendarLoading());
+    _controller = CalendarController(
+        context.read<AppStore>(), context.read<SettingsStore>());
   }
+
+  /// Exposed for tests, which drive selection directly until Task 3 builds
+  /// the real day grid.
+  CalendarController get controller => _controller;
 
   @override
   void dispose() {
@@ -71,33 +73,14 @@ class _CalendarPageState extends State<CalendarPage> {
                 if (state is! CalendarData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return CalendarCarousel(
-                  scrollDirection: Axis.horizontal,
-                  markedDatesMap: state.eventList,
-                  pageSnapping: true,
-                  headerMargin: const EdgeInsets.all(0),
-                  weekDayMargin: const EdgeInsets.all(0),
-                  childAspectRatio: 1,
-                  dayButtonColor: Theme.of(context).cardColor,
-                  selectedDateTime: state.selectedDay,
-                  iconColor: AppColors.primaryColor,
-                  weekDayBackgroundColor: Theme.of(context).cardColor,
-                  selectedDayButtonColor: Theme.of(context).cardColor,
-                  selectedDayBorderColor: AppColors.primaryColor,
-                  daysHaveCircularBorder: true,
-                  daysTextStyle: context.textStyles.normalText,
-                  weekdayTextStyle: context.textStyles.normalText,
-                  weekendTextStyle: context.textStyles.normalText,
-                  selectedDayTextStyle: context.textStyles.boldText,
-                  headerTextStyle: context.textStyles.normalText.copyWith(
-                    fontSize: 20,
+                // Placeholder until Task 3 builds the real month/year grid.
+                return Center(
+                  child: Text(
+                    '${state.month.year}-${state.month.month}',
+                    style: context.textStyles.normalText.copyWith(
+                      fontSize: 20,
+                    ),
                   ),
-                  todayButtonColor: Colors.transparent,
-                  todayBorderColor:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                  weekDayFormat: WeekdayFormat.short,
-                  onDayPressed: (date, eventList) =>
-                      _controller.selectDay(date),
                 );
               },
             ),
