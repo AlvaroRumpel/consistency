@@ -120,5 +120,9 @@
   "reminderTitle": "Consistency",
   "reminderBody": "{name}, você ainda não salvou hoje — sequência: {streak}",
   "opinionEmailSubject": "Opinião sobre o app Consistency",
-  "yearActivityHeatmap": "mapa de atividade de {year}"
+  "yearActivityHeatmap": "mapa de atividade de {year}",
+
+  "widgetStreak": "{count, plural, =1{1 dia seguido} other{{count} dias seguidos}}",
+  "widgetTodayPending": "Hoje: pendente",
+  "widgetTodayDone": "Hoje: salvo"
 }
