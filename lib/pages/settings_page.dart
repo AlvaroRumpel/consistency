@@ -138,6 +138,32 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   },
                   title: 'Send your opinion',
                 ),
+                Builder(builder: (context) {
+                  final t = context.watch<SettingsStore>().threshold;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Daily target: $t%',
+                          style: context.textStyles.normalText),
+                      Slider(
+                        value: t.toDouble(),
+                        min: 0,
+                        max: 100,
+                        divisions: 20,
+                        label: '$t%',
+                        onChanged: (v) => context
+                            .read<SettingsStore>()
+                            .setThreshold(v.round()),
+                      ),
+                      Text(
+                        'A day counts when the average of your goals reaches this. Changing it recalculates your history.',
+                        style:
+                            context.textStyles.thinText.copyWith(fontSize: 12),
+                        textAlign: TextAlign.end,
+                      ),
+                    ],
+                  );
+                }),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: SegmentedButton<ThemeMode>(
