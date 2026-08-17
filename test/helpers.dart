@@ -4,6 +4,7 @@ import 'package:consistency/main.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/state/settings_store.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The whole app over in-memory storage, already loaded.
@@ -19,4 +20,10 @@ Future<ConsistencyApp> buildApp({
     settings: SettingsStore(SettingsRepository(p)),
     store: store,
   );
+}
+
+Future<void> pumpFrames(WidgetTester tester, [int n = 10]) async {
+  for (var i = 0; i < n; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
 }

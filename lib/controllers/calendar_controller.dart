@@ -3,9 +3,9 @@ import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 
 import '../configs/utilities.dart';
-import '../models/goal_model.dart';
 import '../state/app_store.dart';
 import 'base_controller.dart';
+import 'day_editor_controller.dart';
 
 sealed class CalendarState {}
 
@@ -32,7 +32,7 @@ class CalendarError extends CalendarState {
 /// What the calendar panel shows for one day.
 class DateGoalsView {
   final DateTime date;
-  final List<GoalModel> goals;
+  final List<GoalRow> goals;
 
   const DateGoalsView({required this.date, required this.goals});
 }
@@ -104,11 +104,13 @@ class CalendarController extends BaseController<CalendarState> {
     return DateGoalsView(
       date: entry.date,
       goals: [
-        for (final goal in store.data.activeGoalsOn(entry.date))
-          GoalModel(
-            goalId: goal.id,
-            name: goal.name,
-            percentCompleted: entry.values[goal.id] ?? 0,
+        for (final g in store.data.activeGoalsOn(entry.date))
+          GoalRow(
+            goalId: g.id,
+            name: g.name,
+            type: g.type,
+            value: entry.values[g.id] ?? 0,
+            streak: 0,
           ),
       ],
     );

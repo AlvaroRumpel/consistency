@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../configs/text_styles.dart';
 import '../configs/utilities.dart';
-import '../models/goal_model.dart';
+import '../controllers/day_editor_controller.dart';
 
 class GoalsDoneListView extends StatelessWidget {
-  final List<GoalModel> goals;
+  final List<GoalRow> goals;
   const GoalsDoneListView({super.key, required this.goals});
 
   @override
@@ -41,16 +41,16 @@ class GoalsDoneListView extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 CircularProgressIndicator(
-                  value: goals[index].percentCompleted * .01,
+                  value: goals[index].value * .01,
                   strokeWidth: 2,
                   color: Utilities.activeColor(
-                    goals[index].percentCompleted,
+                    goals[index].value,
                   ),
                   backgroundColor:
                       Theme.of(context).iconTheme.color!.withValues(alpha: .5),
                 ),
                 Text(
-                  '${goals[index].percentCompleted.toStringAsFixed(0)}%',
+                  '${goals[index].value.toStringAsFixed(0)}%',
                   style: context.textStyles.normalText.copyWith(
                     fontSize: 12,
                   ),
