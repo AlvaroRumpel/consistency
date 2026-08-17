@@ -161,7 +161,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                         path: 'alvaroRumpel@gmail.com',
                         query: _encodeQueryParameters(
                           <String, String>{
-                            'subject': 'Consistency App Opinion',
+                            'subject': context.l10n.opinionEmailSubject,
                           },
                         ),
                       ),

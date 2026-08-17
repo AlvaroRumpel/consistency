@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
@@ -80,7 +81,7 @@ class _SplashPageState extends State<SplashPage> {
             ),
           ),
           Text(
-            'Made with ♥ by Álvaro Rumpel',
+            context.l10n.madeWithLove,
             style: context.textStyles.normalText,
             textAlign: TextAlign.center,
           ),

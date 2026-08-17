@@ -56,7 +56,7 @@ class YearHeatmap extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: '$year activity heatmap',
+      label: context.l10n.yearActivityHeatmap(year),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

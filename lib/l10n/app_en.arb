@@ -273,5 +273,29 @@
   "start": "Start",
   "@start": {
     "description": "Onboarding button that finishes first-run setup."
+  },
+
+  "reminderTitle": "Consistency",
+  "@reminderTitle": {
+    "description": "Title of the daily save reminder notification."
+  },
+  "reminderBody": "{name}, you haven't saved today — streak: {streak}",
+  "@reminderBody": {
+    "description": "Body of the daily save reminder notification.",
+    "placeholders": {
+      "name": {"type": "String"},
+      "streak": {"type": "int"}
+    }
+  },
+  "opinionEmailSubject": "Consistency App Opinion",
+  "@opinionEmailSubject": {
+    "description": "Subject line of the pre-filled feedback email opened from Settings."
+  },
+  "yearActivityHeatmap": "{year} activity heatmap",
+  "@yearActivityHeatmap": {
+    "description": "Screen reader label for the calendar's year heatmap.",
+    "placeholders": {
+      "year": {"type": "int"}
+    }
   }
 }

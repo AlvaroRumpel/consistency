@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/widgets.dart';
 
 import '../engine/consistency_engine.dart';
+import '../l10n/app_localizations.dart';
 import '../models/date_key.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
@@ -15,6 +17,7 @@ class ReminderService with WidgetsBindingObserver {
   final AppStore _store;
   final SettingsStore _settings;
   final DateTime Function() _now;
+  final Locale Function() _localeOf;
 
   Future<void> _chain = Future.value();
 
@@ -23,10 +26,12 @@ class ReminderService with WidgetsBindingObserver {
     required AppStore store,
     required SettingsStore settings,
     DateTime Function()? now,
+    Locale Function()? localeOf,
   })  : _scheduler = scheduler,
         _store = store,
         _settings = settings,
-        _now = now ?? DateTime.now;
+        _now = now ?? DateTime.now,
+        _localeOf = localeOf ?? (() => PlatformDispatcher.instance.locale);
 
   Future<void> start() async {
     // Listeners first: a scheduler that fails to initialise must not leave the
@@ -69,7 +74,7 @@ class ReminderService with WidgetsBindingObserver {
   // finish and be observed by a caller before this reaction has been queued.
   // _enqueue() queues and returns immediately; the future it hands back is
   // only there for callers that want to wait for the queue to drain.
-  Future<void> sync() {
+  Future<void> sync() async {
     final cancelled = _enqueue(_scheduler.cancel);
     if (!_settings.notifEnabled) return cancelled;
 
@@ -87,11 +92,19 @@ class ReminderService with WidgetsBindingObserver {
       today: today,
     ).globalStreak();
 
+    // No BuildContext out here: load the strings straight from the
+    // delegate. It's backed by a SynchronousFuture, so this never actually
+    // suspends the isolate.
+    var locale = _localeOf();
+    if (!AppLocalizations.delegate.isSupported(locale)) {
+      locale = const Locale('en');
+    }
+    final l10n = await AppLocalizations.delegate.load(locale);
+
     return _enqueue(() => _scheduler.schedule(ReminderRequest(
           when: when,
-          title: 'Consistency',
-          body:
-              "${_settings.nicknameOrDefault}, you haven't saved today — streak: $streak",
+          title: l10n.reminderTitle,
+          body: l10n.reminderBody(_settings.nicknameOrDefault, streak),
         )));
   }
 

@@ -29,7 +29,7 @@ class ProgressRing extends StatelessWidget {
     final subtitle =
         !saved || dirty ? context.l10n.tapToSave : context.l10n.savedTapToEdit;
     return Semantics(
-      label: 'Save today',
+      label: subtitle,
       button: true,
       child: SizedBox(
         width: size,

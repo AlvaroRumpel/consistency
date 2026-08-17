@@ -114,5 +114,10 @@
   "yourFirstGoal": "SUA PRIMEIRA META",
   "goalName": "Nome da meta",
   "goalNameHint": "Ex.: Correr 5 km",
-  "start": "Começar"
+  "start": "Começar",
+
+  "reminderTitle": "Consistency",
+  "reminderBody": "{name}, você ainda não salvou hoje — sequência: {streak}",
+  "opinionEmailSubject": "Opinião sobre o app Consistency",
+  "yearActivityHeatmap": "mapa de atividade de {year}"
 }

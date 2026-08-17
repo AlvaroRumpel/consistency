@@ -38,6 +38,7 @@ void main() {
       'notifMinute': 0
     },
     DateTime Function()? clock,
+    Locale Function()? localeOf,
   }) async {
     SharedPreferences.setMockInitialValues({'nickname': 'Alvaro', ...prefs});
     final p = await SharedPreferences.getInstance();
@@ -51,6 +52,7 @@ void main() {
       store: store,
       settings: settings,
       now: clock ?? () => DateTime(2026, 8, 17, 9),
+      localeOf: localeOf,
     );
     await service.start();
     return (store, settings, fake, service);
@@ -124,6 +126,16 @@ void main() {
       ],
     );
     expect(fake.scheduled.single.body, contains('streak: 1'));
+  });
+
+  test('a supported locale localises title and body', () async {
+    final (_, _, fake, _) = await boot(localeOf: () => const Locale('pt'));
+    expect(fake.scheduled.single.body, contains('sequência'));
+  });
+
+  test('an unsupported locale falls back to English', () async {
+    final (_, _, fake, _) = await boot(localeOf: () => const Locale('fr'));
+    expect(fake.scheduled.single.body, contains("haven't saved today"));
   });
 
   test('resuming after midnight reschedules for the new day', () async {
