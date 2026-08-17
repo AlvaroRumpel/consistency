@@ -51,6 +51,28 @@ void main() {
     expect(find.byType(SingleChildScrollView), findsOneWidget);
   });
 
+  testWidgets('YearHeatmap only pads the first column when it has to',
+      (tester) async {
+    // 1 January 2023 is itself a Sunday, so the grid starts exactly there.
+    await tester.pumpWidget(_wrap(YearHeatmap(
+      year: 2023,
+      quality: const {},
+      today: DateTime(2023, 12, 31),
+      onSelect: (_) {},
+    )));
+    expect(find.byKey(const ValueKey('hm-2023-01-01')), findsOneWidget);
+    expect(find.byKey(const ValueKey('hm-2022-12-31')), findsNothing);
+
+    // 1 January 2024 is a Monday, so its column opens on the Sunday before.
+    await tester.pumpWidget(_wrap(YearHeatmap(
+      year: 2024,
+      quality: const {},
+      today: DateTime(2024, 12, 31),
+      onSelect: (_) {},
+    )));
+    expect(find.byKey(const ValueKey('hm-2023-12-31')), findsOneWidget);
+  });
+
   testWidgets('YearSummary states the year totals', (tester) async {
     await tester.pumpWidget(_wrap(const YearSummary(
       year: 2026,
@@ -62,5 +84,16 @@ void main() {
 
     expect(find.text('2026 · 128 consistent days of 228'), findsOneWidget);
     expect(find.text('best streak 31 days · current 12'), findsOneWidget);
+
+    // Streaks are all-time, so a past year has none to show.
+    await tester.pumpWidget(_wrap(const YearSummary(
+      year: 2025,
+      consistent: 100,
+      recorded: 365,
+      best: null,
+      current: null,
+    )));
+    expect(find.text('2025 · 100 consistent days of 365'), findsOneWidget);
+    expect(find.textContaining('best streak'), findsNothing);
   });
 }

@@ -43,5 +43,24 @@ void main() {
     tapped = null;
     await tester.tap(find.byKey(const ValueKey('day-2026-08-20')));
     expect(tapped, isNull);
+
+    // 1 August 2026 is a Saturday: last column, so the Sunday after it starts
+    // the next row and sits further left.
+    double dx(String key) => tester.getTopLeft(find.byKey(ValueKey(key))).dx;
+    expect(dx('day-2026-08-02'), lessThan(dx('day-2026-08-01')));
+  });
+
+  testWidgets('MonthGrid renders a leap February and nothing past it',
+      (tester) async {
+    await tester.pumpWidget(_wrap(MonthGrid(
+      month: DateTime(2028, 2),
+      quality: const {},
+      today: DateTime(2028, 3, 15),
+      selected: DateTime(2028, 2, 29),
+      onSelect: (_) {},
+    )));
+
+    expect(find.byKey(const ValueKey('day-2028-02-29')), findsOneWidget);
+    expect(find.byKey(const ValueKey('day-2028-03-01')), findsNothing);
   });
 }

@@ -109,8 +109,18 @@ class CalendarController extends BaseController<CalendarState> {
     reload();
   }
 
+  /// Opens [day] in the month view, in one reload. For the heatmap.
+  void openMonthFor(DateTime day) {
+    _view = CalendarView.month;
+    selectDay(day);
+  }
+
+  /// There is nothing to see past the current month/year, so the forward
+  /// arrows stop there.
   void nextMonth() {
-    _month = DateTime(_month.year, _month.month + 1);
+    final next = DateTime(_month.year, _month.month + 1);
+    if (next.isAfter(_monthOf(_today(_now)))) return;
+    _month = next;
     reload();
   }
 
@@ -120,6 +130,7 @@ class CalendarController extends BaseController<CalendarState> {
   }
 
   void nextYear() {
+    if (_year >= _today(_now).year) return;
     _year++;
     reload();
   }
@@ -129,12 +140,16 @@ class CalendarController extends BaseController<CalendarState> {
     reload();
   }
 
+  /// Keeps the window the user was looking at: the month carries its year up,
+  /// the year comes back down on the selected day when it belongs to it and
+  /// on January otherwise.
   void setView(CalendarView v) {
     _view = v;
     if (v == CalendarView.month) {
-      _month = _monthOf(_selectedDay);
+      _month =
+          _selectedDay.year == _year ? _monthOf(_selectedDay) : DateTime(_year);
     } else {
-      _year = _selectedDay.year;
+      _year = _month.year;
     }
     reload();
   }

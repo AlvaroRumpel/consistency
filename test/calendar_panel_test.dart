@@ -1,6 +1,5 @@
 import 'package:consistency/configs/date_format.dart';
 import 'package:consistency/models/app_data.dart';
-import 'package:consistency/models/date_key.dart';
 import 'package:consistency/models/day_entry.dart';
 import 'package:consistency/models/goal.dart';
 import 'package:consistency/pages/calendar_page.dart';
@@ -38,30 +37,6 @@ void main() {
               date: recent, values: const {'run': 0, 'read': 50}, updatedAt: u),
         ],
       );
-
-  // Drives selection through the real UI: the grid only renders cells for
-  // the month currently displayed, so hop months with the '‹' arrow first
-  // when the target day isn't in view.
-  var displayedMonth = DateTime(today.year, today.month);
-  Future<void> select(WidgetTester tester, DateTime day) async {
-    final target = DateTime(day.year, day.month, day.day);
-    final targetMonth = DateTime(target.year, target.month);
-    var monthsBack = (displayedMonth.year * 12 + displayedMonth.month) -
-        (targetMonth.year * 12 + targetMonth.month);
-    while (monthsBack > 0) {
-      await tester.tap(find.byKey(const ValueKey('calendar-prev-month')));
-      await pumpFrames(tester);
-      monthsBack--;
-    }
-    while (monthsBack < 0) {
-      await tester.tap(find.byKey(const ValueKey('calendar-next-month')));
-      await pumpFrames(tester);
-      monthsBack++;
-    }
-    displayedMonth = targetMonth;
-    await tester.tap(find.byKey(ValueKey('day-${dateKey(target)}')));
-    await pumpFrames(tester);
-  }
 
   test('weekday/month names', () {
     expect(formatWeekdayDayMonth(DateTime(2026, 8, 14)), 'Fri, 14 August');

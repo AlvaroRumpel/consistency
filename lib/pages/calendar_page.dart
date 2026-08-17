@@ -48,64 +48,48 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
-      child: Column(
-        children: [
-          Text(
-            "How's it going",
-            style: context.textStyles.normalText.copyWith(fontSize: 32),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            flex: 5,
-            child: Container(
-              margin: const EdgeInsets.all(16.0),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              decoration: _card(context),
-              child: ValueListenableBuilder(
-                valueListenable: _controller.stateNotifier,
-                builder: (context, state, _) {
-                  if (state is CalendarError) {
-                    return ErrorView(
-                      message: state.message,
-                      onRetry: _controller.reload,
-                    );
-                  }
-                  if (state is! CalendarData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  // A short window (small phone, landscape) scrolls instead
-                  // of overflowing; a tall one just shows it all at once.
-                  return SingleChildScrollView(
-                    child: _CalendarBox(state: state, controller: _controller),
-                  );
-                },
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 4,
-            child: ValueListenableBuilder(
-              valueListenable: _controller.stateNotifier,
-              builder: (context, state, _) {
-                if (state is! CalendarData || state.view == CalendarView.year) {
-                  // Errors are already shown by the calendar box above; the
-                  // year view has its own summary card instead of a panel.
-                  return const SizedBox.shrink();
-                }
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  padding: const EdgeInsets.all(16),
+      child: ValueListenableBuilder(
+        valueListenable: _controller.stateNotifier,
+        builder: (context, state, _) {
+          // The year view has its own summary card instead of a day panel, so
+          // it leaves the panel out and the calendar box takes the whole page.
+          final day = state is CalendarData && state.view == CalendarView.month
+              ? state.selectedDay
+              : null;
+          return Column(
+            children: [
+              Expanded(
+                flex: 5,
+                child: Container(
+                  margin: const EdgeInsets.all(16.0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: _card(context),
-                  child: _DayPanel(
-                    key: ValueKey(state.selectedDay),
-                    day: state.selectedDay,
+                  child: switch (state) {
+                    CalendarError e => ErrorView(
+                        message: e.message, onRetry: _controller.reload),
+                    // A short window (small phone, landscape) scrolls instead
+                    // of overflowing; a tall one just shows it all at once.
+                    CalendarData d => SingleChildScrollView(
+                        child: _CalendarBox(state: d, controller: _controller),
+                      ),
+                    _ => const Center(child: CircularProgressIndicator()),
+                  },
+                ),
+              ),
+              if (day != null)
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: _card(context),
+                    child: _DayPanel(key: ValueKey(day), day: day),
                   ),
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -147,6 +131,7 @@ class _CalendarBox extends StatelessWidget {
               ),
               Text(
                 formatMonthYear(state.month),
+                key: const ValueKey('calendar-month-title'),
                 style: context.textStyles.normalText.copyWith(fontSize: 20),
               ),
               IconButton(
@@ -187,10 +172,7 @@ class _CalendarBox extends StatelessWidget {
             year: state.year,
             quality: state.qualityByDay,
             today: state.today,
-            onSelect: (day) {
-              controller.setView(CalendarView.month);
-              controller.selectDay(day);
-            },
+            onSelect: controller.openMonthFor,
           ),
         ],
         const Padding(
@@ -203,26 +185,34 @@ class _CalendarBox extends StatelessWidget {
   }
 
   Widget _summary(BuildContext context) {
-    final settings = context.read<SettingsStore>();
-    final engine = ConsistencyEngine(
-      data: context.read<AppStore>().data,
-      threshold: settings.threshold,
-      today: state.today,
-    );
-    // qualityByDay holds this year's days up to today, so both counts and the
-    // engine walk the same window.
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
+    final threshold = context.read<SettingsStore>().threshold;
+    // qualityByDay is the displayed year — up to today on the current one, all
+    // 12 months on a past one. Streaks are all-time, so they only say
+    // something about the year we are living in.
+    final engine = state.year == state.today.year
+        ? ConsistencyEngine(
+            data: context.read<AppStore>().data,
+            threshold: threshold,
+            today: state.today,
+          )
+        : null;
+    final recorded = state.qualityByDay.values.whereType<double>();
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(28),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           YearSummary(
             year: state.year,
-            consistent:
-                state.qualityByDay.keys.where(engine.isDayConsistent).length,
-            recorded: state.qualityByDay.values.whereType<double>().length,
-            best: engine.globalBest(),
-            current: engine.globalStreak(),
+            consistent: recorded.where((v) => v >= threshold).length,
+            recorded: recorded.length,
+            best: engine?.globalBest(),
+            current: engine?.globalStreak(),
           ),
           const SizedBox(height: 8),
           Text(

@@ -4,8 +4,8 @@ import '../configs/app_tokens.dart';
 import '../configs/text_styles.dart';
 import '../models/date_key.dart';
 
-const _cell = 8.0;
-const _gap = 2.0;
+const _cell = 12.0;
+const _gap = 3.0;
 const _step = _cell + _gap;
 const _monthLabels = 12.0; // height of the month label strip
 
@@ -66,46 +66,55 @@ class YearHeatmap extends StatelessWidget {
       color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          // Line the rows up with the grid, below the month strip.
-          padding: const EdgeInsets.only(top: _monthLabels + _gap, right: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (final label in _weekdayLabels)
-                SizedBox(
-                  height: _step,
-                  child: label == null ? null : Text(label, style: labelStyle),
-                ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+    return Semantics(
+      container: true,
+      label: '$year activity heatmap',
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            // Line the rows up with the grid, below the month strip.
+            padding: const EdgeInsets.only(top: _monthLabels + _gap, right: 4),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _monthStrip(weeks, labelStyle),
-                const SizedBox(height: _gap),
-                Row(
-                  children: [
-                    for (final week in weeks)
-                      Column(
-                        children: [
-                          for (final day in week) _dayCell(context, day)
-                        ],
-                      ),
-                  ],
-                ),
+                for (final label in _weekdayLabels)
+                  SizedBox(
+                    height: _step,
+                    child:
+                        label == null ? null : Text(label, style: labelStyle),
+                  ),
               ],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _monthStrip(weeks, labelStyle),
+                  const SizedBox(height: _gap),
+                  // 365 unlabelled squares are noise to a screen reader; the
+                  // label on the whole heatmap says what this is.
+                  ExcludeSemantics(
+                    child: Row(
+                      children: [
+                        for (final week in weeks)
+                          Column(
+                            children: [
+                              for (final day in week) _dayCell(context, day)
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -170,8 +179,10 @@ class YearSummary extends StatelessWidget {
   final int year;
   final int consistent;
   final int recorded;
-  final int best;
-  final int current;
+
+  /// All-time streaks, so they are null on any year but the current one.
+  final int? best;
+  final int? current;
 
   const YearSummary({
     super.key,
@@ -191,14 +202,16 @@ class YearSummary extends StatelessWidget {
           '$year · $consistent consistent days of $recorded',
           style: context.textStyles.boldText.copyWith(fontSize: 18),
         ),
-        const SizedBox(height: 6),
-        Text(
-          'best streak $best days · current $current',
-          style: context.textStyles.thinText.copyWith(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        if (best != null && current != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            'best streak $best days · current $current',
+            style: context.textStyles.thinText.copyWith(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

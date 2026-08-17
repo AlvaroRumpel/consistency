@@ -68,8 +68,12 @@ void main() {
       (tester) async {
     await openCalendar(tester);
 
-    await tester.tap(find.byKey(ValueKey('day-${dateKey(recent)}')));
+    // Wherever the grid happens to be, select() finds its way back.
+    await tester.tap(find.byKey(const ValueKey('calendar-prev-month')));
     await pumpFrames(tester);
+    await tester.tap(find.byKey(const ValueKey('calendar-prev-month')));
+    await pumpFrames(tester);
+    await select(tester, recent);
 
     expect(find.text(formatWeekdayDayMonth(recent)), findsOneWidget);
     expect(find.byType(GoalCard), findsOneWidget);
@@ -91,6 +95,19 @@ void main() {
     expect(find.textContaining('consistent days of'), findsOneWidget);
     expect(find.textContaining('best streak'), findsOneWidget);
     expect(find.textContaining('Save '), findsNothing);
+  });
+
+  testWidgets('a past year drops the all-time streak line', (tester) async {
+    await openCalendar(tester);
+
+    await tester.tap(find.text('Year'));
+    await pumpFrames(tester);
+    await tester.tap(find.byKey(const ValueKey('calendar-prev-year')));
+    await pumpFrames(tester);
+
+    expect(find.text('${today.year - 1}'), findsOneWidget);
+    expect(find.textContaining('consistent days of'), findsOneWidget);
+    expect(find.textContaining('best streak'), findsNothing);
   });
 
   testWidgets('tapping a heatmap day opens that day in the month view',

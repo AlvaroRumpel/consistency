@@ -90,8 +90,31 @@ void main() {
       'threshold change recolours (quality values are raw averages, so re-emit only)',
       () async {
     final c = await boot();
-    final before = data(c).qualityByDay[d(3)];
-    expect(before, 100);
+    final before = data(c);
+    await c.settings.setThreshold(80);
+    expect(identical(before, data(c)), isFalse); // the grid rebuilds
+    expect(data(c).qualityByDay[d(3)], 100); // same average, new colour
+  });
+
+  test('the forward arrows stop at the current month/year', () async {
+    final c = await boot();
+    c.nextMonth();
+    expect(data(c).month, DateTime(2026, 8, 1)); // today's month, unmoved
+    c.setView(CalendarView.year);
+    c.nextYear();
+    expect(data(c).year, 2026);
+  });
+
+  test('switching views keeps the window the user was on', () async {
+    final c = await boot();
+    c.previousMonth();
+    c.setView(CalendarView.year);
+    expect(data(c).year, 2026);
+    c.previousYear();
+    c.setView(CalendarView.month);
+    // The selection is in 2026, so a 2025 window opens on its January.
+    expect(data(c).month, DateTime(2025, 1, 1));
+    expect(data(c).selectedDay, d(16));
   });
 
   test('load error surfaces', () async {

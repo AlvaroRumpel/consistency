@@ -26,38 +26,45 @@ class MonthGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final leading = month.weekday % 7; // Sunday = 0
+    final rows = ((leading + daysInMonth) / 7).ceil();
 
-    return Column(
-      children: [
-        Row(
-          key: const ValueKey('weekday-header'),
-          children: [
-            for (final label in _weekdayLabels)
-              Expanded(
-                child: Center(
-                  child: Text(
-                    label,
-                    style: context.textStyles.thinText.copyWith(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        for (var r = 0; r < 6; r++)
+    // The page draws the grid on a decorated Container, which would paint over
+    // the ink of the Material further up; this one is right under the taps.
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        children: [
           Row(
+            key: const ValueKey('weekday-header'),
             children: [
-              for (var c = 0; c < 7; c++)
+              for (final label in _weekdayLabels)
                 Expanded(
                   child: Center(
-                    child: _cell(context, r * 7 + c - leading + 1, daysInMonth),
+                    child: Text(
+                      label,
+                      style: context.textStyles.thinText.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
                 ),
             ],
           ),
-      ],
+          for (var r = 0; r < rows; r++)
+            Row(
+              children: [
+                for (var c = 0; c < 7; c++)
+                  Expanded(
+                    child: Center(
+                      child:
+                          _cell(context, r * 7 + c - leading + 1, daysInMonth),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 
