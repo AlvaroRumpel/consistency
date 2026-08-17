@@ -6,13 +6,20 @@ class AppData {
   static const int schemaVersion = 2;
 
   final List<Goal> goals;
-  final List<DayEntry> entries; // always sorted by date ascending
+  final List<DayEntry> entries; // always sorted by date ascending, deduped
 
   AppData({required List<Goal> goals, required List<DayEntry> entries})
       : goals = List.unmodifiable(goals),
-        entries = List.unmodifiable(
-          [...entries]..sort((a, b) => a.date.compareTo(b.date)),
-        );
+        entries = List.unmodifiable(_dedupeSorted(entries));
+
+  // Later entries for the same date win (input order), then sorted.
+  static List<DayEntry> _dedupeSorted(List<DayEntry> entries) {
+    final byDate = <DateTime, DayEntry>{}; // insertion-ordered (LinkedHashMap)
+    for (final e in entries) {
+      byDate[e.date] = e;
+    }
+    return byDate.values.toList()..sort((a, b) => a.date.compareTo(b.date));
+  }
 
   static final empty = AppData(goals: const [], entries: const []);
 

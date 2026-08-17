@@ -84,6 +84,26 @@ void main() {
     expect(back.entries.first.updatedAt.isUtc, isTrue);
   });
 
+  test('AppData dedupes entries by date, last one wins', () {
+    final data = AppData(
+      goals: const [],
+      entries: [
+        DayEntry(
+          date: DateTime(2026, 8, 3),
+          values: {'g1': 10},
+          updatedAt: DateTime.utc(2026, 8, 3, 8),
+        ),
+        DayEntry(
+          date: DateTime(2026, 8, 3),
+          values: {'g1': 90},
+          updatedAt: DateTime.utc(2026, 8, 3, 20),
+        ),
+      ],
+    );
+    expect(data.entries.length, 1);
+    expect(data.entries.single.values, {'g1': 90.0});
+  });
+
   test('AppData.fromJson rejects unknown schema versions', () {
     expect(
         () =>
