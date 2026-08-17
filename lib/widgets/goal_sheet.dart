@@ -57,6 +57,7 @@ class _GoalSheetState extends State<_GoalSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late GoalType _type;
+  bool _busy = false;
 
   bool get _isEditing => widget.goal != null;
 
@@ -74,27 +75,32 @@ class _GoalSheetState extends State<_GoalSheet> {
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    final store = context.read<AppStore>();
-    final name = _nameController.text.trim();
-    final goal = widget.goal;
-    if (goal == null) {
-      await store.addGoal(name, _type);
-    } else {
-      if (name != goal.name) await store.renameGoal(goal.id, name);
-      if (_type != goal.type) {
-        await store.setGoalType(goal.id, _type);
-        // A check goal only knows 0/100: a part-done value today can't stay.
-        final today = DateTime.now();
-        final entry = store.data.entryOn(today);
-        final v = entry?.values[goal.id];
-        if (_type == GoalType.check && v != null && v != 0 && v != 100) {
-          await store
-              .saveDay(today, {...entry!.values, goal.id: v >= 100 ? 100 : 0});
+    if (_busy || !(_formKey.currentState?.validate() ?? false)) return;
+    _busy = true;
+    try {
+      final store = context.read<AppStore>();
+      final name = _nameController.text.trim();
+      final goal = widget.goal;
+      if (goal == null) {
+        await store.addGoal(name, _type);
+      } else {
+        if (name != goal.name) await store.renameGoal(goal.id, name);
+        if (_type != goal.type) {
+          await store.setGoalType(goal.id, _type);
+          // A check goal only knows 0/100: a part-done value today can't stay.
+          final today = DateTime.now();
+          final entry = store.data.entryOn(today);
+          final v = entry?.values[goal.id];
+          if (_type == GoalType.check && v != null && v != 0 && v != 100) {
+            await store.saveDay(
+                today, {...entry!.values, goal.id: v >= 100 ? 100 : 0});
+          }
         }
       }
+      if (mounted) Navigator.pop(context);
+    } finally {
+      _busy = false;
     }
-    if (mounted) Navigator.pop(context);
   }
 
   Future<void> _archive() async {
@@ -195,7 +201,7 @@ class _GoalSheetState extends State<_GoalSheet> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: _submit,
+              onPressed: _busy ? null : _submit,
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: const StadiumBorder(),

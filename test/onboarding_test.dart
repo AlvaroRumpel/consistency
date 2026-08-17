@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:consistency/data/in_memory_goals_repository.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/goal.dart';
 import 'package:consistency/pages/onboarding_page.dart';
@@ -11,6 +12,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'helpers.dart';
+
+/// Storage that exists but can't be read (corrupt file, denied permission).
+class LoadThrowsRepository extends InMemoryGoalsRepository {
+  @override
+  Future<AppData> load() async => throw const FormatException('unreadable');
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -116,6 +123,39 @@ void main() {
 
     expect(find.byType(SkelentonPage), findsOneWidget);
     expect(find.byType(OnboardingPage), findsNothing);
+  });
+
+  testWidgets('a failed load never routes to onboarding', (tester) async {
+    // The store is empty here only because the load blew up: onboarding
+    // would have this user create a goal on top of data we couldn't read,
+    // and the first save would overwrite it.
+    await tester
+        .pumpWidget(await buildApp(prefs: fresh, repo: LoadThrowsRepository()));
+    await pumpFrames(tester);
+
+    expect(find.byType(OnboardingPage), findsNothing);
+    expect(find.byType(SkelentonPage), findsOneWidget);
+    final element = tester.element(find.byType(SkelentonPage));
+    expect(element.read<AppStore>().loadError, isNotNull);
+    // Still false, so a later successful load can still show onboarding.
+    expect(element.read<SettingsStore>().onboardingDone, isFalse);
+  });
+
+  testWidgets('two Start taps in the same frame create exactly one goal',
+      (tester) async {
+    await tester.pumpWidget(await buildApp(prefs: fresh));
+    await pumpFrames(tester);
+
+    await tester.enterText(
+        find.byKey(const ValueKey('onboarding-goal-name')), 'Run 5 km');
+    await pumpFrames(tester);
+
+    await tester.tap(find.text('Start'));
+    await tester.tap(find.text('Start'), warnIfMissed: false);
+    await pumpFrames(tester, 30);
+
+    final store = tester.element(find.byType(SkelentonPage)).read<AppStore>();
+    expect(store.data.goals, hasLength(1));
   });
 
   test('onboarding page has no hardcoded colours', () {

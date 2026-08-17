@@ -20,6 +20,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final _nicknameController = TextEditingController();
   final _goalController = TextEditingController();
   GoalType _type = GoalType.check;
+  bool _busy = false;
 
   @override
   void dispose() {
@@ -30,14 +31,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _start() async {
     final goalName = _goalController.text.trim();
-    if (goalName.isEmpty) return;
-    final settings = context.read<SettingsStore>();
-    final store = context.read<AppStore>();
-    final nickname = _nicknameController.text.trim();
-    if (nickname.isNotEmpty) await settings.setNickname(nickname);
-    await store.addGoal(goalName, _type);
-    await settings.setOnboardingDone(true);
-    if (mounted) Navigator.pushReplacementNamed(context, '/manager');
+    if (_busy || goalName.isEmpty) return;
+    _busy = true;
+    try {
+      final settings = context.read<SettingsStore>();
+      final store = context.read<AppStore>();
+      final nickname = _nicknameController.text.trim();
+      if (nickname.isNotEmpty) await settings.setNickname(nickname);
+      await store.addGoal(goalName, _type);
+      await settings.setOnboardingDone(true);
+      if (mounted) Navigator.pushReplacementNamed(context, '/manager');
+    } finally {
+      _busy = false;
+    }
   }
 
   String get _caption => _type == GoalType.check
@@ -90,7 +96,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     TextField(
                       key: const ValueKey('onboarding-nickname'),
                       controller: _nicknameController,
-                      maxLength: 50,
+                      maxLength: 25,
                       style: context.textStyles.normalText,
                       decoration: const InputDecoration(
                         hintText: 'Your name',
@@ -141,7 +147,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
               const SizedBox(height: 32),
               FilledButton(
-                onPressed: _goalController.text.trim().isEmpty ? null : _start,
+                onPressed: _busy || _goalController.text.trim().isEmpty
+                    ? null
+                    : _start,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: const StadiumBorder(),

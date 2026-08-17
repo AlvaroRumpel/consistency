@@ -31,34 +31,119 @@ AppData _backupData() => AppData(
       entries: [_entry(1), _entry(2), _entry(3)],
     );
 
+// What the user already has before importing: one goal, one other day.
+AppData _existingData() =>
+    AppData(goals: [_goal('mine')], entries: [_entry(9)]);
+
+Future<AppStore> _openImport(WidgetTester tester, AppData? seed) async {
+  final backups = FakeBackupService()
+    ..nextPick = PickedBackup(
+      name: 'their-backup.json',
+      contents: BackupCodec.encode(_backupData()),
+    );
+  await tester.pumpWidget(await buildApp(data: seed, backups: backups));
+  await pumpFrames(tester);
+  await tester.tap(find.text('Settings'));
+  await pumpFrames(tester);
+  await tester.tap(find.text('Import backup'));
+  await pumpFrames(tester);
+  return tester.element(find.byType(SettingsPage)).read<AppStore>();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('valid backup: dialog shows the summary, Replace swaps the store',
+  testWidgets(
+      'valid backup: the dialog shows the summary and Import applies it',
       (tester) async {
-    final backups = FakeBackupService()
-      ..nextPick = PickedBackup(
-        name: 'their-backup.json',
-        contents: BackupCodec.encode(_backupData()),
-      );
-    final app = await buildApp(backups: backups);
-    await tester.pumpWidget(app);
-    await pumpFrames(tester);
-    await tester.tap(find.text('Settings'));
-    await pumpFrames(tester);
-
-    await tester.tap(find.text('Import backup'));
-    await pumpFrames(tester);
+    final store = await _openImport(tester, null);
 
     expect(find.textContaining('2 goals · 3 days'), findsOneWidget);
 
     await tester.tap(find.text('Import'));
     await pumpFrames(tester);
 
-    final store = tester.element(find.byType(SettingsPage)).read<AppStore>();
     expect(store.data.goals.map((g) => g.id).toSet(), {'a', 'b'});
     expect(store.data.entries.length, 3);
     expect(find.text('Backup imported.'), findsOneWidget);
+  });
+
+  testWidgets('Replace drops the existing data for the imported one',
+      (tester) async {
+    final store = await _openImport(tester, _existingData());
+
+    await tester
+        .tap(find.text('Replace everything — deletes your current data'));
+    await pumpFrames(tester);
+    await tester.tap(find.text('Import'));
+    await pumpFrames(tester);
+
+    expect(store.data.goals.map((g) => g.id).toSet(), {'a', 'b'});
+    expect(store.data.entries.map((e) => e.date.day).toSet(), {1, 2, 3});
+  });
+
+  testWidgets('Merge (the default) keeps the existing data and adds the import',
+      (tester) async {
+    final store = await _openImport(tester, _existingData());
+
+    await tester.tap(find.text('Import'));
+    await pumpFrames(tester);
+
+    expect(store.data.goals.map((g) => g.id).toSet(), {'mine', 'a', 'b'});
+    expect(store.data.entries.map((e) => e.date.day).toSet(), {1, 2, 3, 9});
+  });
+
+  testWidgets('import that cannot be saved says so', (tester) async {
+    final backups = FakeBackupService()
+      ..nextPick = PickedBackup(
+        name: 'their-backup.json',
+        contents: BackupCodec.encode(_backupData()),
+      );
+    await tester.pumpWidget(await buildApp(failSaves: true, backups: backups));
+    await pumpFrames(tester);
+    await tester.tap(find.text('Settings'));
+    await pumpFrames(tester);
+    await tester.tap(find.text('Import backup'));
+    await pumpFrames(tester);
+
+    await tester.tap(find.text('Import'));
+    await pumpFrames(tester);
+
+    expect(find.text('Backup imported, but saving failed.'), findsOneWidget);
+  });
+
+  testWidgets('picker failure: error snackbar, store unchanged',
+      (tester) async {
+    final backups = FakeBackupService()..throwOnPick = true;
+    await tester
+        .pumpWidget(await buildApp(data: _existingData(), backups: backups));
+    await pumpFrames(tester);
+    await tester.tap(find.text('Settings'));
+    await pumpFrames(tester);
+
+    final store = tester.element(find.byType(SettingsPage)).read<AppStore>();
+    final before = store.data;
+
+    await tester.tap(find.text('Import backup'));
+    await pumpFrames(tester);
+
+    expect(find.text("Couldn't read that file."), findsOneWidget);
+    expect(store.data, same(before));
+  });
+
+  testWidgets('export failure: error snackbar', (tester) async {
+    final backups = FakeBackupService()..throwOnExport = true;
+    await tester
+        .pumpWidget(await buildApp(data: _backupData(), backups: backups));
+    await pumpFrames(tester);
+    await tester.tap(find.text('Settings'));
+    await pumpFrames(tester);
+
+    await tester.tap(find.text('Export backup'));
+    await pumpFrames(tester);
+
+    expect(find.text("Couldn't export the backup."), findsOneWidget);
+    expect(backups.lastExportName, isNull);
   });
 
   testWidgets('invalid file: error snackbar, store unchanged', (tester) async {

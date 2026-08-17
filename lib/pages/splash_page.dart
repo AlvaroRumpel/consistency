@@ -46,9 +46,14 @@ class _SplashPageState extends State<SplashPage> {
         await settings.setOnboardingDone(true);
       }
       if (mounted) {
-        final target = (!settings.onboardingDone && !hasGoals)
-            ? '/onboarding'
-            : '/manager';
+        // An empty store after a failed load is not a fresh install: sending
+        // that user to onboarding would have them create a goal on top of
+        // data we simply could not read. Home shows the error instead, and
+        // onboardingDone stays false so a later good load still routes right.
+        final target =
+            (!settings.onboardingDone && !hasGoals && store.loadError == null)
+                ? '/onboarding'
+                : '/manager';
         Navigator.pushNamedAndRemoveUntil(context, target, (_) => false);
       }
     });

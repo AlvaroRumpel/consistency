@@ -5,14 +5,14 @@ import '../models/date_key.dart';
 import '../models/day_entry.dart';
 import '../models/goal.dart';
 
-/// Pure JSON codec for backup import/export. No plugins, no dart:io — the
-/// surrounding I/O (file picking, sharing) lives elsewhere.
 class BackupSummary {
   final int goals;
   final int days;
   const BackupSummary({required this.goals, required this.days});
 }
 
+/// Pure JSON codec for backup import/export. No plugins, no dart:io — the
+/// surrounding I/O (file picking, sharing) lives elsewhere.
 class BackupCodec {
   static String encode(AppData data) =>
       const JsonEncoder.withIndent('  ').convert(data.toJson());

@@ -7,9 +7,11 @@ class FakeBackupService implements BackupService {
   String? lastExportName;
   String? lastExportContents;
   bool throwOnPick = false;
+  bool throwOnExport = false;
 
   @override
   Future<void> exportBackup(String fileName, String contents) async {
+    if (throwOnExport) throw StateError('exportBackup failed');
     lastExportName = fileName;
     lastExportContents = contents;
   }

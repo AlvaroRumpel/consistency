@@ -2,6 +2,7 @@ import 'package:consistency/configs/date_format.dart';
 import 'package:consistency/configs/theme.dart';
 import 'package:consistency/data/backup_service.dart';
 import 'package:consistency/data/fake_backup_service.dart';
+import 'package:consistency/data/goals_repository.dart';
 import 'package:consistency/data/in_memory_goals_repository.dart';
 import 'package:consistency/data/settings_repository.dart';
 import 'package:consistency/main.dart';
@@ -25,12 +26,12 @@ class SaveThrowsRepository extends InMemoryGoalsRepository {
       throw const FormatException('disk full');
 }
 
-Future<(SettingsStore, AppStore)> _stores(
-    Map<String, Object> prefs, AppData? data, bool failSaves) async {
+Future<(SettingsStore, AppStore)> _stores(Map<String, Object> prefs,
+    AppData? data, bool failSaves, GoalsRepository? repo) async {
   SharedPreferences.setMockInitialValues(prefs);
   final p = await SharedPreferences.getInstance();
-  final store = AppStore(
-      failSaves ? SaveThrowsRepository(data) : InMemoryGoalsRepository(data));
+  final store = AppStore(repo ??
+      (failSaves ? SaveThrowsRepository(data) : InMemoryGoalsRepository(data)));
   await store.load();
   return (SettingsStore(SettingsRepository(p)), store);
 }
@@ -45,11 +46,12 @@ Future<ConsistencyApp> buildApp({
   bool failSaves = false,
   FakeReminderScheduler? scheduler,
   BackupService? backups,
+  GoalsRepository? repo,
 }) async {
   final seededPrefs = prefs.containsKey('onboardingDone')
       ? prefs
       : {...prefs, 'onboardingDone': true};
-  final (settings, store) = await _stores(seededPrefs, data, failSaves);
+  final (settings, store) = await _stores(seededPrefs, data, failSaves, repo);
   return ConsistencyApp(
     settings: settings,
     store: store,
@@ -65,7 +67,7 @@ Future<Widget> wrap(
   AppData? data,
   BackupService? backups,
 }) async {
-  final (settings, store) = await _stores(prefs, data, false);
+  final (settings, store) = await _stores(prefs, data, false, null);
   // Not started: pages only read it to enable/disable, and an unstarted
   // service leaves no listeners or lifecycle observer behind.
   final reminders = ReminderService(

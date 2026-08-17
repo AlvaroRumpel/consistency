@@ -52,7 +52,7 @@ class _ImportDialogState extends State<ImportDialog> {
             onTap: () => setState(() => _choice = ImportChoice.replace),
           ),
           _OptionTile(
-            title: 'Merge — keeps both; the newest wins',
+            title: 'Merge — keeps both; the newest version of each day wins',
             selected: _choice == ImportChoice.merge,
             onTap: () => setState(() => _choice = ImportChoice.merge),
           ),
