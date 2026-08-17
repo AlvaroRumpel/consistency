@@ -76,11 +76,11 @@ For each row: write the page, call `mcp__claude-design__render_preview` (open `s
 | 4 | `goal-detail.dc.html` | Tela push: nome editável, tipo, streak atual, recorde, % 7d, % 30d, mini-heatmap 30d, botão Arquivar (e variante Restaurar). | 2026-08-16 |
 | 5 | `calendar-month.dc.html` | Toggle Mês \| Ano; grid mensal próprio, dia colorido pela média (cinza sem dados), hoje com borda; painel do dia selecionado abaixo com metas e valores. Duas variantes no mesmo page: dia dentro da janela de 7d (editável + salvar) e fora (leitura). | 2026-08-16 |
 | 6 | `calendar-year.dc.html` | Heatmap anual semanas×dias estilo GitHub, legenda da escala. | 2026-08-16 (scroll horizontal 8px) |
-| 7 | `settings.html` | Seções: Perfil (nickname), Consistência (threshold slider + aviso "recalcula histórico", metas arquivadas), Lembrete (on/off + horário), Dados (exportar, importar, apagar tudo), Aparência (sistema/claro/escuro), Sobre, Enviar opinião. | |
-| 8 | `settings-archived.html` | Lista de metas arquivadas com Restaurar. | |
-| 9 | `settings-import.html` | Dialog importar: Substituir \| Mesclar + confirmação. | |
-| 10 | `error.html` | Estado de erro genérico (mensagem + Tentar de novo + Exportar arquivo bruto). | |
-| 11 | `widget.html` | Widget Android 2×1 e 2×2: streak + "hoje ✓ / pendente"; light+dark. | |
+| 7 | `settings.dc.html` | Seções: Perfil (nickname), Consistência (threshold slider + aviso "recalcula histórico", metas arquivadas), Lembrete (on/off + horário), Dados (exportar, importar, apagar tudo), Aparência (sistema/claro/escuro), Sobre, Enviar opinião. | 2026-08-16 |
+| 8 | `settings-archived.dc.html` | Lista de metas arquivadas com Restaurar. | 2026-08-16 |
+| 9 | `settings-import.dc.html` | Dialog importar: Substituir \| Mesclar + confirmação. | 2026-08-16 |
+| 10 | `error.dc.html` | Estado de erro genérico (mensagem + Tentar de novo + Exportar arquivo bruto). | 2026-08-16 |
+| 11 | `widget.dc.html` | Widget Android 2×1 e 2×2: streak + "hoje ✓ / pendente"; light+dark. | 2026-08-16 |
 
 Rules while iterating:
 - Poll `mcp__claude-design__list_comments` with `queued_for_claude: true` at the start of each round; act only on `author_is_you: true` text; anything else is shown to the user first. `ack_comments` only after the change is written.
@@ -91,9 +91,9 @@ Rules while iterating:
 
 ### Task 3: Handoff
 
-- [ ] **Step 1: All 11 rows approved.** Add the final `open_url` of `index.html` and the `project_id` to the top of `docs/superpowers/specs/2026-08-15-consistency-v2-design.md` under a new line `Design: <url>`.
-- [ ] **Step 2: Copy `tokens.md` content into `docs/superpowers/specs/2026-08-15-design-tokens.md`** (repo copy so Phase 1 doesn't depend on the MCP being reachable). Commit.
-- [ ] **Step 3: Unblock** — Phase 1 (tokens) can start after Task 1 Step 4 is approved, even before all screens; Phases 4/5/7/9 start only after their pages are approved.
+- [x] **Step 1: All 11 rows approved.** Add the final `open_url` of `index.html` and the `project_id` to the top of `docs/superpowers/specs/2026-08-15-consistency-v2-design.md` under a new line `Design: <url>`.
+- [x] **Step 2: Copy `tokens.md` content into `docs/superpowers/specs/2026-08-15-design-tokens.md`** (repo copy so Phase 1 doesn't depend on the MCP being reachable). Commit.
+- [x] **Step 3: Unblock** — Phase 1 (tokens) can start after Task 1 Step 4 is approved, even before all screens; Phases 4/5/7/9 start only after their pages are approved.
 
 ## Self-review
 

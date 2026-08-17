@@ -1,5 +1,7 @@
 # Consistency v2 — Design
 
+Design: https://claude.ai/design/p/b473eda8-1101-4699-a494-6390baa9a37e?file=index.html (project b473eda8-1101-4699-a494-6390baa9a37e; all 11 screens approved 2026-08-15/16). Tokens: [2026-08-15-design-tokens.md](2026-08-15-design-tokens.md).
+
 Data: 2026-08-15. Estado atual: app Flutter Android-only, metas = strings dentro da última entrada diária, 1 blob JSON em SharedPreferences, sem streak, sem edição de dias passados, sem lembrete, sem backup.
 
 ## Objetivo
