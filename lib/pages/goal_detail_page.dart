@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../configs/app_tokens.dart';
+import '../configs/date_format.dart';
 import '../configs/text_styles.dart';
 import '../engine/consistency_engine.dart';
 import '../models/goal.dart';
@@ -11,9 +12,6 @@ import '../widgets/goal_sheet.dart';
 import '../widgets/goal_stats.dart';
 
 String _days(int n) => '$n ${n == 1 ? 'day' : 'days'}';
-
-String _dmy(DateTime d) =>
-    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
 /// One goal: stats, the last 30 days, its type and archive/restore.
 class GoalDetailPage extends StatelessWidget {
@@ -171,7 +169,7 @@ class GoalDetailPage extends StatelessWidget {
           Icon(Icons.archive_outlined,
               size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
-          Text('Archived on ${_dmy(on)}',
+          Text('Archived on ${formatDayMonthYear(on)}',
               style: context.textStyles.normalText.copyWith(fontSize: 13)),
         ]),
       );
