@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/widgets.dart';
 
 import '../engine/consistency_engine.dart';
+import '../l10n/app_localizations.dart';
 import '../models/date_key.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
@@ -15,6 +17,7 @@ class ReminderService with WidgetsBindingObserver {
   final AppStore _store;
   final SettingsStore _settings;
   final DateTime Function() _now;
+  final Locale Function() _localeOf;
 
   Future<void> _chain = Future.value();
 
@@ -23,10 +26,12 @@ class ReminderService with WidgetsBindingObserver {
     required AppStore store,
     required SettingsStore settings,
     DateTime Function()? now,
+    Locale Function()? localeOf,
   })  : _scheduler = scheduler,
         _store = store,
         _settings = settings,
-        _now = now ?? DateTime.now;
+        _now = now ?? DateTime.now,
+        _localeOf = localeOf ?? (() => PlatformDispatcher.instance.locale);
 
   Future<void> start() async {
     // Listeners first: a scheduler that fails to initialise must not leave the
@@ -87,12 +92,22 @@ class ReminderService with WidgetsBindingObserver {
       today: today,
     ).globalStreak();
 
-    return _enqueue(() => _scheduler.schedule(ReminderRequest(
-          when: when,
-          title: 'Consistency',
-          body:
-              "${_settings.nicknameOrDefault}, you haven't saved today — streak: $streak",
-        )));
+    // No BuildContext out here, so the strings come straight from the
+    // delegate — inside the enqueued closure, where suspending is fine.
+    var locale = _localeOf();
+    if (!AppLocalizations.delegate.isSupported(locale)) {
+      locale = const Locale('en');
+    }
+    final name = _settings.nickname;
+
+    return _enqueue(() async {
+      final l10n = await AppLocalizations.delegate.load(locale);
+      return _scheduler.schedule(ReminderRequest(
+        when: when,
+        title: l10n.reminderTitle,
+        body: l10n.reminderBody(name ?? l10n.defaultNickname, streak),
+      ));
+    });
   }
 
   Future<bool> enable() async {

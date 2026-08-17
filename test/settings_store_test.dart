@@ -11,7 +11,6 @@ void main() {
         SettingsRepository(await SharedPreferences.getInstance()));
     expect(s.themeMode, ThemeMode.system);
     expect(s.nickname, isNull);
-    expect(s.nicknameOrDefault, 'User');
     expect(s.threshold, 50);
     expect(s.notifEnabled, isFalse);
     expect(s.notifTime, (20, 0));

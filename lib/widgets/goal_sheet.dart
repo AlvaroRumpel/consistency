@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../models/goal.dart';
 import '../state/app_store.dart';
@@ -24,19 +25,19 @@ Future<bool> confirmArchiveGoal(BuildContext context) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Archive this goal?'),
-      content: const Text('It will no longer appear in your daily list.'),
+      title: Text(dialogContext.l10n.archiveConfirmTitle),
+      content: Text(dialogContext.l10n.archiveConfirmBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: const Text('Cancel'),
+          child: Text(dialogContext.l10n.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, true),
           style: TextButton.styleFrom(
             foregroundColor: Theme.of(dialogContext).colorScheme.error,
           ),
-          child: const Text('Archive'),
+          child: Text(dialogContext.l10n.archive),
         ),
       ],
     ),
@@ -111,9 +112,9 @@ class _GoalSheetState extends State<_GoalSheet> {
     if (mounted) Navigator.pop(context);
   }
 
-  String get _caption => _type == GoalType.check
-      ? 'Marked done or not done each day.'
-      : 'Track progress from 0 to 100 percent.';
+  String _caption(BuildContext context) => _type == GoalType.check
+      ? context.l10n.typeCheckCaption
+      : context.l10n.typePercentCaption;
 
   Widget _label(BuildContext context, String text) {
     final scheme = Theme.of(context).colorScheme;
@@ -155,11 +156,13 @@ class _GoalSheetState extends State<_GoalSheet> {
               ),
             ),
             Text(
-              _isEditing ? 'Edit goal' : 'New goal',
+              _isEditing
+                  ? context.l10n.editGoalTitle
+                  : context.l10n.newGoalTitle,
               style: context.textStyles.titleText.copyWith(fontSize: 24),
             ),
             const SizedBox(height: 24),
-            _label(context, 'NAME'),
+            _label(context, context.l10n.name),
             const SizedBox(height: 8),
             TextFormField(
               controller: _nameController,
@@ -168,23 +171,23 @@ class _GoalSheetState extends State<_GoalSheet> {
               decoration: const InputDecoration(counterText: ''),
               validator: (v) {
                 final trimmed = v?.trim() ?? '';
-                if (trimmed.isEmpty) return 'Name is required';
-                if (trimmed.length > 50) return 'Keep it under 50 characters';
+                if (trimmed.isEmpty) return context.l10n.nameRequired;
+                if (trimmed.length > 50) return context.l10n.nameTooLong;
                 return null;
               },
             ),
             const SizedBox(height: 24),
-            _label(context, 'TYPE'),
+            _label(context, context.l10n.type),
             const SizedBox(height: 8),
             SegmentedButton<GoalType>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: GoalType.check,
-                  label: Text('Done / not done'),
+                  label: Text(context.l10n.typeCheck),
                 ),
                 ButtonSegment(
                   value: GoalType.percent,
-                  label: Text('Percent 0–100'),
+                  label: Text(context.l10n.typePercent),
                 ),
               ],
               selected: {_type},
@@ -193,7 +196,7 @@ class _GoalSheetState extends State<_GoalSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              _caption,
+              _caption(context),
               style: context.textStyles.thinText.copyWith(
                 fontSize: 12,
                 color: scheme.onSurfaceVariant,
@@ -206,14 +209,15 @@ class _GoalSheetState extends State<_GoalSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: const StadiumBorder(),
               ),
-              child: Text(_isEditing ? 'Save changes' : 'Add goal'),
+              child: Text(
+                  _isEditing ? context.l10n.saveChanges : context.l10n.addGoal),
             ),
             if (_isEditing) ...[
               const SizedBox(height: 8),
               TextButton(
                 onPressed: _archive,
                 style: TextButton.styleFrom(foregroundColor: scheme.error),
-                child: const Text('Archive goal'),
+                child: Text(context.l10n.archiveGoal),
               ),
             ],
           ],

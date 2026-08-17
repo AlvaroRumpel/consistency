@@ -8,14 +8,11 @@ sealed class SettingState {}
 
 class SettingLoading extends SettingState {}
 
-class SettingError extends SettingState {
-  final String message;
-
-  SettingError({required this.message});
-}
+class SettingError extends SettingState {}
 
 class SettingData extends SettingState {
-  final String nickname;
+  /// null until the user picks one; the UI falls back to l10n.defaultNickname.
+  final String? nickname;
 
   SettingData({required this.nickname});
 }
@@ -32,7 +29,7 @@ class SettingsController extends BaseController<SettingState> {
     reload();
   }
 
-  void reload() => emit(SettingData(nickname: settings.nicknameOrDefault));
+  void reload() => emit(SettingData(nickname: settings.nickname));
 
   Future<void> clearAllData() => store.clearAll();
 

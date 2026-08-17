@@ -1,32 +1,28 @@
-// Shared date formatting — no intl dependency needed for these.
-// English only; Phase 8 localizes.
+// Locale-aware date formatting via `intl`, driven by the locale tag callers
+// pass in (usually `Localizations.localeOf(context).toLanguageTag()`).
+//
+// `intl` throws if you build a [DateFormat] for a locale whose symbol data
+// hasn't been loaded yet. In the app that loading is done by
+// flutter_localizations, which calls `initializeDateFormatting` for the
+// active locale before the first frame under it — so every call here runs
+// from a widget under `Localizations` and finds its data ready. Plain
+// `test()`s that format without pumping a tree have to call
+// `initializeDateFormatting()` themselves in `setUpAll`.
 
-const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const _months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
+import 'package:intl/intl.dart';
 
-/// dd/MM
-String formatDayMonth(DateTime d) =>
-    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+/// Short numeric day/month, e.g. '8/14' (English) / '14/08' (Portuguese).
+String formatDayMonth(DateTime d, String locale) =>
+    DateFormat.Md(locale).format(d);
 
-/// dd/MM/yyyy
-String formatDayMonthYear(DateTime d) => '${formatDayMonth(d)}/${d.year}';
+/// Short numeric date, e.g. '8/14/2026' (English) / '14/08/2026' (Portuguese).
+String formatDayMonthYear(DateTime d, String locale) =>
+    DateFormat.yMd(locale).format(d);
 
-/// e.g. 'Fri, 14 August'
-String formatWeekdayDayMonth(DateTime d) =>
-    '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1]}';
+/// e.g. 'Fri, Aug 14' (English) / 'sex., 14 de ago.' (Portuguese)
+String formatWeekdayDayMonth(DateTime d, String locale) =>
+    DateFormat.MMMEd(locale).format(d);
 
 /// e.g. 'August 2026'
-String formatMonthYear(DateTime d) => '${_months[d.month - 1]} ${d.year}';
+String formatMonthYear(DateTime d, String locale) =>
+    DateFormat('MMMM yyyy', locale).format(d);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../controllers/day_editor_controller.dart';
 import 'error_view.dart';
@@ -35,7 +36,7 @@ class _DayEditorState extends State<DayEditor> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text("Couldn't save. We'll try again on the next save."),
+        content: Text(context.l10n.couldNotSave),
         backgroundColor: Theme.of(context).colorScheme.error,
       ));
     });
@@ -49,8 +50,7 @@ class _DayEditorState extends State<DayEditor> {
       builder: (context, state, _) {
         if (state is DayEditorError) {
           return Center(
-            child:
-                ErrorView(message: state.message, onRetry: controller.reload),
+            child: ErrorView(onRetry: controller.reload),
           );
         }
         if (state is! DayEditorReady) {
@@ -65,7 +65,7 @@ class _DayEditorState extends State<DayEditor> {
             if (view.goals.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
-                isToday ? "TODAY'S GOALS" : 'GOALS',
+                isToday ? context.l10n.todaysGoals : context.l10n.goals,
                 style: context.textStyles.boldText.copyWith(
                   fontSize: 12,
                   letterSpacing: 1.2,

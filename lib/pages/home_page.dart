@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../controllers/day_editor_controller.dart';
 import '../state/app_store.dart';
@@ -49,7 +50,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Row(
           children: [
             Expanded(
-              child: Text('Hi, ${view.nickname}',
+              child: Text(
+                  context.l10n
+                      .greeting(view.nickname ?? context.l10n.defaultNickname),
                   style: context.textStyles.titleText),
             ),
             StreakBadge(streak: view.streak),
@@ -66,7 +69,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
         const SizedBox(height: 12),
         Text(
-          'RECORD ${view.best} DAYS',
+          context.l10n.recordDays(view.best),
           style: context.textStyles.thinText.copyWith(
             fontSize: 12,
             letterSpacing: 1.2,
@@ -90,7 +93,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         footer: (_, __) => OutlinedButton.icon(
           onPressed: () => showGoalSheet(context),
           icon: const Icon(Icons.add),
-          label: const Text('New goal'),
+          label: Text(context.l10n.newGoal),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: const StadiumBorder(),

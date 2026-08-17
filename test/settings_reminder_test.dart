@@ -25,7 +25,8 @@ void main() {
     await pumpFrames(tester);
 
     expect(tester.widget<Switch>(switchFinder).value, isTrue);
-    expect(find.text('20:00'), findsOneWidget);
+    // MaterialLocalizations formats it; en_US without a 24h override.
+    expect(find.text('8:00 PM'), findsOneWidget);
   });
 
   testWidgets('permission denied keeps it off and shows a snackbar',

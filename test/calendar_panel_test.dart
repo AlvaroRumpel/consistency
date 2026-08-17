@@ -7,11 +7,14 @@ import 'package:consistency/state/app_store.dart';
 import 'package:consistency/widgets/goal_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'helpers.dart';
 
 void main() {
+  // The plain test() below formats without pumping a widget tree.
+  setUpAll(initializeDateFormatting);
   final u = DateTime.utc(2026);
   final today = DateTime.now();
   DateTime daysAgo(int n) => DateTime(today.year, today.month, today.day - n);
@@ -38,9 +41,12 @@ void main() {
         ],
       );
 
-  test('weekday/month names', () {
-    expect(formatWeekdayDayMonth(DateTime(2026, 8, 14)), 'Fri, 14 August');
-    expect(formatDayMonth(DateTime(2026, 8, 14)), '14/08');
+  test('weekday/month names follow the locale, not a fixed pattern', () {
+    expect(formatWeekdayDayMonth(DateTime(2026, 8, 14), 'en'), 'Fri, Aug 14');
+    expect(
+        formatWeekdayDayMonth(DateTime(2026, 8, 14), 'pt'), 'sex., 14 de ago.');
+    expect(formatDayMonth(DateTime(2026, 8, 14), 'en'), '8/14');
+    expect(formatDayMonth(DateTime(2026, 8, 14), 'pt'), '14/08');
   });
 
   testWidgets('the panel edits days inside the window and locks older ones',
@@ -55,10 +61,10 @@ void main() {
     await pumpFrames(tester);
 
     await select(tester, recent);
-    expect(find.text(formatWeekdayDayMonth(recent)), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(recent, 'en')), findsOneWidget);
     expect(find.textContaining('25% average'), findsOneWidget);
     expect(find.byType(GoalCard), findsNWidgets(2));
-    expect(find.text('Save ${formatDayMonth(recent)}'), findsOneWidget);
+    expect(find.text('Save ${formatDayMonth(recent, 'en')}'), findsOneWidget);
 
     await select(tester, old);
     expect(find.text('Read-only — you can only edit the last week'),
@@ -69,7 +75,7 @@ void main() {
     await select(tester, recent);
     await tester.tap(find.byKey(const ValueKey('check-run')));
     await pumpFrames(tester);
-    await tester.tap(find.text('Save ${formatDayMonth(recent)}'));
+    await tester.tap(find.text('Save ${formatDayMonth(recent, 'en')}'));
     await pumpFrames(tester);
 
     final store = tester.element(find.byType(CalendarPage)).read<AppStore>();

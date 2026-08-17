@@ -1,3 +1,4 @@
+import 'package:consistency/configs/date_format.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/goal.dart';
 import 'package:consistency/state/app_store.dart';
@@ -48,10 +49,8 @@ void main() {
 
     expect(find.text('Read'), findsOneWidget);
     expect(find.text('Restore'), findsOneWidget);
-    final dmy = ago(5);
     expect(
-      find.textContaining('${dmy.day.toString().padLeft(2, '0')}/'
-          '${dmy.month.toString().padLeft(2, '0')}/${dmy.year}'),
+      find.textContaining(formatDayMonthYear(ago(5), 'en')),
       findsOneWidget,
     );
 

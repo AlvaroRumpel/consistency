@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../configs/app_tokens.dart';
 import '../configs/date_format.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../engine/consistency_engine.dart';
 import '../models/goal.dart';
@@ -10,8 +11,6 @@ import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/goal_sheet.dart';
 import '../widgets/goal_stats.dart';
-
-String _days(int n) => '$n ${n == 1 ? 'day' : 'days'}';
 
 /// One goal: stats, the last 30 days, its type and archive/restore.
 class GoalDetailPage extends StatelessWidget {
@@ -70,8 +69,8 @@ class GoalDetailPage extends StatelessWidget {
                     child: StatTile(
                       icon: Icons.local_fire_department,
                       iconColor: tokens.flameFor(streak),
-                      value: _days(streak),
-                      label: 'CURRENT STREAK',
+                      value: context.l10n.streakDays(streak),
+                      label: context.l10n.currentStreak,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -79,24 +78,26 @@ class GoalDetailPage extends StatelessWidget {
                     child: StatTile(
                       icon: Icons.emoji_events_outlined,
                       iconColor: scheme.onSurfaceVariant,
-                      value: _days(engine.goalBest(goal)),
-                      label: 'RECORD',
+                      value: context.l10n.streakDays(engine.goalBest(goal)),
+                      label: context.l10n.record,
                     ),
                   ),
                 ]),
                 const SizedBox(height: 10),
                 Row(children: [
                   Expanded(
-                      child: StatTile(value: rate(7), label: 'LAST 7 DAYS')),
+                      child: StatTile(
+                          value: rate(7), label: context.l10n.last7Days)),
                   const SizedBox(width: 10),
                   Expanded(
-                      child: StatTile(value: rate(30), label: 'LAST 30 DAYS')),
+                      child: StatTile(
+                          value: rate(30), label: context.l10n.last30Days)),
                 ]),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          _label(context, 'LAST 30 DAYS'),
+          _label(context, context.l10n.last30DaysSection),
           const SizedBox(height: 8),
           DayStrip(goal: goal, data: store.data),
           const SizedBox(height: 10),
@@ -108,19 +109,18 @@ class GoalDetailPage extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => store.restoreGoal(goal.id),
               icon: const Icon(Icons.unarchive_outlined),
-              label: const Text('Restore goal'),
+              label: Text(context.l10n.restoreGoal),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: const StadiumBorder(),
               ),
             ),
-            _caption(context, 'It shows up on Home again right away.',
-                center: true),
+            _caption(context, context.l10n.restoreGoalCaption, center: true),
           ] else ...[
             OutlinedButton.icon(
               onPressed: () => _archive(context, goal),
               icon: const Icon(Icons.archive_outlined),
-              label: const Text('Archive goal'),
+              label: Text(context.l10n.archiveGoal),
               style: OutlinedButton.styleFrom(
                 foregroundColor: scheme.error,
                 side: BorderSide(color: scheme.error, width: 2),
@@ -128,8 +128,7 @@ class GoalDetailPage extends StatelessWidget {
                 shape: const StadiumBorder(),
               ),
             ),
-            _caption(context, 'It leaves Home; history and stats stay.',
-                center: true),
+            _caption(context, context.l10n.archiveGoalCaption, center: true),
           ],
         ],
       ),
@@ -169,13 +168,15 @@ class GoalDetailPage extends StatelessWidget {
           Icon(Icons.archive_outlined,
               size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
-          Text('Archived on ${formatDayMonthYear(on)}',
+          Text(
+              context.l10n.archivedOnBanner(formatDayMonthYear(
+                  on, Localizations.localeOf(context).toLanguageTag())),
               style: context.textStyles.normalText.copyWith(fontSize: 13)),
         ]),
       );
 
   Widget _legend(BuildContext context, AppTokens tokens) => Row(children: [
-        _caption(context, 'less'),
+        _caption(context, context.l10n.less),
         for (final c in tokens.quality)
           Padding(
             padding: const EdgeInsets.only(left: 6),
@@ -187,7 +188,7 @@ class GoalDetailPage extends StatelessWidget {
             ),
           ),
         const SizedBox(width: 6),
-        _caption(context, 'more'),
+        _caption(context, context.l10n.more),
       ]);
 
   Widget _typeCard(BuildContext context, Goal goal) => Container(
@@ -199,20 +200,21 @@ class GoalDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _label(context, 'TYPE'),
+            _label(context, context.l10n.type),
             const SizedBox(height: 8),
             SegmentedButton<GoalType>(
-              segments: const [
+              segments: [
                 ButtonSegment(
-                    value: GoalType.check, label: Text('Done / not done')),
+                    value: GoalType.check, label: Text(context.l10n.typeCheck)),
                 ButtonSegment(
-                    value: GoalType.percent, label: Text('Percent 0–100')),
+                    value: GoalType.percent,
+                    label: Text(context.l10n.typePercent)),
               ],
               selected: {goal.type},
               showSelectedIcon: false,
               onSelectionChanged: null, // read-only: the pencil edits it
             ),
-            _caption(context, 'Change it with the edit button'),
+            _caption(context, context.l10n.changeWithEditButton),
           ],
         ),
       );

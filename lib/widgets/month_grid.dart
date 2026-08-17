@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../configs/app_tokens.dart';
 import '../configs/text_styles.dart';
 import '../models/date_key.dart';
-
-const _weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Sunday first
 
 class MonthGrid extends StatelessWidget {
   final DateTime month;
@@ -28,6 +27,10 @@ class MonthGrid extends StatelessWidget {
     final leading = month.weekday % 7; // Sunday = 0
     final rows = ((leading + daysInMonth) / 7).ceil();
 
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    // Sunday first, matching `leading` above.
+    final weekdayLabels = DateFormat(null, locale).dateSymbols.NARROWWEEKDAYS;
+
     // The page draws the grid on a decorated Container, which would paint over
     // the ink of the Material further up; this one is right under the taps.
     return Material(
@@ -37,7 +40,7 @@ class MonthGrid extends StatelessWidget {
           Row(
             key: const ValueKey('weekday-header'),
             children: [
-              for (final label in _weekdayLabels)
+              for (final label in weekdayLabels)
                 Expanded(
                   child: Center(
                     child: Text(

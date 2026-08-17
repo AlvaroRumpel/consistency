@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../configs/colors.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 
 class ErrorView extends StatelessWidget {
-  final String message;
+  /// Optional override; the default is the generic localised error title.
+  /// Raw exception text is never user-facing — it goes to debugPrint.
+  final String? message;
   final VoidCallback onRetry;
 
-  const ErrorView({super.key, required this.message, required this.onRetry});
+  const ErrorView({super.key, this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -16,10 +19,14 @@ class ErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, color: AppColors.redColor, size: 40),
+          Semantics(
+            label: context.l10n.errorTitle,
+            child: const Icon(Icons.error_outline,
+                color: AppColors.redColor, size: 40),
+          ),
           const SizedBox(height: 8),
           Text(
-            message,
+            message ?? context.l10n.errorTitle,
             style: context.textStyles.normalText,
             textAlign: TextAlign.center,
             maxLines: 4,
@@ -30,7 +37,7 @@ class ErrorView extends StatelessWidget {
             onPressed: onRetry,
             icon: const Icon(Icons.refresh, color: AppColors.whiteColor),
             label: Text(
-              'Try again',
+              context.l10n.tryAgain,
               style: context.textStyles.normalText
                   .copyWith(color: AppColors.whiteColor),
             ),

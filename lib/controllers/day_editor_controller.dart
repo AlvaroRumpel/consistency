@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../engine/consistency_engine.dart';
 import '../models/date_key.dart';
 import '../models/goal.dart';
@@ -23,7 +25,9 @@ class GoalRow {
 
 class DayView {
   final DateTime day;
-  final String nickname;
+
+  /// null until the user picks one; the UI falls back to l10n.defaultNickname.
+  final String? nickname;
   final List<GoalRow> goals;
   final bool editable;
   final bool saved;
@@ -50,10 +54,7 @@ sealed class DayEditorState {}
 
 class DayEditorLoading extends DayEditorState {}
 
-class DayEditorError extends DayEditorState {
-  final String message;
-  DayEditorError(this.message);
-}
+class DayEditorError extends DayEditorState {}
 
 class DayEditorReady extends DayEditorState {
   final DayView view;
@@ -96,7 +97,9 @@ class DayEditorController extends BaseController<DayEditorState> {
   void reload() {
     final err = store.loadError;
     if (err != null) {
-      emit(DayEditorError(err.toString()));
+      // The raw text is a diagnostic; the UI shows a localised message.
+      debugPrint('DayEditorController: load failed: $err');
+      emit(DayEditorError());
       return;
     }
     if (!store.loaded) {
@@ -140,7 +143,7 @@ class DayEditorController extends BaseController<DayEditorState> {
 
     emit(DayEditorReady(DayView(
       day: d,
-      nickname: settings.nicknameOrDefault,
+      nickname: settings.nickname,
       goals: goals,
       editable: _isEditable(d),
       saved: entry != null,

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../engine/consistency_engine.dart';
 import '../models/date_key.dart';
 import '../state/app_store.dart';
@@ -28,11 +30,7 @@ class CalendarData extends CalendarState {
   });
 }
 
-class CalendarError extends CalendarState {
-  final String message;
-
-  CalendarError({required this.message});
-}
+class CalendarError extends CalendarState {}
 
 class CalendarController extends BaseController<CalendarState> {
   final AppStore store;
@@ -67,7 +65,9 @@ class CalendarController extends BaseController<CalendarState> {
   void reload() {
     final error = store.loadError;
     if (error != null) {
-      emit(CalendarError(message: error.toString()));
+      // The raw text is a diagnostic; the UI shows a localised message.
+      debugPrint('CalendarController: load failed: $error');
+      emit(CalendarError());
       return;
     }
     if (!store.loaded) {
