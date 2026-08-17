@@ -27,3 +27,6 @@ String formatDayMonthYear(DateTime d) => '${formatDayMonth(d)}/${d.year}';
 /// e.g. 'Fri, 14 August'
 String formatWeekdayDayMonth(DateTime d) =>
     '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1]}';
+
+/// e.g. 'August 2026'
+String formatMonthYear(DateTime d) => '${_months[d.month - 1]} ${d.year}';

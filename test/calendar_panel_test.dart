@@ -6,8 +6,6 @@ import 'package:consistency/pages/calendar_page.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/widgets/goal_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_calendar_carousel/classes/event.dart';
-import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -39,13 +37,6 @@ void main() {
               date: recent, values: const {'run': 0, 'read': 50}, updatedAt: u),
         ],
       );
-
-  Future<void> select(WidgetTester tester, DateTime day) async {
-    tester
-        .widget<CalendarCarousel<Event>>(find.byType(CalendarCarousel<Event>))
-        .onDayPressed!(day, const <Event>[]);
-    await pumpFrames(tester);
-  }
 
   test('weekday/month names', () {
     expect(formatWeekdayDayMonth(DateTime(2026, 8, 14)), 'Fri, 14 August');

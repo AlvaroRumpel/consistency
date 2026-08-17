@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import 'package:provider/provider.dart';
 
 import '../configs/app_tokens.dart';
-import '../configs/colors.dart';
 import '../configs/date_format.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
 import '../controllers/day_editor_controller.dart';
+import '../engine/consistency_engine.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/day_editor.dart';
 import '../widgets/error_view.dart';
+import '../widgets/month_grid.dart';
+import '../widgets/quality_legend.dart';
+import '../widgets/year_heatmap.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -26,8 +28,8 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        CalendarController(context.read<AppStore>(), CalendarLoading());
+    _controller = CalendarController(
+        context.read<AppStore>(), context.read<SettingsStore>());
   }
 
   @override
@@ -46,80 +48,178 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
-      child: Column(
-        children: [
-          Text(
-            "How's it going",
-            style: context.textStyles.normalText.copyWith(fontSize: 32),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Container(
-            height: MediaQuery.sizeOf(context).height * 0.4,
-            margin: const EdgeInsets.all(16.0),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: _card(context),
-            child: ValueListenableBuilder(
-              valueListenable: _controller.stateNotifier,
-              builder: (context, state, _) {
-                if (state is CalendarError) {
-                  return ErrorView(
-                    message: state.message,
-                    onRetry: _controller.reload,
-                  );
-                }
-                if (state is! CalendarData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return CalendarCarousel(
-                  scrollDirection: Axis.horizontal,
-                  markedDatesMap: state.eventList,
-                  pageSnapping: true,
-                  headerMargin: const EdgeInsets.all(0),
-                  weekDayMargin: const EdgeInsets.all(0),
-                  childAspectRatio: 1,
-                  dayButtonColor: Theme.of(context).cardColor,
-                  selectedDateTime: state.selectedDay,
-                  iconColor: AppColors.primaryColor,
-                  weekDayBackgroundColor: Theme.of(context).cardColor,
-                  selectedDayButtonColor: Theme.of(context).cardColor,
-                  selectedDayBorderColor: AppColors.primaryColor,
-                  daysHaveCircularBorder: true,
-                  daysTextStyle: context.textStyles.normalText,
-                  weekdayTextStyle: context.textStyles.normalText,
-                  weekendTextStyle: context.textStyles.normalText,
-                  selectedDayTextStyle: context.textStyles.boldText,
-                  headerTextStyle: context.textStyles.normalText.copyWith(
-                    fontSize: 20,
-                  ),
-                  todayButtonColor: Colors.transparent,
-                  todayBorderColor:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                  weekDayFormat: WeekdayFormat.short,
-                  onDayPressed: (date, eventList) =>
-                      _controller.selectDay(date),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: _controller.stateNotifier,
-              builder: (context, state, _) {
-                if (state is! CalendarData) {
-                  // Errors are already shown by the calendar box above.
-                  return const SizedBox.shrink();
-                }
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  padding: const EdgeInsets.all(16),
+      child: ValueListenableBuilder(
+        valueListenable: _controller.stateNotifier,
+        builder: (context, state, _) {
+          // The year view has its own summary card instead of a day panel, so
+          // it leaves the panel out and the calendar box takes the whole page.
+          final day = state is CalendarData && state.view == CalendarView.month
+              ? state.selectedDay
+              : null;
+          return Column(
+            children: [
+              Expanded(
+                flex: 5,
+                child: Container(
+                  margin: const EdgeInsets.all(16.0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: _card(context),
-                  child: _DayPanel(
-                    key: ValueKey(state.selectedDay),
-                    day: state.selectedDay,
+                  child: switch (state) {
+                    CalendarError e => ErrorView(
+                        message: e.message, onRetry: _controller.reload),
+                    // A short window (small phone, landscape) scrolls instead
+                    // of overflowing; a tall one just shows it all at once.
+                    CalendarData d => SingleChildScrollView(
+                        child: _CalendarBox(state: d, controller: _controller),
+                      ),
+                    _ => const Center(child: CircularProgressIndicator()),
+                  },
+                ),
+              ),
+              if (day != null)
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: _card(context),
+                    child: _DayPanel(key: ValueKey(day), day: day),
                   ),
-                );
-              },
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Month/Year toggle, the month header and grid or the year header and
+/// heatmap, plus the legend. Presentation over [CalendarData] and the
+/// controller callbacks that change it.
+class _CalendarBox extends StatelessWidget {
+  final CalendarData state;
+  final CalendarController controller;
+
+  const _CalendarBox({required this.state, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: SegmentedButton<CalendarView>(
+            segments: const [
+              ButtonSegment(value: CalendarView.month, label: Text('Month')),
+              ButtonSegment(value: CalendarView.year, label: Text('Year')),
+            ],
+            selected: {state.view},
+            onSelectionChanged: (s) => controller.setView(s.first),
+          ),
+        ),
+        if (state.view == CalendarView.month) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                key: const ValueKey('calendar-prev-month'),
+                icon: const Icon(Icons.chevron_left),
+                onPressed: controller.previousMonth,
+              ),
+              Text(
+                formatMonthYear(state.month),
+                key: const ValueKey('calendar-month-title'),
+                style: context.textStyles.normalText.copyWith(fontSize: 20),
+              ),
+              IconButton(
+                key: const ValueKey('calendar-next-month'),
+                icon: const Icon(Icons.chevron_right),
+                onPressed: controller.nextMonth,
+              ),
+            ],
+          ),
+          MonthGrid(
+            month: state.month,
+            quality: state.qualityByDay,
+            today: state.today,
+            selected: state.selectedDay,
+            onSelect: controller.selectDay,
+          ),
+        ] else ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                key: const ValueKey('calendar-prev-year'),
+                icon: const Icon(Icons.chevron_left),
+                onPressed: controller.previousYear,
+              ),
+              Text(
+                '${state.year}',
+                style: context.textStyles.normalText.copyWith(fontSize: 20),
+              ),
+              IconButton(
+                key: const ValueKey('calendar-next-year'),
+                icon: const Icon(Icons.chevron_right),
+                onPressed: controller.nextYear,
+              ),
+            ],
+          ),
+          YearHeatmap(
+            year: state.year,
+            quality: state.qualityByDay,
+            today: state.today,
+            onSelect: controller.openMonthFor,
+          ),
+        ],
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: QualityLegend(),
+        ),
+        if (state.view == CalendarView.year) _summary(context),
+      ],
+    );
+  }
+
+  Widget _summary(BuildContext context) {
+    final threshold = context.read<SettingsStore>().threshold;
+    // qualityByDay is the displayed year — up to today on the current one, all
+    // 12 months on a past one. Streaks are all-time, so they only say
+    // something about the year we are living in.
+    final engine = state.year == state.today.year
+        ? ConsistencyEngine(
+            data: context.read<AppStore>().data,
+            threshold: threshold,
+            today: state.today,
+          )
+        : null;
+    final recorded = state.qualityByDay.values.whereType<double>();
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          YearSummary(
+            year: state.year,
+            consistent: recorded.where((v) => v >= threshold).length,
+            recorded: recorded.length,
+            best: engine?.globalBest(),
+            current: engine?.globalStreak(),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tap a day to open the month',
+            style: context.textStyles.thinText.copyWith(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
