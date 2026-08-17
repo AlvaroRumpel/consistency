@@ -83,7 +83,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: DayEditor(
         controller: _controller,
         header: _header,
-        onGoalTap: (row) => showGoalSheet(context),
+        onGoalTap: (row) => showGoalSheet(context,
+            goal: context.read<AppStore>().data.goalById(row.goalId)),
         footer: OutlinedButton.icon(
           onPressed: () => showGoalSheet(context),
           icon: const Icon(Icons.add),
