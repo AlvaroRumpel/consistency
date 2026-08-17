@@ -6,11 +6,11 @@ import 'error_view.dart';
 import 'goal_card.dart';
 
 /// Renders a [DayEditorController]: a caller-supplied header, one [GoalCard]
-/// per goal and an optional footer.
+/// per goal and an optional footer, both built from the current [DayView].
 class DayEditor extends StatelessWidget {
   final DayEditorController controller;
   final Widget Function(BuildContext, DayView) header;
-  final Widget? footer;
+  final Widget Function(BuildContext, DayView)? footer;
   final void Function(GoalRow)? onGoalTap;
 
   const DayEditor({
@@ -64,7 +64,7 @@ class DayEditor extends StatelessWidget {
             if (footer != null)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: footer,
+                child: footer!(context, view),
               ),
           ],
         );

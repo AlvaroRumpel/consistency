@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onGoalTap: (row) => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => GoalDetailPage(goalId: row.goalId)),
         ),
-        footer: OutlinedButton.icon(
+        footer: (_, __) => OutlinedButton.icon(
           onPressed: () => showGoalSheet(context),
           icon: const Icon(Icons.add),
           label: const Text('New goal'),

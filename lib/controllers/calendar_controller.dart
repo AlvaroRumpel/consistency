@@ -5,7 +5,6 @@ import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import '../configs/utilities.dart';
 import '../state/app_store.dart';
 import 'base_controller.dart';
-import 'day_editor_controller.dart';
 
 sealed class CalendarState {}
 
@@ -13,28 +12,15 @@ class CalendarLoading extends CalendarState {}
 
 class CalendarData extends CalendarState {
   final EventList<Event> eventList;
-  final DateGoalsView? selectedDaysGoals;
   final DateTime selectedDay;
 
-  CalendarData({
-    required this.eventList,
-    required this.selectedDaysGoals,
-    required this.selectedDay,
-  });
+  CalendarData({required this.eventList, required this.selectedDay});
 }
 
 class CalendarError extends CalendarState {
   final String message;
 
   CalendarError({required this.message});
-}
-
-/// What the calendar panel shows for one day.
-class DateGoalsView {
-  final DateTime date;
-  final List<GoalRow> goals;
-
-  const DateGoalsView({required this.date, required this.goals});
 }
 
 class CalendarController extends BaseController<CalendarState> {
@@ -89,44 +75,14 @@ class CalendarController extends BaseController<CalendarState> {
     final old = state;
     final selectedDay = old is CalendarData ? old.selectedDay : DateTime.now();
 
-    emit(
-      CalendarData(
-        eventList: eventList,
-        selectedDaysGoals: _goalsOn(selectedDay),
-        selectedDay: selectedDay,
-      ),
-    );
-  }
-
-  DateGoalsView? _goalsOn(DateTime day) {
-    final entry = store.data.entryOn(day);
-    if (entry == null) return null;
-    return DateGoalsView(
-      date: entry.date,
-      goals: [
-        for (final g in store.data.activeGoalsOn(entry.date))
-          GoalRow(
-            goalId: g.id,
-            name: g.name,
-            type: g.type,
-            value: entry.values[g.id] ?? 0,
-            streak: 0,
-          ),
-      ],
-    );
+    emit(CalendarData(eventList: eventList, selectedDay: selectedDay));
   }
 
   void selectDay(DateTime date) {
     final current = state;
     if (current is! CalendarData) return;
 
-    emit(
-      CalendarData(
-        eventList: current.eventList,
-        selectedDaysGoals: _goalsOn(date),
-        selectedDay: date,
-      ),
-    );
+    emit(CalendarData(eventList: current.eventList, selectedDay: date));
   }
 
   @override
