@@ -5,6 +5,7 @@ import 'package:consistency/data/settings_repository.dart';
 import 'package:consistency/main.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/date_key.dart';
+import 'package:consistency/notifications/fake_reminder_scheduler.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/state/settings_store.dart';
 import 'package:flutter/material.dart';
@@ -36,9 +37,14 @@ Future<ConsistencyApp> buildApp({
   Map<String, Object> prefs = const {},
   AppData? data,
   bool failSaves = false,
+  FakeReminderScheduler? scheduler,
 }) async {
   final (settings, store) = await _stores(prefs, data, failSaves);
-  return ConsistencyApp(settings: settings, store: store);
+  return ConsistencyApp(
+    settings: settings,
+    store: store,
+    scheduler: scheduler ?? FakeReminderScheduler(),
+  );
 }
 
 /// One page under the same providers and theme as [buildApp].

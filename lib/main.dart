@@ -8,6 +8,8 @@ import 'configs/theme.dart';
 import 'data/file_goals_repository.dart';
 import 'data/legacy_migration.dart';
 import 'data/settings_repository.dart';
+import 'notifications/reminder_scheduler.dart';
+import 'notifications/reminder_service.dart';
 import 'pages/skeleton_page.dart';
 import 'pages/splash_page.dart';
 import 'state/app_store.dart';
@@ -31,26 +33,53 @@ Future<void> main() async {
     ConsistencyApp(
       settings: SettingsStore(SettingsRepository(prefs)),
       store: store,
+      scheduler: LocalReminderScheduler(),
     ),
   );
 }
 
-class ConsistencyApp extends StatelessWidget {
+class ConsistencyApp extends StatefulWidget {
   final SettingsStore settings;
   final AppStore store;
+  final ReminderScheduler? scheduler;
 
   const ConsistencyApp({
     super.key,
     required this.settings,
     required this.store,
+    this.scheduler,
   });
+
+  @override
+  State<ConsistencyApp> createState() => _ConsistencyAppState();
+}
+
+class _ConsistencyAppState extends State<ConsistencyApp> {
+  late final ReminderService _reminders = ReminderService(
+    scheduler: widget.scheduler ?? LocalReminderScheduler(),
+    store: widget.store,
+    settings: widget.settings,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_reminders.start());
+  }
+
+  @override
+  void dispose() {
+    _reminders.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: settings),
-        ChangeNotifierProvider.value(value: store),
+        ChangeNotifierProvider.value(value: widget.settings),
+        ChangeNotifierProvider.value(value: widget.store),
+        Provider<ReminderService>.value(value: _reminders),
       ],
       child: Builder(
         builder: (context) => MaterialApp(
