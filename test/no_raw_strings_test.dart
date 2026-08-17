@@ -5,10 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 // Phase 8 rule: user-facing copy lives in the ARB files, not scattered across
 // lib/ as raw string literals. This is a regex heuristic, not a Dart parser —
 // tuned to this codebase, not a general-purpose linter. It flags anything
-// that reads like a sentence or UI label (Capitalized, with a space, or a
-// known single-word UI term) and gets out of the way of code: paths, log
-// arguments, map keys, widget keys, and a short explicit allowlist for the
-// handful of strings that are legitimately not copy.
+// that reads like a sentence or UI label — Capitalized, > 3 chars, whether
+// it's one word ('Save') or a full phrase — and gets out of the way of code:
+// paths, log arguments, map keys, widget keys, and a short explicit
+// allowlist for the handful of strings that are legitimately not copy.
 
 /// Exact string contents (unquoted, escapes as written in source) that are
 /// allowed to stay as raw literals.
@@ -27,15 +27,27 @@ const _allowed = {
 
   // FormatException messages below are diagnostics only: every call site
   // catches FormatException and shows an already-localized snackbar
-  // (couldNotReadFile / notABackup). Nobody ever reads this text.
+  // (couldNotReadFile / notABackup). Nobody ever reads this text. Re-audit
+  // this list (and the blanket Exception/Error exemption below) whenever a
+  // new thrown message is added — the exemption trusts that pattern to stay
+  // diagnostic-only, which is only true as long as nobody starts surfacing
+  // an exception's .message directly in UI.
   'Backup must be a JSON object',
   'Invalid backup: \$e',
   'Unsupported schemaVersion: \$v',
   'Bad date key: \$s',
 };
 
-/// Single-word strings (no space) that still read as UI copy.
-const _knownUiWords = <String>{};
+/// Capitalized single words (no space) that are legitimately not user copy —
+/// identifiers, type/font names, etc. that happen to start with a capital.
+/// Keep this small; the default for a single capitalized word is "copy".
+const _notCopyWords = {
+  'WorkSans', // font family name (lib/configs/text_styles.dart)
+  'User', // SettingsStore.nicknameOrDefault fallback + settings_page.dart's
+  // pre-load placeholder — pre-existing, out of scope for this task
+  // (notifications + the guard itself); not a font/path/key so it needs
+  // its own entry rather than falling out of another exemption.
+};
 
 final _stringLiteral = RegExp(
   r"'(?:[^'\\]|\\.)*'" r'|"(?:[^"\\]|\\.)*"',
@@ -43,9 +55,9 @@ final _stringLiteral = RegExp(
 
 bool _looksLikeCopy(String content) {
   if (content.length <= 3) return false;
-  final hasSpace = content.contains(' ');
-  if (!hasSpace && !_knownUiWords.contains(content)) return false;
-  return RegExp(r'^[A-Z]').hasMatch(content);
+  if (!RegExp(r'^[A-Z]').hasMatch(content)) return false;
+  if (content.contains(' ')) return true;
+  return !_notCopyWords.contains(content);
 }
 
 bool _isPathLike(String content) =>
@@ -111,5 +123,20 @@ void main() {
           'an ARB key (or add a commented exemption to _allowed if this is '
           'genuinely not copy):\n${offenders.join('\n')}',
     );
+  });
+
+  // Proves the heuristic actually bites on single-word UI copy — this is
+  // the exact gap a previous version of this guard had (an empty known-word
+  // set meant it only ever flagged multi-word phrases).
+  test(
+      '_looksLikeCopy catches single-word UI labels and skips known-safe '
+      'ones', () {
+    for (final copy in ['Save', 'Cancel', 'Retry']) {
+      expect(_looksLikeCopy(copy), isTrue, reason: copy);
+    }
+    for (final notCopy in _notCopyWords) {
+      expect(_looksLikeCopy(notCopy), isFalse, reason: notCopy);
+    }
+    expect(_looksLikeCopy('ok'), isFalse); // too short, lowercase
   });
 }
