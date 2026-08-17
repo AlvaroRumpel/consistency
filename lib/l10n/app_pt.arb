@@ -1,0 +1,18 @@
+{
+  "@@locale": "pt",
+  "appTitle": "Consistency",
+  "greeting": "Olá, {name}",
+  "recordDays": "{count, plural, =1{RECORDE 1 DIA} other{RECORDE {count} DIAS}}",
+  "todaysGoals": "METAS DE HOJE",
+  "goals": "METAS",
+  "newGoal": "Nova meta",
+  "tapToSave": "TOQUE P/ SALVAR",
+  "savedTapToEdit": "SALVO · TOQUE P/ EDITAR",
+  "streakDays": "{count, plural, =1{1 dia} other{{count} dias}}",
+  "navCalendar": "Calendário",
+  "navHome": "Início",
+  "navSettings": "Ajustes",
+  "errorTitle": "Algo deu errado",
+  "tryAgain": "Tentar de novo",
+  "couldNotSave": "Não foi possível salvar. Tentaremos novamente no próximo salvamento."
+}

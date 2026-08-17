@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../configs/app_tokens.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../controllers/day_editor_controller.dart';
 import '../models/goal.dart';
@@ -51,7 +52,7 @@ class GoalCard extends StatelessWidget {
                           Text(row.name, style: context.textStyles.boldText),
                           const SizedBox(height: 2),
                           Text(
-                            '${row.streak} ${row.streak == 1 ? 'day' : 'days'}',
+                            context.l10n.streakDays(row.streak),
                             style: context.textStyles.thinText.copyWith(
                               fontSize: 12,
                               color: scheme.onSurfaceVariant,

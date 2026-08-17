@@ -1,0 +1,33 @@
+{
+  "@@locale": "en",
+  "appTitle": "Consistency",
+  "greeting": "Hi, {name}",
+  "@greeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "recordDays": "{count, plural, =1{RECORD 1 DAY} other{RECORD {count} DAYS}}",
+  "@recordDays": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "todaysGoals": "TODAY'S GOALS",
+  "goals": "GOALS",
+  "newGoal": "New goal",
+  "tapToSave": "TAP TO SAVE",
+  "savedTapToEdit": "SAVED · TAP TO EDIT",
+  "streakDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@streakDays": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "navCalendar": "Calendar",
+  "navHome": "Home",
+  "navSettings": "Settings",
+  "errorTitle": "Something went wrong",
+  "tryAgain": "Try again",
+  "couldNotSave": "Couldn't save. We'll try again on the next save."
+}

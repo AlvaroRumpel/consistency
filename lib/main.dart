@@ -1,14 +1,17 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'configs/l10n_ext.dart';
 import 'configs/theme.dart';
 import 'data/backup_service.dart';
 import 'data/file_goals_repository.dart';
 import 'data/legacy_migration.dart';
 import 'data/settings_repository.dart';
+import 'l10n/app_localizations.dart';
 import 'notifications/reminder_scheduler.dart';
 import 'notifications/reminder_service.dart';
 import 'pages/onboarding_page.dart';
@@ -89,8 +92,15 @@ class _ConsistencyAppState extends State<ConsistencyApp> {
       ],
       child: Builder(
         builder: (context) => MaterialApp(
-          title: 'Consistency',
+          onGenerateTitle: (context) => context.l10n.appTitle,
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: themeLight,
           darkTheme: themeDark,
           themeMode: context.watch<SettingsStore>().themeMode,

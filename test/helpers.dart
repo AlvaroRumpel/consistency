@@ -5,6 +5,7 @@ import 'package:consistency/data/fake_backup_service.dart';
 import 'package:consistency/data/goals_repository.dart';
 import 'package:consistency/data/in_memory_goals_repository.dart';
 import 'package:consistency/data/settings_repository.dart';
+import 'package:consistency/l10n/app_localizations.dart';
 import 'package:consistency/main.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/date_key.dart';
@@ -82,7 +83,12 @@ Future<Widget> wrap(
       Provider<ReminderService>.value(value: reminders),
       Provider<BackupService>.value(value: backups ?? FakeBackupService()),
     ],
-    child: MaterialApp(theme: themeLight, home: child),
+    child: MaterialApp(
+      theme: themeLight,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: child,
+    ),
   );
 }
 

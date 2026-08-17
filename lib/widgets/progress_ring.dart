@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../configs/app_tokens.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 
 /// The day hero: a ring filled to the day's average, tap to save.
@@ -25,7 +26,8 @@ class ProgressRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final subtitle = !saved || dirty ? 'TAP TO SAVE' : 'SAVED · TAP TO EDIT';
+    final subtitle =
+        !saved || dirty ? context.l10n.tapToSave : context.l10n.savedTapToEdit;
     return Semantics(
       label: 'Save today',
       button: true,
