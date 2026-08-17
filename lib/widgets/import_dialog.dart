@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../configs/colors.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../data/backup_codec.dart';
 
@@ -32,7 +33,7 @@ class _ImportDialogState extends State<ImportDialog> {
       backgroundColor: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       title: Text(
-        'Import backup',
+        context.l10n.importBackupTitle,
         style: context.textStyles.normalText.copyWith(fontSize: 24),
         textAlign: TextAlign.center,
       ),
@@ -40,19 +41,19 @@ class _ImportDialogState extends State<ImportDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '${widget.fileName} · ${widget.summary.goals} goals · '
-            '${widget.summary.days} days',
+            '${widget.fileName} · '
+            '${context.l10n.backupSummary(widget.summary.goals, widget.summary.days)}',
             style: context.textStyles.thinText,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           _OptionTile(
-            title: 'Replace everything — deletes your current data',
+            title: context.l10n.replaceOption,
             selected: _choice == ImportChoice.replace,
             onTap: () => setState(() => _choice = ImportChoice.replace),
           ),
           _OptionTile(
-            title: 'Merge — keeps both; the newest version of each day wins',
+            title: context.l10n.mergeOption,
             selected: _choice == ImportChoice.merge,
             onTap: () => setState(() => _choice = ImportChoice.merge),
           ),
@@ -61,11 +62,12 @@ class _ImportDialogState extends State<ImportDialog> {
       actions: [
         OutlinedButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: context.textStyles.normalText),
+          child:
+              Text(context.l10n.cancel, style: context.textStyles.normalText),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, _choice),
-          child: const Text('Import'),
+          child: Text(context.l10n.import),
         ),
       ],
     );

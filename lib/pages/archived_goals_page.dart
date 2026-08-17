@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../configs/date_format.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../engine/consistency_engine.dart';
 import '../models/goal.dart';
@@ -27,7 +28,7 @@ class ArchivedGoalsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: scheme.surface,
-        title: Text('Archived goals',
+        title: Text(context.l10n.archivedGoalsTitle,
             style: context.textStyles.boldText.copyWith(fontSize: 24)),
       ),
       body: archived.isEmpty
@@ -60,8 +61,10 @@ class ArchivedGoalsPage extends StatelessWidget {
                     style: context.textStyles.boldText.copyWith(fontSize: 16)),
                 const SizedBox(height: 4),
                 Text(
-                  'archived on ${formatDayMonthYear(goal.archivedAt!)} · '
-                  'record ${engine.goalBest(goal)} days',
+                  context.l10n.archivedOn(
+                    formatDayMonthYear(goal.archivedAt!),
+                    engine.goalBest(goal),
+                  ),
                   style: context.textStyles.thinText.copyWith(
                     fontSize: 12,
                     color: scheme.onSurfaceVariant,
@@ -73,7 +76,7 @@ class ArchivedGoalsPage extends StatelessWidget {
           const SizedBox(width: 12),
           OutlinedButton(
             onPressed: () => store.restoreGoal(goal.id),
-            child: const Text('Restore'),
+            child: Text(context.l10n.restore),
           ),
         ],
       ),
@@ -91,11 +94,11 @@ class ArchivedGoalsPage extends StatelessWidget {
             Icon(Icons.inventory_2_outlined,
                 size: 48, color: scheme.onSurfaceVariant),
             const SizedBox(height: 12),
-            Text('No archived goals',
+            Text(context.l10n.noArchivedGoals,
                 style: context.textStyles.boldText.copyWith(fontSize: 18)),
             const SizedBox(height: 6),
             Text(
-              'Archived goals leave the Home but keep their history.',
+              context.l10n.noArchivedGoalsCaption,
               textAlign: TextAlign.center,
               style: context.textStyles.thinText.copyWith(
                 fontSize: 13,

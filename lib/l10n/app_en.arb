@@ -29,5 +29,97 @@
   "navSettings": "Settings",
   "errorTitle": "Something went wrong",
   "tryAgain": "Try again",
-  "couldNotSave": "Couldn't save. We'll try again on the next save."
+  "couldNotSave": "Couldn't save. We'll try again on the next save.",
+
+  "hello": "Hello, ",
+  "changeNickname": "Change your nickname, {nickname}",
+  "@changeNickname": {
+    "placeholders": {
+      "nickname": {"type": "String"}
+    }
+  },
+  "nicknameLabel": "Nickname",
+  "valueCannotBeEmpty": "Value cannot be empty",
+  "updateNickname": "Update nickname",
+  "archivedGoals": "{count, plural, =1{Archived goals (1)} other{Archived goals ({count})}}",
+  "@archivedGoals": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "aboutTheApp": "About the app",
+  "aboutBody": "Consistency is a simple app, it consists of marking, saving and numbering the days that you have completed your personal daily goals, I hope you enjoy and understand the purpose of the app, any questions you can forward to support.",
+  "madeWithLove": "Made with ♥ by Álvaro Rumpel",
+  "exportBackup": "Export backup",
+  "importBackup": "Import backup",
+  "deleteAllData": "Delete all data",
+  "sendOpinion": "Send your opinion",
+  "areYouSure": "Are you sure?",
+  "dataWillBeLost": "All of your data will be lost!\nAre you sure?",
+  "yesImSure": "Yes! I'm Sure",
+  "noooo": "Noooo!",
+  "undoDeletion": "Click here to undo the deletion",
+  "backupReady": "Backup ready to share.",
+  "couldNotExport": "Couldn't export the backup.",
+  "couldNotReadFile": "Couldn't read that file.",
+  "notABackup": "That file isn't a Consistency backup.",
+  "backupImported": "Backup imported.",
+  "backupImportedButSaveFailed": "Backup imported, but saving failed.",
+  "dailyTarget": "Daily target: {percent}%",
+  "@dailyTarget": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "thresholdCaption": "A day counts when the average of your goals reaches this. Changing it recalculates your history.",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "reminder": "REMINDER",
+  "dailyReminder": "Daily reminder",
+  "time": "Time",
+  "reminderCaption": "We only nudge you if the day isn't saved yet.",
+  "notificationsBlocked": "Notifications are blocked in system settings.",
+
+  "importBackupTitle": "Import backup",
+  "backupSummary": "{goals, plural, =1{1 goal} other{{goals} goals}} · {days, plural, =1{1 day} other{{days} days}}",
+  "@backupSummary": {
+    "placeholders": {
+      "goals": {"type": "int"},
+      "days": {"type": "int"}
+    }
+  },
+  "replaceOption": "Replace everything — deletes your current data",
+  "mergeOption": "Merge — keeps both; the newest version of each day wins",
+  "cancel": "Cancel",
+  "import": "Import",
+
+  "archivedGoalsTitle": "Archived goals",
+  "restore": "Restore",
+  "archivedOn": "archived on {date} · record {days, plural, =1{1 day} other{{days} days}}",
+  "@archivedOn": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "days": {"type": "int"}
+    }
+  },
+  "noArchivedGoals": "No archived goals",
+  "noArchivedGoalsCaption": "Archived goals leave the Home but keep their history.",
+
+  "newGoalTitle": "New goal",
+  "editGoalTitle": "Edit goal",
+  "name": "NAME",
+  "nameRequired": "Name is required",
+  "nameTooLong": "Keep it under 50 characters",
+  "type": "TYPE",
+  "typeCheck": "Done / not done",
+  "typePercent": "Percent 0–100",
+  "typeCheckCaption": "Marked done or not done each day.",
+  "typePercentCaption": "Track progress from 0 to 100 percent.",
+  "addGoal": "Add goal",
+  "saveChanges": "Save changes",
+  "archiveGoal": "Archive goal",
+  "archiveConfirmTitle": "Archive this goal?",
+  "archiveConfirmBody": "It will no longer appear in your daily list.",
+  "archive": "Archive"
 }

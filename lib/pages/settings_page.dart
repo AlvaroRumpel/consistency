@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../configs/colors.dart';
+import '../configs/l10n_ext.dart';
 import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
 import '../controllers/settings_controller.dart';
@@ -58,7 +59,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Hello, ',
+                    context.l10n.hello,
                     style: context.textStyles.titleText,
                   ),
                   Flexible(
@@ -120,8 +121,8 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                           _controller.saveNickname(nickname);
                         },
                         top: true,
-                        title:
-                            'Change your nickname, ${value is SettingData ? value.nickname : 'User'}',
+                        title: context.l10n.changeNickname(
+                            value is SettingData ? value.nickname : 'User'),
                       );
                     }),
                 ListTileCustom(
@@ -129,24 +130,28 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                     MaterialPageRoute(
                         builder: (_) => const ArchivedGoalsPage()),
                   ),
-                  title: 'Archived goals '
-                      '(${context.watch<AppStore>().data.goals.where((g) => g.isArchived).length})',
+                  title: context.l10n.archivedGoals(context
+                      .watch<AppStore>()
+                      .data
+                      .goals
+                      .where((g) => g.isArchived)
+                      .length),
                 ),
                 ListTileCustom(
                   onTap: () => _aboutTheAppDialog(context),
-                  title: 'About the app',
+                  title: context.l10n.aboutTheApp,
                 ),
                 ListTileCustom(
                   onTap: () => _exportBackup(context),
-                  title: 'Export backup',
+                  title: context.l10n.exportBackup,
                 ),
                 ListTileCustom(
                   onTap: () => _importBackup(context),
-                  title: 'Import backup',
+                  title: context.l10n.importBackup,
                 ),
                 ListTileCustom(
                   onTap: () => _confirmDialog(context),
-                  title: 'Delete all data',
+                  title: context.l10n.deleteAllData,
                 ),
                 ListTileCustom(
                   onTap: () {
@@ -162,28 +167,28 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                       ),
                     );
                   },
-                  title: 'Send your opinion',
+                  title: context.l10n.sendOpinion,
                 ),
                 const _ThresholdSlider(),
                 const _ReminderSection(),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: SegmentedButton<ThemeMode>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: ThemeMode.system,
-                        label: Text('System'),
-                        icon: Icon(Icons.brightness_auto_outlined),
+                        label: Text(context.l10n.themeSystem),
+                        icon: const Icon(Icons.brightness_auto_outlined),
                       ),
                       ButtonSegment(
                         value: ThemeMode.light,
-                        label: Text('Light'),
-                        icon: Icon(Icons.light_mode_outlined),
+                        label: Text(context.l10n.themeLight),
+                        icon: const Icon(Icons.light_mode_outlined),
                       ),
                       ButtonSegment(
                         value: ThemeMode.dark,
-                        label: Text('Dark'),
-                        icon: Icon(Icons.dark_mode_outlined),
+                        label: Text(context.l10n.themeDark),
+                        icon: const Icon(Icons.dark_mode_outlined),
                       ),
                     ],
                     selected: {context.watch<SettingsStore>().themeMode},
@@ -232,12 +237,12 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   cursorColor: Theme.of(context).textSelectionTheme.cursorColor,
                   decoration: InputDecoration(
                     label: Text(
-                      'Nickname',
+                      context.l10n.nicknameLabel,
                       style: context.textStyles.normalText,
                     ),
                   ),
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Value cannot be empty'
+                      ? context.l10n.valueCannotBeEmpty
                       : null,
                 ),
                 ElevatedButton(
@@ -250,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Update nickname',
+                        context.l10n.updateNickname,
                         style: context.textStyles.normalText
                             .copyWith(color: AppColors.whiteColor),
                       ),
@@ -270,6 +275,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
   }
 
   Future<void> _confirmDialog(BuildContext context) async {
+    final undoMessage = context.l10n.undoDeletion;
     await showDialog(
       context: context,
       builder: (context) {
@@ -283,12 +289,12 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             borderRadius: BorderRadius.circular(30),
           ),
           title: Text(
-            'Are you sure?',
+            context.l10n.areYouSure,
             style: context.textStyles.normalText.copyWith(fontSize: 24),
             textAlign: TextAlign.center,
           ),
           content: Text(
-            'All of your data will be lost!\nAre you sure?',
+            context.l10n.dataWillBeLost,
             style: context.textStyles.normalText,
           ),
           actions: [
@@ -297,7 +303,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 Navigator.pop(context);
                 await _controller.clearAllData();
                 showMessageUndo(
-                  message: 'Click here to undo the deletion',
+                  message: undoMessage,
                   onTap: _controller.undoClearAllData,
                 );
               },
@@ -307,7 +313,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 ),
               ),
               child: Text(
-                "Yes! I'm Sure",
+                context.l10n.yesImSure,
                 style: context.textStyles.normalText
                     .copyWith(color: AppColors.redColor),
               ),
@@ -315,7 +321,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Noooo!',
+                context.l10n.noooo,
                 style: context.textStyles.normalText
                     .copyWith(color: AppColors.whiteColor),
               ),
@@ -337,11 +343,11 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         BackupCodec.encode(store.data),
       );
       if (!context.mounted) return;
-      _snack(context, 'Backup ready to share.');
+      _snack(context, context.l10n.backupReady);
     } catch (e, s) {
       debugPrint('exportBackup failed: $e\n$s');
       if (!context.mounted) return;
-      _snack(context, "Couldn't export the backup.", error: true);
+      _snack(context, context.l10n.couldNotExport, error: true);
     } finally {
       _busy = false;
     }
@@ -367,7 +373,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
       // permission, FormatException on undecodable bytes, and more.
       debugPrint('pickBackup failed: $e\n$s');
       if (!context.mounted) return;
-      _snack(context, "Couldn't read that file.", error: true);
+      _snack(context, context.l10n.couldNotReadFile, error: true);
       return;
     }
     if (result == null || !context.mounted) return;
@@ -379,7 +385,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
       imported = BackupCodec.decode(picked.contents);
     } on FormatException {
       if (!context.mounted) return;
-      _snack(context, "That file isn't a Consistency backup.", error: true);
+      _snack(context, context.l10n.notABackup, error: true);
       return;
     }
 
@@ -400,8 +406,8 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
     _snack(
       context,
       store.saveError == null
-          ? 'Backup imported.'
-          : 'Backup imported, but saving failed.',
+          ? context.l10n.backupImported
+          : context.l10n.backupImportedButSaveFailed,
       error: store.saveError != null,
     );
   }
@@ -425,7 +431,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             borderRadius: BorderRadius.circular(30),
           ),
           title: Text(
-            'About the app',
+            context.l10n.aboutTheApp,
             style: context.textStyles.normalText.copyWith(fontSize: 24),
             textAlign: TextAlign.center,
           ),
@@ -433,7 +439,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Consistency is a simple app, it consists of marking, saving and numbering the days that you have completed your personal daily goals, I hope you enjoy and understand the purpose of the app, any questions you can forward to support.',
+                context.l10n.aboutBody,
                 style: context.textStyles.normalText,
                 textAlign: TextAlign.justify,
               ),
@@ -441,7 +447,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                 height: 16,
               ),
               Text(
-                'Made with ♥ by Álvaro Rumpel',
+                context.l10n.madeWithLove,
                 style: context.textStyles.normalText.copyWith(fontSize: 12),
                 textAlign: TextAlign.center,
               ),
@@ -470,7 +476,7 @@ class _ThresholdSliderState extends State<_ThresholdSlider> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text('Daily target: $t%', style: context.textStyles.normalText),
+        Text(context.l10n.dailyTarget(t), style: context.textStyles.normalText),
         Slider(
           value: _dragging ?? store.threshold.toDouble(),
           min: 0,
@@ -484,7 +490,7 @@ class _ThresholdSliderState extends State<_ThresholdSlider> {
           },
         ),
         Text(
-          'A day counts when the average of your goals reaches this. Changing it recalculates your history.',
+          context.l10n.thresholdCaption,
           style: context.textStyles.thinText.copyWith(fontSize: 12),
           textAlign: TextAlign.end,
         ),
@@ -509,7 +515,8 @@ class _ReminderSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text('REMINDER', style: context.textStyles.boldText),
+          child:
+              Text(context.l10n.reminder, style: context.textStyles.boldText),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -520,7 +527,8 @@ class _ReminderSection extends StatelessWidget {
                   ? _enable(context)
                   : context.read<ReminderService>().disable(),
             ),
-            Text('Daily reminder', style: context.textStyles.normalText),
+            Text(context.l10n.dailyReminder,
+                style: context.textStyles.normalText),
           ],
         ),
         Opacity(
@@ -545,7 +553,8 @@ class _ReminderSection extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Text('Time', style: context.textStyles.normalText),
+                    Text(context.l10n.time,
+                        style: context.textStyles.normalText),
                   ],
                 ),
               ),
@@ -553,7 +562,7 @@ class _ReminderSection extends StatelessWidget {
           ),
         ),
         Text(
-          "We only nudge you if the day isn't saved yet.",
+          context.l10n.reminderCaption,
           style: context.textStyles.thinText.copyWith(fontSize: 12),
           textAlign: TextAlign.end,
         ),
@@ -562,10 +571,11 @@ class _ReminderSection extends StatelessWidget {
   }
 
   Future<void> _enable(BuildContext context) async {
+    final message = context.l10n.notificationsBlocked;
     final ok = await context.read<ReminderService>().enable();
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Notifications are blocked in system settings.'),
+        content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.error,
       ));
     }
