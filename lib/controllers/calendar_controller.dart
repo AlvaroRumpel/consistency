@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 
-import '../configs/local_data.dart';
 import '../configs/utilities.dart';
-import '../models/date_goal_model.dart';
+import '../models/goal_model.dart';
+import '../state/app_store.dart';
 import 'base_controller.dart';
 
 sealed class CalendarState {}
@@ -13,7 +13,7 @@ class CalendarLoading extends CalendarState {}
 
 class CalendarData extends CalendarState {
   final EventList<Event> eventList;
-  final DateGoalModel? selectedDaysGoals;
+  final DateGoalsView? selectedDaysGoals;
   final DateTime selectedDay;
 
   CalendarData({
@@ -29,66 +29,88 @@ class CalendarError extends CalendarState {
   CalendarError({required this.message});
 }
 
-class CalendarController extends BaseController<CalendarState> {
-  late LocalData _localData;
-  final _userData = <DateGoalModel>[];
+/// What the calendar panel shows for one day.
+class DateGoalsView {
+  final DateTime date;
+  final List<GoalModel> goals;
 
-  CalendarController(super.initialState);
+  const DateGoalsView({required this.date, required this.goals});
+}
+
+class CalendarController extends BaseController<CalendarState> {
+  final AppStore store;
+
+  CalendarController(this.store, super.initialState);
 
   @override
   void onInit() {
-    LocalData.revision.addListener(reload);
+    store.addListener(reload);
     reload();
   }
 
-  void reload() => treatData();
+  void reload() {
+    final error = store.loadError;
+    if (error != null) {
+      emit(CalendarError(message: error.toString()));
+      return;
+    }
+    if (!store.loaded) {
+      emit(CalendarLoading());
+      return;
+    }
 
-  void treatData() {
-    emitGuard(
-      loadingState: CalendarLoading(),
-      newState: (oldState) async {
-        _localData = await LocalData.i;
-        _userData
-          ..clear()
-          ..addAll(await _localData.searchUserData() ?? []);
+    final eventList = EventList<Event>(events: {});
+    for (final entry in store.data.entries) {
+      final active = store.data.activeGoalsOn(entry.date);
+      if (active.isEmpty) continue;
 
-        final eventListTemp = EventList<Event>(events: {});
+      final avgPercent = active
+              .map((goal) => entry.values[goal.id] ?? 0)
+              .reduce((a, b) => a + b) /
+          active.length;
 
-        for (final item in _userData) {
-          if (item.goals.isEmpty) continue;
-
-          final totalPercent = item.goals
-              .map((goal) => goal.percentCompleted)
-              .reduce((a, b) => a + b);
-          final avgPercent = totalPercent / item.goals.length;
-
-          eventListTemp.add(
-            item.date,
-            Event(
-              date: item.date,
-              dot: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  color: Utilities.activeColor(avgPercent),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                height: 2.0,
-                width: 16.0,
-              ),
+      eventList.add(
+        entry.date,
+        Event(
+          date: entry.date,
+          dot: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              color: Utilities.activeColor(avgPercent),
+              borderRadius: BorderRadius.circular(10),
             ),
-          );
-        }
+            height: 2.0,
+            width: 16.0,
+          ),
+        ),
+      );
+    }
 
-        return CalendarData(
-          eventList: eventListTemp,
-          selectedDaysGoals:
-              oldState is CalendarData ? oldState.selectedDaysGoals : null,
-          selectedDay: oldState is CalendarData
-              ? oldState.selectedDaysGoals?.date ?? DateTime.now()
-              : DateTime.now(),
-        );
-      },
-      errorState: (e) => CalendarError(message: e.toString()),
+    final old = state;
+    final selectedDay = old is CalendarData ? old.selectedDay : DateTime.now();
+
+    emit(
+      CalendarData(
+        eventList: eventList,
+        selectedDaysGoals: _goalsOn(selectedDay),
+        selectedDay: selectedDay,
+      ),
+    );
+  }
+
+  DateGoalsView? _goalsOn(DateTime day) {
+    final entry = store.data.entryOn(day);
+    if (entry == null) return null;
+    return DateGoalsView(
+      date: entry.date,
+      goals: [
+        for (final goal in store.data.activeGoalsOn(entry.date))
+          GoalModel(
+            goalId: goal.id,
+            name: goal.name,
+            percentCompleted: entry.values[goal.id] ?? 0,
+          ),
+      ],
     );
   }
 
@@ -99,10 +121,7 @@ class CalendarController extends BaseController<CalendarState> {
     emit(
       CalendarData(
         eventList: current.eventList,
-        selectedDaysGoals: _userData.cast<DateGoalModel?>().firstWhere(
-              (e) => e?.date == date,
-              orElse: () => null,
-            ),
+        selectedDaysGoals: _goalsOn(date),
         selectedDay: date,
       ),
     );
@@ -110,7 +129,7 @@ class CalendarController extends BaseController<CalendarState> {
 
   @override
   void onDispose() {
-    LocalData.revision.removeListener(reload);
+    store.removeListener(reload);
     super.onDispose();
   }
 }

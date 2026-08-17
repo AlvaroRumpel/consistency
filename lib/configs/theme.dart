@@ -2,39 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_tokens.dart';
 import 'colors.dart';
-import 'local_data.dart';
 import 'text_styles.dart';
-
-class ThemeModel extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  ThemeModel() {
-    _load();
-  }
-
-  ThemeMode get themeMode => _themeMode;
-
-  Future<void> _load() async {
-    final localData = await LocalData.i;
-    _themeMode = switch (localData.searchTheme()) {
-      null => ThemeMode.system,
-      true => ThemeMode.dark,
-      false => ThemeMode.light,
-    };
-    notifyListeners();
-  }
-
-  Future<void> setMode(ThemeMode mode) async {
-    _themeMode = mode;
-    notifyListeners();
-    final localData = await LocalData.i;
-    await localData.saveThemeDark(switch (mode) {
-      ThemeMode.system => null,
-      ThemeMode.dark => true,
-      ThemeMode.light => false,
-    });
-  }
-}
 
 ThemeData buildTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;

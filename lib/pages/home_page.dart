@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../configs/utilities.dart';
 import '../controllers/home_controller.dart';
+import '../state/app_store.dart';
+import '../state/settings_store.dart';
 import '../widgets/add_day_button.dart';
 import '../widgets/error_view.dart';
 import '../widgets/goals_list_view.dart';
@@ -21,7 +24,10 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _controller = HomeController();
+    _controller = HomeController(
+      context.read<AppStore>(),
+      context.read<SettingsStore>(),
+    );
   }
 
   @override

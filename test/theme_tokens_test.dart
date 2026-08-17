@@ -1,9 +1,9 @@
 import 'package:consistency/configs/colors.dart';
 import 'package:consistency/configs/theme.dart';
-import 'package:consistency/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -30,18 +30,16 @@ void main() {
 
   group('app smoke test', () {
     testWidgets('builds with no exception in dark mode', (tester) async {
-      SharedPreferences.setMockInitialValues({'themeDark': true});
-
-      await tester.pumpWidget(const ConsistencyApp());
+      await tester.pumpWidget(await buildApp(prefs: {'themeDark': true}));
       await tester.pump();
-      // A few real frames: lets ThemeModel._load and the splash navigation
-      // (both async over LocalData.i) settle without a wall-clock timer.
+      // A few real frames: lets the splash navigation settle without a
+      // wall-clock timer.
       for (var i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 16));
       }
 
       expect(tester.takeException(), isNull);
-      // Non-vacuous check that ThemeModel actually resolved the persisted
+      // Non-vacuous check that SettingsStore actually resolved the persisted
       // theme, not just that the app built. Several Scaffolds are mounted by
       // now (the manager page's tabs), but they all read the same MaterialApp
       // theme, so any of them proves the point.

@@ -1,28 +1,64 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'configs/theme.dart';
+import 'data/file_goals_repository.dart';
+import 'data/legacy_migration.dart';
+import 'data/settings_repository.dart';
 import 'pages/skeleton_page.dart';
 import 'pages/splash_page.dart';
+import 'state/app_store.dart';
+import 'state/settings_store.dart';
 
-void main() {
-  runApp(const ConsistencyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  // If the documents directory is unavailable there is nowhere to store data
+  // at all, so that one is left to crash. The migration is only best-effort:
+  // its own guard covers a malformed blob, this covers the save/remove I/O.
+  final repo = await FileGoalsRepository.open();
+  try {
+    await LegacyMigration.runIfNeeded(prefs, repo);
+  } catch (e, s) {
+    debugPrint('LegacyMigration.runIfNeeded failed: $e\n$s');
+  }
+  final store = AppStore(repo);
+  unawaited(store.load()); // the splash waits on it
+  runApp(
+    ConsistencyApp(
+      settings: SettingsStore(SettingsRepository(prefs)),
+      store: store,
+    ),
+  );
 }
 
 class ConsistencyApp extends StatelessWidget {
-  const ConsistencyApp({super.key});
+  final SettingsStore settings;
+  final AppStore store;
+
+  const ConsistencyApp({
+    super.key,
+    required this.settings,
+    required this.store,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeModel(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: settings),
+        ChangeNotifierProvider.value(value: store),
+      ],
       child: Builder(
         builder: (context) => MaterialApp(
           title: 'Consistency',
           debugShowCheckedModeBanner: false,
           theme: themeLight,
           darkTheme: themeDark,
-          themeMode: context.watch<ThemeModel>().themeMode,
+          themeMode: context.watch<SettingsStore>().themeMode,
           initialRoute: '/',
           routes: {
             '/': (context) => const SplashPage(),

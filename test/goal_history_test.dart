@@ -1,150 +1,164 @@
-import 'dart:convert';
-
-import 'package:consistency/configs/local_data.dart';
 import 'package:consistency/controllers/home_controller.dart';
-import 'package:consistency/models/date_goal_model.dart';
-import 'package:consistency/models/goal_model.dart';
+import 'package:consistency/data/in_memory_goals_repository.dart';
+import 'package:consistency/data/settings_repository.dart';
+import 'package:consistency/models/app_data.dart';
+import 'package:consistency/models/date_key.dart';
+import 'package:consistency/models/day_entry.dart';
+import 'package:consistency/models/goal.dart';
+import 'package:consistency/state/app_store.dart';
+import 'package:consistency/state/settings_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// One saved day, in the on-disk shape: an array of JSON strings.
-String seededUserData() {
-  final yesterday = DateGoalModel(
-    date: DateTime(2026, 1, 1),
-    goals: [GoalModel(name: 'Run', percentCompleted: 50)],
-  );
-  return '[${jsonEncode(yesterday.toJson())}]';
-}
-
-/// Spins the microtask queue until the controller's async onInit has settled.
-Future<void> settle(HomeController controller) async {
-  for (var i = 0; i < 20; i++) {
-    await Future<void>.delayed(Duration.zero);
-    if (controller.state is HomeData) return;
-  }
-  fail('controller never reached HomeData; state was ${controller.state}');
-}
-
-/// Like [settle], but waits specifically for the empty state: after a wipe,
-/// state briefly passes through HomeLoading and lands on HomeDataEmpty, which
-/// is itself a HomeData — so `settle`'s `is HomeData` check would return
-/// immediately on the pre-wipe state instead of waiting for the reload.
-Future<void> settleEmpty(HomeController controller) async {
-  for (var i = 0; i < 20; i++) {
-    await Future<void>.delayed(Duration.zero);
-    if (controller.state is HomeDataEmpty) return;
-  }
-  fail('controller never reached HomeDataEmpty; state was ${controller.state}');
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  final today = dateOnly(DateTime.now());
+  final yesterday = DateTime(today.year, today.month, today.day - 1);
 
-  setUp(() {
-    SharedPreferences.setMockInitialValues({
-      'nickname': 'Alvaro',
-      'userData': seededUserData(),
-    });
-  });
+  late InMemoryGoalsRepository repo;
+  late SettingsStore settings;
 
-  test('editing today does not rewrite the saved day', () async {
-    final controller = HomeController();
-    await settle(controller);
+  Goal goal(String id, String name) => Goal(
+        id: id,
+        name: name,
+        type: GoalType.percent,
+        createdAt: yesterday,
+        archivedAt: null,
+        updatedAt: DateTime.utc(2026),
+      );
 
-    final live = (controller.state as HomeData).goals;
-    expect(live.single.name, 'Run');
+  Future<(AppStore, HomeController)> boot({
+    List<DayEntry> entries = const [],
+    List<Goal>? goals,
+  }) async {
+    SharedPreferences.setMockInitialValues({'nickname': 'Alvaro'});
+    final prefs = await SharedPreferences.getInstance();
+    repo = InMemoryGoalsRepository(
+      AppData(goals: goals ?? [goal('run', 'Run')], entries: entries),
+    );
+    final store = AppStore(repo);
+    await store.load();
+    settings = SettingsStore(SettingsRepository(prefs));
+    final controller = HomeController(store, settings);
+    return (store, controller);
+  }
 
-    // The user drags the slider and renames the goal.
-    live.single.percentCompleted = 100;
-    live.single.name = 'Sprint';
+  test('editing today does not rewrite yesterday', () async {
+    final (store, controller) = await boot(
+      entries: [
+        DayEntry(
+          date: yesterday,
+          values: {'run': 50},
+          updatedAt: DateTime.utc(2026),
+        ),
+      ],
+    );
 
-    final saved = controller.userData.single.goals.single;
-    expect(saved.percentCompleted, 50, reason: 'history was rewritten');
-    expect(saved.name, 'Run', reason: 'history was rewritten');
-
-    controller.onDispose();
-  });
-
-  test('a double tap only marks today once', () async {
-    final controller = HomeController();
-    await settle(controller);
-
-    // Two taps landing before the first save resolves.
-    final first = controller.saveData();
-    final second = controller.saveData();
-    await Future.wait([first, second]);
-
-    expect(controller.userData.length, 2, reason: 'today was marked twice');
-
-    controller.onDispose();
-  });
-
-  test('saveData snapshots the entry it appends, not a live reference',
-      () async {
-    // LocalData caches its SharedPreferences instance in a static (see
-    // theme_tokens_test.dart / theme_tokens_light_test.dart for the same
-    // root cause), so setUp()'s setMockInitialValues above only takes effect
-    // for the very first LocalData access in this whole file. Reseed through
-    // LocalData's own setters instead, so this test is correct no matter
-    // what earlier tests in this file already wrote.
-    final seedLocalData = await LocalData.i;
-    await seedLocalData.saveNickname('Alvaro');
-    await seedLocalData.saveUserData([
-      DateGoalModel(
-        date: DateTime(2026, 1, 1),
-        goals: [GoalModel(name: 'Run', percentCompleted: 50)],
-      ),
-    ]);
-
-    final controller = HomeController();
-    await settle(controller);
+    final live = (controller.state as HomeData).goals.single;
+    expect(live.percentCompleted, 0); // today has no entry yet
+    live.percentCompleted = 100;
+    controller.goalsControllers.single.text = 'Sprint';
 
     await controller.saveData();
 
-    // The user drags the slider and renames the goal after saving today.
-    final live = (controller.state as HomeData).goals;
-    live.single.percentCompleted = 100;
-    live.single.name = 'Sprint';
-
-    final savedToday = controller.userData.last.goals.single;
-    expect(savedToday.percentCompleted, 50,
-        reason: "today's entry was rewritten");
-    expect(savedToday.name, 'Run', reason: "today's entry was rewritten");
+    expect(store.data.entryOn(yesterday)!.values['run'], 50);
+    expect(store.data.entryOn(today)!.values['run'], 100);
+    expect(store.data.goalById('run')!.name, 'Sprint');
+    expect((controller.state as HomeData).hasMarkedToday, isTrue);
 
     controller.onDispose();
   });
 
-  test('a data wipe reloads Home and drops stale goal controllers', () async {
-    final controller = HomeController();
-    await settle(controller);
+  test('double tap saves once', () async {
+    final (store, controller) = await boot();
 
-    expect(controller.goalsControllers.single.text, 'Run');
+    (controller.state as HomeData).goals.single.percentCompleted = 25;
+    await Future.wait([controller.saveData(), controller.saveData()]);
 
-    // Settings' "Delete all data", from another live page.
-    final localData = await LocalData.i;
-    await localData.clearAllData();
-    await settleEmpty(controller);
+    expect(store.data.entries.length, 1);
+    // saveDay upserts, so the entry count alone would pass without the guard.
+    expect(repo.saves, 1, reason: 'today was written twice');
+
+    controller.onDispose();
+  });
+
+  test('every typed rename survives the save, not just the first', () async {
+    // Each rename notifies the store, which rebuilds goalsControllers; reading
+    // a field after that point would read the store's name back, not the
+    // user's.
+    final (store, controller) = await boot(
+      goals: [goal('run', 'Run'), goal('read', 'Read')],
+    );
+
+    controller.goalsControllers[0].text = 'Sprint';
+    controller.goalsControllers[1].text = 'Study';
+    await controller.saveData();
+
+    expect(store.data.goalById('run')!.name, 'Sprint');
+    expect(store.data.goalById('read')!.name, 'Study');
+
+    controller.onDispose();
+  });
+
+  test('adding a goal keeps the values already dragged today', () async {
+    final (store, controller) = await boot();
+
+    (controller.state as HomeData).goals.single.percentCompleted = 75;
+    await store.addGoal('B', GoalType.check, createdAt: today);
+
+    final goals = (controller.state as HomeData).goals;
+    expect(goals.length, 2);
+    expect(goals.first.percentCompleted, 75, reason: 'slider was zeroed');
+    expect(goals.last.percentCompleted, 0);
+
+    controller.onDispose();
+  });
+
+  test('a settings change does not reset the text fields', () async {
+    final (_, controller) = await boot();
+
+    final before = controller.goalsControllers.first;
+    before.text = 'Sprint';
+    await settings.setNickname('X');
+
+    expect(identical(before, controller.goalsControllers.first), isTrue,
+        reason: 'typing was thrown away by an unrelated reload');
+    expect((controller.state as HomeData).nickname, 'X');
+
+    controller.onDispose();
+  });
+
+  test('archive removes from today but keeps history', () async {
+    final (store, controller) = await boot(
+      entries: [
+        DayEntry(
+          date: yesterday,
+          values: {'run': 50},
+          updatedAt: DateTime.utc(2026),
+        ),
+      ],
+    );
+
+    await controller.removeGoal(0);
 
     expect(controller.state, isA<HomeDataEmpty>());
-    expect(controller.goalsControllers, isEmpty,
-        reason: 'orphan controller survived the reload');
-
-    // The user-visible symptom: a new goal must not inherit the old name.
-    controller.addNewGoal();
-    final goals = (controller.state as HomeData).goals;
-    expect(goals.single.name, 'New Goal');
-    expect(goals.any((goal) => goal.name == 'Run'), isFalse);
+    expect(store.data.entryOn(yesterday)!.values['run'], 50);
+    expect(store.data.goalById('run')!.isArchived, isTrue);
 
     controller.onDispose();
   });
 
-  test('copyWith produces an independent instance', () {
-    final original = GoalModel(name: 'Read', percentCompleted: 25);
-    final copy = original.copyWith();
+  test('clearAll then undo restores the goal list', () async {
+    final (store, controller) = await boot();
 
-    copy.percentCompleted = 75;
+    await store.clearAll();
+    expect(controller.state, isA<HomeDataEmpty>());
+    expect(controller.goalsControllers, isEmpty,
+        reason: 'orphan controller survived the wipe');
 
-    expect(original.percentCompleted, 25);
-    expect(identical(original, copy), isFalse);
+    await store.undoClear();
+    expect((controller.state as HomeData).goals.single.name, 'Run');
+
+    controller.onDispose();
   });
 }

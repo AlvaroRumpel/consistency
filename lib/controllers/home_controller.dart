@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../configs/local_data.dart';
-import '../models/date_goal_model.dart';
+import '../models/date_key.dart';
+import '../models/goal.dart';
 import '../models/goal_model.dart';
+import '../state/app_store.dart';
+import '../state/settings_store.dart';
 import 'base_controller.dart';
 
 sealed class HomeState {}
@@ -35,12 +38,16 @@ class HomeDataEmpty extends HomeData {
 }
 
 class HomeController extends BaseController<HomeState> {
-  late LocalData localData;
+  final AppStore store;
+  final SettingsStore settings;
   List<TextEditingController> goalsControllers = <TextEditingController>[];
-  final userData = <DateGoalModel>[];
+  List<String> _controllerIds = <String>[];
   bool _saving = false;
+  final _archiving = <String>{};
 
-  HomeController() : super(HomeInitial());
+  HomeController(this.store, this.settings) : super(HomeInitial());
+
+  static DateTime get _today => dateOnly(DateTime.now());
 
   /// Average completion of the goals currently on screen. Drives the splash
   /// colour of the mark-today button.
@@ -53,61 +60,70 @@ class HomeController extends BaseController<HomeState> {
         current.goals.length;
   }
 
-  static DateTime get _today {
-    final now = DateTime.now();
-    return DateTime(now.year, now.month, now.day);
-  }
-
   @override
   void onInit() {
-    LocalData.revision.addListener(reload);
+    store.addListener(reload);
+    settings.addListener(reload);
     reload();
   }
 
-  void reload() => emitGuard(
-        loadingState: HomeLoading(),
-        newState: (oldState) async {
-          localData = await LocalData.i;
-          return recoveryData(oldState);
-        },
-        errorState: (e) => HomeError(message: e.toString()),
-      );
-
-  Future<HomeState> recoveryData([HomeState? oldState]) async {
-    final nickname = await localData.searchNickname() ?? 'User';
-    final userGoals = await localData.searchUserData();
-
-    userData
-      ..clear()
-      ..addAll(userGoals ?? []);
-
-    if (userGoals == null || userGoals.isEmpty) {
-      // Drop any controllers left over from a previous load, or saveData would
-      // read a stale one and persist the new goal under the old name.
-      setGoalsControllers(const []);
-      return HomeDataEmpty(nickname: nickname);
+  /// Rebuilds the view models from the store. Any value the user has changed
+  /// but not yet marked (a slider drag) is carried forward by goal id, so an
+  /// archive/add/rename mid-session does not zero the other sliders.
+  void reload() {
+    final error = store.loadError;
+    if (error != null) {
+      emit(HomeError(message: error.toString()));
+      return;
+    }
+    if (!store.loaded) {
+      emit(HomeLoading());
+      return;
     }
 
-    final hasMarkedToday = userGoals.any((item) => item.date == _today);
+    final nickname = settings.nicknameOrDefault;
+    final today = _today;
+    final active = store.data.activeGoalsOn(today);
+    final entry = store.data.entryOn(today);
 
-    // Deep copy: the sliders mutate these objects in place, and userData holds
-    // the persisted history. Sharing instances lets today's edits rewrite
-    // yesterday's record.
-    final goals = userGoals.last.goals.map((goal) => goal.copyWith()).toList();
+    if (active.isEmpty) {
+      // Drop controllers left over from a previous load, or a rename would
+      // read a stale one and persist a new goal under the old name.
+      setGoalsControllers(const []);
+      emit(HomeDataEmpty(nickname: nickname, hasMarkedToday: entry != null));
+      return;
+    }
+
+    final previous = state;
+    final inProgress = {
+      if (previous is HomeData)
+        for (final goal in previous.goals) goal.goalId: goal.percentCompleted,
+    };
+
+    final goals = [
+      for (final goal in active)
+        GoalModel(
+          goalId: goal.id,
+          name: goal.name,
+          percentCompleted: entry?.values[goal.id] ?? inProgress[goal.id] ?? 0,
+        ),
+    ];
 
     setGoalsControllers(goals);
-
-    return goals.isNotEmpty
-        ? HomeData(
-            nickname: nickname,
-            goals: goals,
-            hasMarkedToday: hasMarkedToday,
-          )
-        : HomeDataEmpty(nickname: nickname);
+    emit(
+      HomeData(
+        nickname: nickname,
+        goals: goals,
+        hasMarkedToday: entry != null,
+      ),
+    );
   }
 
-  void setGoalsControllers(List<GoalModel>? goals) {
-    if (goals == null) return;
+  /// Rebuilds the text fields only when the goal list itself changed: a
+  /// nickname or theme change must not throw away what the user is typing.
+  void setGoalsControllers(List<GoalModel> goals) {
+    final ids = [for (final goal in goals) goal.goalId];
+    if (listEquals(ids, _controllerIds)) return;
 
     for (final controller in goalsControllers) {
       controller.dispose();
@@ -115,12 +131,27 @@ class HomeController extends BaseController<HomeState> {
     goalsControllers = [
       for (final goal in goals) TextEditingController(text: goal.name),
     ];
+    _controllerIds = ids;
+  }
+
+  /// Persists names typed inline. Every field is read up front: each rename
+  /// notifies the store, and the resulting reload() rebuilds goalsControllers.
+  Future<void> _commitTypedNames(List<GoalModel> goals) async {
+    final typed = [
+      for (var i = 0; i < goals.length && i < goalsControllers.length; i++)
+        goalsControllers[i].text.trim(),
+    ];
+    for (var i = 0; i < typed.length; i++) {
+      if (typed[i].isNotEmpty && typed[i] != goals[i].name) {
+        await store.renameGoal(goals[i].goalId, typed[i]);
+      }
+    }
   }
 
   Future<void> saveData() async {
     final current = state;
-    // _saving holds across the await; hasMarkedToday is only emitted after it,
-    // so on its own it lets a double tap append today twice.
+    // _saving holds across the awaits; hasMarkedToday is only emitted after
+    // them, so on its own it lets a double tap write today twice.
     if (_saving ||
         current is! HomeData ||
         current.hasMarkedToday ||
@@ -130,85 +161,49 @@ class HomeController extends BaseController<HomeState> {
     _saving = true;
 
     try {
-      // Snapshot, so later slider drags and renames cannot reach the history.
-      final snapshot = [
-        for (var i = 0; i < current.goals.length; i++)
-          current.goals[i].copyWith(name: goalsControllers[i].text),
-      ];
-
-      for (var i = 0; i < current.goals.length; i++) {
-        current.goals[i].name = goalsControllers[i].text;
-      }
-
-      userData.add(DateGoalModel(date: _today, goals: snapshot));
-      await localData.saveUserData(userData);
-
-      emit(
-        HomeData(
-          nickname: current.nickname,
-          goals: current.goals,
-          hasMarkedToday: true,
-        ),
-      );
+      // Names typed inline are committed together with the day.
+      await _commitTypedNames(current.goals);
+      await store.saveDay(_today, {
+        for (final goal in current.goals) goal.goalId: goal.percentCompleted,
+      });
+      // The store notifies, so reload() emits HomeData(hasMarkedToday: true).
     } finally {
       _saving = false;
     }
   }
 
-  void addNewGoal() {
+  Future<void> addNewGoal() async {
     final current = state;
     if (current is! HomeData) return;
 
-    // Read the live text back before rebuilding, so in-progress typing on the
-    // other rows survives.
-    for (var i = 0; i < current.goals.length; i++) {
-      current.goals[i].name = goalsControllers[i].text;
-    }
-
-    final goals = [
-      ...current.goals,
-      GoalModel(name: 'New Goal', percentCompleted: 0),
-    ];
-
-    goalsControllers.add(TextEditingController(text: 'New Goal'));
-
-    emit(
-      HomeData(
-        nickname: current.nickname,
-        goals: goals,
-        hasMarkedToday: current.hasMarkedToday,
-      ),
-    );
+    // Preserve in-progress renames before the store-triggered rebuild.
+    await _commitTypedNames(current.goals);
+    await store.addGoal('New Goal', GoalType.percent, createdAt: _today);
   }
 
-  void removeGoal(int index) {
+  Future<void> removeGoal(int index) async {
     final current = state;
     if (current is! HomeData || current.hasMarkedToday) return;
-
-    final goals = [...current.goals]..removeAt(index);
-    goalsControllers.removeAt(index).dispose();
-
-    emit(
-      goals.isNotEmpty
-          ? HomeData(
-              nickname: current.nickname,
-              goals: goals,
-              hasMarkedToday: current.hasMarkedToday,
-            )
-          : HomeDataEmpty(
-              nickname: current.nickname,
-              hasMarkedToday: current.hasMarkedToday,
-            ),
-    );
+    if (index < 0 || index >= current.goals.length) return;
+    final id = current.goals[index].goalId;
+    if (_archiving.contains(id)) return;
+    _archiving.add(id);
+    try {
+      await store.archiveGoal(id, on: _today);
+    } finally {
+      _archiving.remove(id);
+    }
   }
 
   @override
   void onDispose() {
-    LocalData.revision.removeListener(reload);
+    store.removeListener(reload);
+    settings.removeListener(reload);
     for (final controller in goalsControllers) {
       controller.dispose();
     }
     goalsControllers = [];
+    _controllerIds = [];
     super.onDispose();
   }
 }

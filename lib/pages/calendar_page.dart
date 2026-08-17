@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
+import 'package:provider/provider.dart';
 
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
+import '../state/app_store.dart';
 import '../widgets/error_view.dart';
 import '../widgets/goals_done_list_view.dart';
 
@@ -20,7 +22,8 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    _controller = CalendarController(CalendarLoading());
+    _controller =
+        CalendarController(context.read<AppStore>(), CalendarLoading());
   }
 
   @override
