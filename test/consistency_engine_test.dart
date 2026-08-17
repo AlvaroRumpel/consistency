@@ -243,6 +243,16 @@ void main() {
       ]);
       expect(e3.goalStreak(g), 2);
     });
+    test('archive date in the future is clamped to yesterday', () {
+      final g = goal('g', GoalType.check, archived: 12); // today = 10
+      final e4 = eng([
+        g
+      ], [
+        entry(8, {'g': 100}),
+        entry(9, {'g': 100})
+      ]);
+      expect(e4.goalStreak(g), 2);
+    });
   });
 
   group('heatmap', () {
@@ -254,11 +264,12 @@ void main() {
         entry(3, {'a': 100})
       ]);
       final m = e.heatmap(2026);
-      expect(m.length,
-          DateTime(2026, 8, 10).difference(DateTime(2026, 1, 1)).inDays + 1);
+      expect(m.length, 222); // Jan 1 .. Aug 10 2026 inclusive
       expect(m[DateTime(2026, 8, 3)], 100);
       expect(m[DateTime(2026, 8, 4)], isNull);
       expect(m.containsKey(DateTime(2026, 8, 11)), isFalse);
+      expect(e.heatmap(2025).length, 365);
+      expect(e.heatmap(2027), isEmpty);
     });
   });
 }

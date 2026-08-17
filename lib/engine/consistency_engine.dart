@@ -100,12 +100,16 @@ class ConsistencyEngine {
       isGoalDone(g, _byDay[d]?.values[g.id] ?? 0);
 
   int goalStreak(Goal g) {
-    // For an archived goal the streak freezes on its last active day.
+    // For an archived goal the streak freezes on its last active day, but
+    // never looks past yesterday (an archive date in the future doesn't
+    // pull the window forward).
+    final yesterday = DateTime(today.year, today.month, today.day - 1);
     final end = g.archivedAt == null
-        ? DateTime(today.year, today.month, today.day - 1)
+        ? yesterday
         : DateTime(
             g.archivedAt!.year, g.archivedAt!.month, g.archivedAt!.day - 1);
-    final back = _runBack(end, g.isActiveOn, (d) => _goalDoneOn(g, d));
+    final clampedEnd = end.isAfter(yesterday) ? yesterday : end;
+    final back = _runBack(clampedEnd, g.isActiveOn, (d) => _goalDoneOn(g, d));
     final todayCounts = g.isActiveOn(today) && _goalDoneOn(g, today);
     return back + (todayCounts ? 1 : 0);
   }
