@@ -11,8 +11,10 @@ void main() {
       ReminderRequest(when: DateTime(2026, 8, 17, 20), title: 't', body: 'b'),
     );
     expect(f.scheduled.single.when, DateTime(2026, 8, 17, 20));
-    await f.cancelAll();
+    await f.cancel();
     expect(f.cancels, 1);
-    expect(f.scheduled, isEmpty); // cancelAll clears the queue
+    expect(f.scheduled, isEmpty); // cancel clears the queue
+    await f.cancelAll();
+    expect(f.cancels, 2);
   });
 }

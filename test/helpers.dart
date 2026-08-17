@@ -6,6 +6,7 @@ import 'package:consistency/main.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/date_key.dart';
 import 'package:consistency/notifications/fake_reminder_scheduler.dart';
+import 'package:consistency/notifications/reminder_service.dart';
 import 'package:consistency/state/app_store.dart';
 import 'package:consistency/state/settings_store.dart';
 import 'package:flutter/material.dart';
@@ -54,10 +55,18 @@ Future<Widget> wrap(
   AppData? data,
 }) async {
   final (settings, store) = await _stores(prefs, data, false);
+  // Not started: pages only read it to enable/disable, and an unstarted
+  // service leaves no listeners or lifecycle observer behind.
+  final reminders = ReminderService(
+    scheduler: FakeReminderScheduler(),
+    store: store,
+    settings: settings,
+  );
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: settings),
       ChangeNotifierProvider.value(value: store),
+      Provider<ReminderService>.value(value: reminders),
     ],
     child: MaterialApp(theme: themeLight, home: child),
   );

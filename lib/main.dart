@@ -41,13 +41,13 @@ Future<void> main() async {
 class ConsistencyApp extends StatefulWidget {
   final SettingsStore settings;
   final AppStore store;
-  final ReminderScheduler? scheduler;
+  final ReminderScheduler scheduler;
 
   const ConsistencyApp({
     super.key,
     required this.settings,
     required this.store,
-    this.scheduler,
+    required this.scheduler,
   });
 
   @override
@@ -56,7 +56,7 @@ class ConsistencyApp extends StatefulWidget {
 
 class _ConsistencyAppState extends State<ConsistencyApp> {
   late final ReminderService _reminders = ReminderService(
-    scheduler: widget.scheduler ?? LocalReminderScheduler(),
+    scheduler: widget.scheduler,
     store: widget.store,
     settings: widget.settings,
   );

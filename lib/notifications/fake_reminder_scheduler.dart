@@ -23,6 +23,12 @@ class FakeReminderScheduler implements ReminderScheduler {
   }
 
   @override
+  Future<void> cancel() async {
+    cancels++;
+    scheduled.clear();
+  }
+
+  @override
   Future<void> cancelAll() async {
     cancels++;
     scheduled.clear();
