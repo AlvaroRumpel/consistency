@@ -35,7 +35,10 @@ Future<(SettingsStore, AppStore)> _stores(
   return (SettingsStore(SettingsRepository(p)), store);
 }
 
-/// The whole app over in-memory storage, already loaded.
+/// The whole app over in-memory storage, already loaded. Onboarding is
+/// treated as already done unless the caller says otherwise, since most
+/// callers exercise Home/Calendar/Settings, not first-run — tests for
+/// onboarding itself pass `prefs: {'onboardingDone': false}` explicitly.
 Future<ConsistencyApp> buildApp({
   Map<String, Object> prefs = const {},
   AppData? data,
@@ -43,7 +46,10 @@ Future<ConsistencyApp> buildApp({
   FakeReminderScheduler? scheduler,
   BackupService? backups,
 }) async {
-  final (settings, store) = await _stores(prefs, data, failSaves);
+  final seededPrefs = prefs.containsKey('onboardingDone')
+      ? prefs
+      : {...prefs, 'onboardingDone': true};
+  final (settings, store) = await _stores(seededPrefs, data, failSaves);
   return ConsistencyApp(
     settings: settings,
     store: store,

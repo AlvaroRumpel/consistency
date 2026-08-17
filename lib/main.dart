@@ -11,6 +11,7 @@ import 'data/legacy_migration.dart';
 import 'data/settings_repository.dart';
 import 'notifications/reminder_scheduler.dart';
 import 'notifications/reminder_service.dart';
+import 'pages/onboarding_page.dart';
 import 'pages/skeleton_page.dart';
 import 'pages/splash_page.dart';
 import 'state/app_store.dart';
@@ -96,6 +97,7 @@ class _ConsistencyAppState extends State<ConsistencyApp> {
           initialRoute: '/',
           routes: {
             '/': (context) => const SplashPage(),
+            '/onboarding': (context) => const OnboardingPage(),
             '/manager': (context) => const SkelentonPage(),
           },
         ),
