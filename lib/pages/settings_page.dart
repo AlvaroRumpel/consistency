@@ -6,6 +6,7 @@ import '../configs/colors.dart';
 import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
 import '../controllers/settings_controller.dart';
+import '../notifications/reminder_service.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
@@ -83,6 +84,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
             ),
           ),
           SliverFillRemaining(
+            hasScrollBody: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -148,6 +150,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   title: 'Send your opinion',
                 ),
                 const _ThresholdSlider(),
+                const _ReminderSection(),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: SegmentedButton<ThemeMode>(
@@ -385,5 +388,95 @@ class _ThresholdSliderState extends State<_ThresholdSlider> {
         ),
       ],
     );
+  }
+}
+
+class _ReminderSection extends StatelessWidget {
+  const _ReminderSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<SettingsStore>();
+    final enabled = settings.notifEnabled;
+    final (hour, minute) = settings.notifTime;
+    final time =
+        '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text('REMINDER', style: context.textStyles.boldText),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Switch(
+              value: enabled,
+              onChanged: (v) => v
+                  ? _enable(context)
+                  : context.read<ReminderService>().disable(),
+            ),
+            Text('Daily reminder', style: context.textStyles.normalText),
+          ],
+        ),
+        Opacity(
+          opacity: enabled ? 1 : 0.4,
+          child: IgnorePointer(
+            ignoring: !enabled,
+            child: InkWell(
+              onTap: () => _pickTime(context, hour, minute),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(time, style: context.textStyles.normalText),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                    Text('Time', style: context.textStyles.normalText),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          "We only nudge you if the day isn't saved yet.",
+          style: context.textStyles.thinText.copyWith(fontSize: 12),
+          textAlign: TextAlign.end,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _enable(BuildContext context) async {
+    final ok = await context.read<ReminderService>().enable();
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Notifications are blocked in system settings.'),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ));
+    }
+  }
+
+  Future<void> _pickTime(BuildContext context, int hour, int minute) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: hour, minute: minute),
+    );
+    if (picked == null || !context.mounted) return;
+    await context
+        .read<SettingsStore>()
+        .setNotifTime(picked.hour, picked.minute);
   }
 }
