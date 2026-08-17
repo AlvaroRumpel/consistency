@@ -39,7 +39,7 @@ void main() {
     final store = AppStore(repo);
     await store.load();
     settings = SettingsStore(SettingsRepository(prefs));
-    final controller = HomeController(store, settings);
+    final controller = HomeController(store, settings, now: () => today);
     return (store, controller);
   }
 

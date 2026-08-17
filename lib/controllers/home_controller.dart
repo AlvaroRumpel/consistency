@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../engine/consistency_engine.dart';
 import '../models/date_key.dart';
 import '../models/goal.dart';
 import '../models/goal_model.dart';
@@ -24,41 +25,45 @@ class HomeData extends HomeState {
   final String nickname;
   final List<GoalModel> goals;
   final bool hasMarkedToday;
+  final int streak;
+  final int best;
+  final double? todayAverage;
+  final Map<String, int> goalStreaks;
 
   HomeData({
     required this.nickname,
     required this.goals,
     required this.hasMarkedToday,
+    required this.streak,
+    required this.best,
+    required this.todayAverage,
+    required this.goalStreaks,
   });
 }
 
 class HomeDataEmpty extends HomeData {
-  HomeDataEmpty({required super.nickname, super.hasMarkedToday = false})
-      : super(goals: []);
+  HomeDataEmpty({
+    required super.nickname,
+    super.hasMarkedToday = false,
+    required super.streak,
+    required super.best,
+  }) : super(goals: [], todayAverage: null, goalStreaks: const {});
 }
 
 class HomeController extends BaseController<HomeState> {
   final AppStore store;
   final SettingsStore settings;
+  final DateTime Function() _now;
   List<TextEditingController> goalsControllers = <TextEditingController>[];
   List<String> _controllerIds = <String>[];
   bool _saving = false;
   final _archiving = <String>{};
 
-  HomeController(this.store, this.settings) : super(HomeInitial());
+  HomeController(this.store, this.settings, {DateTime Function()? now})
+      : _now = now ?? DateTime.now,
+        super(HomeInitial());
 
-  static DateTime get _today => dateOnly(DateTime.now());
-
-  /// Average completion of the goals currently on screen. Drives the splash
-  /// colour of the mark-today button.
-  double get completePercent {
-    final current = state;
-    if (current is! HomeData || current.goals.isEmpty) return 100;
-    return current.goals
-            .map((goal) => goal.percentCompleted)
-            .reduce((a, b) => a + b) /
-        current.goals.length;
-  }
+  DateTime get _today => dateOnly(_now());
 
   @override
   void onInit() {
@@ -85,12 +90,22 @@ class HomeController extends BaseController<HomeState> {
     final today = _today;
     final active = store.data.activeGoalsOn(today);
     final entry = store.data.entryOn(today);
+    final engine = ConsistencyEngine(
+      data: store.data,
+      threshold: settings.threshold,
+      today: today,
+    );
 
     if (active.isEmpty) {
       // Drop controllers left over from a previous load, or a rename would
       // read a stale one and persist a new goal under the old name.
       setGoalsControllers(const []);
-      emit(HomeDataEmpty(nickname: nickname, hasMarkedToday: entry != null));
+      emit(HomeDataEmpty(
+        nickname: nickname,
+        hasMarkedToday: entry != null,
+        streak: engine.globalStreak(),
+        best: engine.globalBest(),
+      ));
       return;
     }
 
@@ -115,6 +130,10 @@ class HomeController extends BaseController<HomeState> {
         nickname: nickname,
         goals: goals,
         hasMarkedToday: entry != null,
+        streak: engine.globalStreak(),
+        best: engine.globalBest(),
+        todayAverage: engine.dayAverage(today),
+        goalStreaks: {for (final g in active) g.id: engine.goalStreak(g)},
       ),
     );
   }

@@ -11,6 +11,7 @@ class GoalsListView extends StatefulWidget {
   final bool hasMarkedToday;
   final void Function(int) onRemove;
   final VoidCallback onAdd;
+  final Map<String, int> streaks;
 
   const GoalsListView({
     super.key,
@@ -19,6 +20,7 @@ class GoalsListView extends StatefulWidget {
     this.hasMarkedToday = false,
     required this.onRemove,
     required this.onAdd,
+    this.streaks = const {},
   });
 
   @override
@@ -92,6 +94,10 @@ class _GoalsListViewState extends State<GoalsListView> {
                         widget.goals[index].percentCompleted = v;
                       });
                     },
+            ),
+            Text(
+              '${widget.streaks[widget.goals[index].goalId] ?? 0} days',
+              style: context.textStyles.thinText.copyWith(fontSize: 12),
             ),
             Visibility(
               visible:

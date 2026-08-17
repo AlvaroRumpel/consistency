@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../configs/app_tokens.dart';
 import '../configs/colors.dart';
 import '../configs/text_styles.dart';
-import '../configs/utilities.dart';
 import '../controllers/home_controller.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeController _controller;
 
   @override
@@ -28,12 +28,19 @@ class HomePageState extends State<HomePage> {
       context.read<AppStore>(),
       context.read<SettingsStore>(),
     );
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.onDispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _controller.reload();
   }
 
   @override
@@ -77,8 +84,31 @@ class HomePageState extends State<HomePage> {
                 ValueListenableBuilder(
                   valueListenable: _controller.stateNotifier,
                   builder: (context, state, _) {
+                    if (state is! HomeData) return const SizedBox.shrink();
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.local_fire_department,
+                          color: context.tokens.flameFor(state.streak),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${state.streak} day streak · best ${state.best}',
+                          style: context.textStyles.normalText,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                ValueListenableBuilder(
+                  valueListenable: _controller.stateNotifier,
+                  builder: (context, state, _) {
                     return AddDayButton(
-                      color: Utilities.activeColor(_controller.completePercent),
+                      color: context.tokens.qualityFor(
+                        state is HomeData ? state.todayAverage : null,
+                      ),
                       onTap: () {
                         if (state is HomeData &&
                             !state.hasMarkedToday &&
@@ -132,13 +162,18 @@ class HomePageState extends State<HomePage> {
                               color: AppColors.primaryColor,
                             ),
                           ),
-                        HomeData(:final goals, :final hasMarkedToday) =>
+                        HomeData(
+                          :final goals,
+                          :final hasMarkedToday,
+                          :final goalStreaks,
+                        ) =>
                           GoalsListView(
                             goals: goals,
                             textControllers: _controller.goalsControllers,
                             hasMarkedToday: hasMarkedToday,
                             onRemove: _controller.removeGoal,
                             onAdd: _controller.addNewGoal,
+                            streaks: goalStreaks,
                           ),
                         HomeError(:final message) => ErrorView(
                             message: message,
