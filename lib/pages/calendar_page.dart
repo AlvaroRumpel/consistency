@@ -6,12 +6,14 @@ import '../configs/date_format.dart';
 import '../configs/text_styles.dart';
 import '../controllers/calendar_controller.dart';
 import '../controllers/day_editor_controller.dart';
+import '../engine/consistency_engine.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/day_editor.dart';
 import '../widgets/error_view.dart';
 import '../widgets/month_grid.dart';
 import '../widgets/quality_legend.dart';
+import '../widgets/year_heatmap.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -109,9 +111,9 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
-/// Month/Year toggle, month header, the grid (or the year placeholder) and
-/// the legend. Pure presentation over [CalendarData] plus the controller
-/// callbacks that change it.
+/// Month/Year toggle, the month header and grid or the year header and
+/// heatmap, plus the legend. Presentation over [CalendarData] and the
+/// controller callbacks that change it.
 class _CalendarBox extends StatelessWidget {
   final CalendarData state;
   final CalendarController controller;
@@ -161,18 +163,77 @@ class _CalendarBox extends StatelessWidget {
             selected: state.selectedDay,
             onSelect: controller.selectDay,
           ),
-        ] else
-          // YearHeatmap arrives in Task 4; placeholder keeps the toggle
-          // wired end-to-end until then.
-          const SizedBox(
-            height: 200,
-            child: Center(child: Text('Year view')),
+        ] else ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                key: const ValueKey('calendar-prev-year'),
+                icon: const Icon(Icons.chevron_left),
+                onPressed: controller.previousYear,
+              ),
+              Text(
+                '${state.year}',
+                style: context.textStyles.normalText.copyWith(fontSize: 20),
+              ),
+              IconButton(
+                key: const ValueKey('calendar-next-year'),
+                icon: const Icon(Icons.chevron_right),
+                onPressed: controller.nextYear,
+              ),
+            ],
           ),
+          YearHeatmap(
+            year: state.year,
+            quality: state.qualityByDay,
+            today: state.today,
+            onSelect: (day) {
+              controller.setView(CalendarView.month);
+              controller.selectDay(day);
+            },
+          ),
+        ],
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8),
           child: QualityLegend(),
         ),
+        if (state.view == CalendarView.year) _summary(context),
       ],
+    );
+  }
+
+  Widget _summary(BuildContext context) {
+    final settings = context.read<SettingsStore>();
+    final engine = ConsistencyEngine(
+      data: context.read<AppStore>().data,
+      threshold: settings.threshold,
+      today: state.today,
+    );
+    // qualityByDay holds this year's days up to today, so both counts and the
+    // engine walk the same window.
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          YearSummary(
+            year: state.year,
+            consistent:
+                state.qualityByDay.keys.where(engine.isDayConsistent).length,
+            recorded: state.qualityByDay.values.whereType<double>().length,
+            best: engine.globalBest(),
+            current: engine.globalStreak(),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tap a day to open the month',
+            style: context.textStyles.thinText.copyWith(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

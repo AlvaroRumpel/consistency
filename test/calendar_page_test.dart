@@ -6,6 +6,7 @@ import 'package:consistency/models/goal.dart';
 import 'package:consistency/widgets/goal_card.dart';
 import 'package:consistency/widgets/month_grid.dart';
 import 'package:consistency/widgets/quality_legend.dart';
+import 'package:consistency/widgets/year_heatmap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -75,7 +76,8 @@ void main() {
     expect(find.text('Save ${formatDayMonth(recent)}'), findsOneWidget);
   });
 
-  testWidgets('switching to Year hides the day panel', (tester) async {
+  testWidgets('switching to Year shows the heatmap and its summary',
+      (tester) async {
     await openCalendar(tester);
     expect(find.text('Save ${formatDayMonth(today)}'), findsOneWidget);
 
@@ -83,8 +85,27 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.byType(MonthGrid), findsNothing);
-    expect(find.text('Year view'), findsOneWidget);
+    expect(find.byType(YearHeatmap), findsOneWidget);
+    expect(find.text('${today.year}'), findsOneWidget);
     expect(find.byType(QualityLegend), findsOneWidget);
+    expect(find.textContaining('consistent days of'), findsOneWidget);
+    expect(find.textContaining('best streak'), findsOneWidget);
     expect(find.textContaining('Save '), findsNothing);
+  });
+
+  testWidgets('tapping a heatmap day opens that day in the month view',
+      (tester) async {
+    // Column zero of the heatmap, so it is on screen without scrolling.
+    final target = DateTime(today.year, 1, 1);
+    await openCalendar(tester);
+
+    await tester.tap(find.text('Year'));
+    await pumpFrames(tester);
+    await tester.tap(find.byKey(ValueKey('hm-${dateKey(target)}')));
+    await pumpFrames(tester);
+
+    expect(find.byType(MonthGrid), findsOneWidget);
+    expect(find.text(formatMonthYear(target)), findsOneWidget);
+    expect(find.text(formatWeekdayDayMonth(target)), findsOneWidget);
   });
 }
