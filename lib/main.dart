@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'configs/theme.dart';
+import 'data/backup_service.dart';
 import 'data/file_goals_repository.dart';
 import 'data/legacy_migration.dart';
 import 'data/settings_repository.dart';
@@ -34,6 +35,7 @@ Future<void> main() async {
       settings: SettingsStore(SettingsRepository(prefs)),
       store: store,
       scheduler: LocalReminderScheduler(),
+      backups: PlatformBackupService(),
     ),
   );
 }
@@ -42,12 +44,14 @@ class ConsistencyApp extends StatefulWidget {
   final SettingsStore settings;
   final AppStore store;
   final ReminderScheduler scheduler;
+  final BackupService backups;
 
   const ConsistencyApp({
     super.key,
     required this.settings,
     required this.store,
     required this.scheduler,
+    required this.backups,
   });
 
   @override
@@ -80,6 +84,7 @@ class _ConsistencyAppState extends State<ConsistencyApp> {
         ChangeNotifierProvider.value(value: widget.settings),
         ChangeNotifierProvider.value(value: widget.store),
         Provider<ReminderService>.value(value: _reminders),
+        Provider<BackupService>.value(value: widget.backups),
       ],
       child: Builder(
         builder: (context) => MaterialApp(

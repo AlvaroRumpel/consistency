@@ -6,10 +6,14 @@ import '../configs/colors.dart';
 import '../configs/messages_mixin.dart';
 import '../configs/text_styles.dart';
 import '../controllers/settings_controller.dart';
+import '../data/backup_codec.dart';
+import '../data/backup_service.dart';
+import '../models/app_data.dart';
 import '../notifications/reminder_service.dart';
 import '../state/app_store.dart';
 import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
+import '../widgets/import_dialog.dart';
 import '../widgets/list_tile_custom.dart';
 import 'archived_goals_page.dart';
 
@@ -85,98 +89,111 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
           ),
           SliverFillRemaining(
             hasScrollBody: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: _controller.stateNotifier,
-                  builder: (context, value, _) => value is SettingError
-                      ? SizedBox(
-                          width: double.infinity,
-                          child: ErrorView(
-                            message: value.message,
-                            onRetry: _controller.reload,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                ValueListenableBuilder(
+            // The DATA rows pushed content past this sliver's fixed height;
+            // scroll internally instead of clipping the tail of the page.
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ValueListenableBuilder(
                     valueListenable: _controller.stateNotifier,
-                    builder: (context, value, _) {
-                      return ListTileCustom(
-                        onTap: () async {
-                          final nickname = await _changeNicknameBottomSheet(
-                            context,
-                            (value is SettingData ? value.nickname : 'User'),
-                          );
+                    builder: (context, value, _) => value is SettingError
+                        ? SizedBox(
+                            width: double.infinity,
+                            child: ErrorView(
+                              message: value.message,
+                              onRetry: _controller.reload,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  ValueListenableBuilder(
+                      valueListenable: _controller.stateNotifier,
+                      builder: (context, value, _) {
+                        return ListTileCustom(
+                          onTap: () async {
+                            final nickname = await _changeNicknameBottomSheet(
+                              context,
+                              (value is SettingData ? value.nickname : 'User'),
+                            );
 
-                          _controller.saveNickname(nickname);
-                        },
-                        top: true,
-                        title:
-                            'Change your nickname, ${value is SettingData ? value.nickname : 'User'}',
-                      );
-                    }),
-                ListTileCustom(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const ArchivedGoalsPage()),
-                  ),
-                  title: 'Archived goals '
-                      '(${context.watch<AppStore>().data.goals.where((g) => g.isArchived).length})',
-                ),
-                ListTileCustom(
-                  onTap: () => _aboutTheAppDialog(context),
-                  title: 'About the app',
-                ),
-                ListTileCustom(
-                  onTap: () => _confirmDialog(context),
-                  title: 'Delete all data',
-                ),
-                ListTileCustom(
-                  onTap: () {
-                    launchUrl(
-                      Uri(
-                        scheme: 'mailto',
-                        path: 'alvaroRumpel@gmail.com',
-                        query: _encodeQueryParameters(
-                          <String, String>{
-                            'subject': 'Consistency App Opinion',
+                            _controller.saveNickname(nickname);
                           },
-                        ),
-                      ),
-                    );
-                  },
-                  title: 'Send your opinion',
-                ),
-                const _ThresholdSlider(),
-                const _ReminderSection(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        label: Text('System'),
-                        icon: Icon(Icons.brightness_auto_outlined),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        label: Text('Light'),
-                        icon: Icon(Icons.light_mode_outlined),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        label: Text('Dark'),
-                        icon: Icon(Icons.dark_mode_outlined),
-                      ),
-                    ],
-                    selected: {context.watch<SettingsStore>().themeMode},
-                    onSelectionChanged: (s) =>
-                        context.read<SettingsStore>().setThemeMode(s.first),
+                          top: true,
+                          title:
+                              'Change your nickname, ${value is SettingData ? value.nickname : 'User'}',
+                        );
+                      }),
+                  ListTileCustom(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const ArchivedGoalsPage()),
+                    ),
+                    title: 'Archived goals '
+                        '(${context.watch<AppStore>().data.goals.where((g) => g.isArchived).length})',
                   ),
-                ),
-              ],
+                  ListTileCustom(
+                    onTap: () => _aboutTheAppDialog(context),
+                    title: 'About the app',
+                  ),
+                  ListTileCustom(
+                    onTap: () => _exportBackup(context),
+                    title: 'Export backup',
+                  ),
+                  ListTileCustom(
+                    onTap: () => _importBackup(context),
+                    title: 'Import backup',
+                  ),
+                  ListTileCustom(
+                    onTap: () => _confirmDialog(context),
+                    title: 'Delete all data',
+                  ),
+                  ListTileCustom(
+                    onTap: () {
+                      launchUrl(
+                        Uri(
+                          scheme: 'mailto',
+                          path: 'alvaroRumpel@gmail.com',
+                          query: _encodeQueryParameters(
+                            <String, String>{
+                              'subject': 'Consistency App Opinion',
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    title: 'Send your opinion',
+                  ),
+                  const _ThresholdSlider(),
+                  const _ReminderSection(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          label: Text('System'),
+                          icon: Icon(Icons.brightness_auto_outlined),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          label: Text('Light'),
+                          icon: Icon(Icons.light_mode_outlined),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          label: Text('Dark'),
+                          icon: Icon(Icons.dark_mode_outlined),
+                        ),
+                      ],
+                      selected: {context.watch<SettingsStore>().themeMode},
+                      onSelectionChanged: (s) =>
+                          context.read<SettingsStore>().setThemeMode(s.first),
+                    ),
+                  ),
+                ],
+              ),
             ),
           )
         ],
@@ -309,6 +326,60 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         );
       },
     );
+  }
+
+  Future<void> _exportBackup(BuildContext context) async {
+    final store = context.read<AppStore>();
+    final backups = context.read<BackupService>();
+    try {
+      await backups.exportBackup(
+        BackupCodec.fileName(DateTime.now()),
+        BackupCodec.encode(store.data),
+      );
+      if (!context.mounted) return;
+      _snack(context, 'Backup ready to share.');
+    } catch (e) {
+      if (!context.mounted) return;
+      _snack(context, "Couldn't export the backup.", error: true);
+    }
+  }
+
+  Future<void> _importBackup(BuildContext context) async {
+    final backups = context.read<BackupService>();
+    final picked = await backups.pickBackup();
+    if (picked == null || !context.mounted) return;
+
+    final AppData imported;
+    try {
+      imported = BackupCodec.decode(picked.contents);
+    } on FormatException {
+      if (!context.mounted) return;
+      _snack(context, "That file isn't a Consistency backup.", error: true);
+      return;
+    }
+
+    final store = context.read<AppStore>();
+    final choice = await showDialog<ImportChoice>(
+      context: context,
+      builder: (_) => ImportDialog(
+        fileName: picked.name,
+        summary: BackupCodec.summarize(imported),
+      ),
+    );
+    if (choice == null || !context.mounted) return;
+
+    await store.replaceAll(choice == ImportChoice.replace
+        ? imported
+        : BackupCodec.merge(store.data, imported));
+    if (!context.mounted) return;
+    _snack(context, 'Backup imported.');
+  }
+
+  void _snack(BuildContext context, String message, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: error ? Theme.of(context).colorScheme.error : null,
+    ));
   }
 
   Future<void> _aboutTheAppDialog(BuildContext context) async {

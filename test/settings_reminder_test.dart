@@ -19,6 +19,8 @@ void main() {
     final switchFinder = find.byType(Switch);
     expect(tester.widget<Switch>(switchFinder).value, isFalse);
 
+    await tester.ensureVisible(switchFinder);
+    await tester.pump();
     await tester.tap(switchFinder);
     await pumpFrames(tester);
 
@@ -36,6 +38,8 @@ void main() {
     await pumpFrames(tester);
 
     final switchFinder = find.byType(Switch);
+    await tester.ensureVisible(switchFinder);
+    await tester.pump();
     await tester.tap(switchFinder);
     await pumpFrames(tester);
 

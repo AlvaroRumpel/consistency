@@ -1,5 +1,7 @@
 import 'package:consistency/configs/date_format.dart';
 import 'package:consistency/configs/theme.dart';
+import 'package:consistency/data/backup_service.dart';
+import 'package:consistency/data/fake_backup_service.dart';
 import 'package:consistency/data/in_memory_goals_repository.dart';
 import 'package:consistency/data/settings_repository.dart';
 import 'package:consistency/main.dart';
@@ -39,12 +41,14 @@ Future<ConsistencyApp> buildApp({
   AppData? data,
   bool failSaves = false,
   FakeReminderScheduler? scheduler,
+  BackupService? backups,
 }) async {
   final (settings, store) = await _stores(prefs, data, failSaves);
   return ConsistencyApp(
     settings: settings,
     store: store,
     scheduler: scheduler ?? FakeReminderScheduler(),
+    backups: backups ?? FakeBackupService(),
   );
 }
 
@@ -53,6 +57,7 @@ Future<Widget> wrap(
   Widget child, {
   Map<String, Object> prefs = const {},
   AppData? data,
+  BackupService? backups,
 }) async {
   final (settings, store) = await _stores(prefs, data, false);
   // Not started: pages only read it to enable/disable, and an unstarted
@@ -67,6 +72,7 @@ Future<Widget> wrap(
       ChangeNotifierProvider.value(value: settings),
       ChangeNotifierProvider.value(value: store),
       Provider<ReminderService>.value(value: reminders),
+      Provider<BackupService>.value(value: backups ?? FakeBackupService()),
     ],
     child: MaterialApp(theme: themeLight, home: child),
   );
