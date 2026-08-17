@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../configs/app_tokens.dart';
-import '../configs/date_format.dart';
 import '../configs/l10n_ext.dart';
 import '../configs/text_styles.dart';
 import '../models/date_key.dart';
@@ -138,7 +137,6 @@ class YearHeatmap extends StatelessWidget {
     final month = _columnMonth(weeks[c]);
     if (month == null) return null;
     if (c > 0 && _columnMonth(weeks[c - 1]) == month) return null;
-    ensureDateSymbols();
     return DateFormat.MMM(locale).format(DateTime(year, month));
   }
 

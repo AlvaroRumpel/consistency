@@ -7,11 +7,14 @@ import 'package:consistency/state/app_store.dart';
 import 'package:consistency/widgets/goal_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'helpers.dart';
 
 void main() {
+  // The plain test() below formats without pumping a widget tree.
+  setUpAll(initializeDateFormatting);
   final u = DateTime.utc(2026);
   final today = DateTime.now();
   DateTime daysAgo(int n) => DateTime(today.year, today.month, today.day - n);
@@ -38,10 +41,12 @@ void main() {
         ],
       );
 
-  test('weekday/month names', () {
+  test('weekday/month names follow the locale, not a fixed pattern', () {
+    expect(formatWeekdayDayMonth(DateTime(2026, 8, 14), 'en'), 'Fri, Aug 14');
     expect(
-        formatWeekdayDayMonth(DateTime(2026, 8, 14), 'en'), 'Fri, 14 August');
-    expect(formatDayMonth(DateTime(2026, 8, 14), 'en'), '14/08');
+        formatWeekdayDayMonth(DateTime(2026, 8, 14), 'pt'), 'sex., 14 de ago.');
+    expect(formatDayMonth(DateTime(2026, 8, 14), 'en'), '8/14');
+    expect(formatDayMonth(DateTime(2026, 8, 14), 'pt'), '14/08');
   });
 
   testWidgets('the panel edits days inside the window and locks older ones',

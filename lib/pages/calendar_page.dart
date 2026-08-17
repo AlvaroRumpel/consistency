@@ -67,8 +67,7 @@ class _CalendarPageState extends State<CalendarPage> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: _card(context),
                   child: switch (state) {
-                    CalendarError e => ErrorView(
-                        message: e.message, onRetry: _controller.reload),
+                    CalendarError() => ErrorView(onRetry: _controller.reload),
                     // A short window (small phone, landscape) scrolls instead
                     // of overflowing; a tall one just shows it all at once.
                     CalendarData d => SingleChildScrollView(

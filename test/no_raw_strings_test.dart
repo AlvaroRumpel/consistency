@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 // Phase 8 rule: user-facing copy lives in the ARB files, not scattered across
 // lib/ as raw string literals. This is a regex heuristic, not a Dart parser —
 // tuned to this codebase, not a general-purpose linter. It flags anything
-// that reads like a sentence or UI label — Capitalized, > 3 chars, whether
-// it's one word ('Save') or a full phrase — and gets out of the way of code:
+// that reads like a sentence or UI label — any phrase with a space, plus
+// Capitalized single words — and gets out of the way of code:
 // paths, log arguments, map keys, widget keys, and a short explicit
 // allowlist for the handful of strings that are legitimately not copy.
 
@@ -36,6 +36,9 @@ const _allowed = {
   'Invalid backup: \$e',
   'Unsupported schemaVersion: \$v',
   'Bad date key: \$s',
+  // Same deal, thrown from FileGoalsRepository.load() — the constructor
+  // argument sits on its own line, out of reach of the exemption below.
+  'consistency.json unreadable and no valid .bak',
 };
 
 /// Capitalized single words (no space) that are legitimately not user copy —
@@ -43,21 +46,25 @@ const _allowed = {
 /// Keep this small; the default for a single capitalized word is "copy".
 const _notCopyWords = {
   'WorkSans', // font family name (lib/configs/text_styles.dart)
-  'User', // SettingsStore.nicknameOrDefault fallback + settings_page.dart's
-  // pre-load placeholder — pre-existing, out of scope for this task
-  // (notifications + the guard itself); not a font/path/key so it needs
-  // its own entry rather than falling out of another exemption.
 };
 
 final _stringLiteral = RegExp(
   r"'(?:[^'\\]|\\.)*'" r'|"(?:[^"\\]|\\.)*"',
 );
 
+final _interpolation = RegExp(r'\$\{[^}]*\}|\$\w+');
+
 bool _looksLikeCopy(String content) {
-  if (content.length <= 3) return false;
-  if (!RegExp(r'^[A-Z]').hasMatch(content)) return false;
-  if (content.contains(' ')) return true;
-  return !_notCopyWords.contains(content);
+  // What survives the interpolations: '${l10n.dayAverage(x)} · ' is glue
+  // around already-localized text, not copy of its own.
+  final literal = content.replaceAll(_interpolation, '');
+  if (!RegExp('[A-Za-z]').hasMatch(literal)) return false;
+  if (literal.length <= 3) return false;
+  // A phrase is copy whatever its case: 'no data yet' is as user-facing as
+  // 'No data yet'.
+  if (literal.contains(' ')) return true;
+  if (!RegExp(r'^[A-Z]').hasMatch(literal)) return false;
+  return !_notCopyWords.contains(literal);
 }
 
 bool _isPathLike(String content) =>
@@ -84,7 +91,20 @@ void main() {
           continue;
         }
 
-        for (final m in _stringLiteral.allMatches(line)) {
+        final matches = _stringLiteral.allMatches(line).toList();
+        // Trailing comment: everything past the first `//` that isn't inside
+        // a string literal (so 'https://…' stays code) is prose, not source.
+        var codeEnd = line.length;
+        for (var at = line.indexOf('//');
+            at != -1;
+            at = line.indexOf('//', at + 2)) {
+          if (matches.any((m) => at > m.start && at < m.end)) continue;
+          codeEnd = at;
+          break;
+        }
+
+        for (final m in matches) {
+          if (m.start >= codeEnd) continue;
           final raw = m.group(0)!;
           final content = raw.substring(1, raw.length - 1);
           if (!_looksLikeCopy(content)) continue;
@@ -131,12 +151,15 @@ void main() {
   test(
       '_looksLikeCopy catches single-word UI labels and skips known-safe '
       'ones', () {
-    for (final copy in ['Save', 'Cancel', 'Retry']) {
+    for (final copy in ['Save', 'Cancel', 'Retry', 'no data yet']) {
       expect(_looksLikeCopy(copy), isTrue, reason: copy);
     }
     for (final notCopy in _notCopyWords) {
       expect(_looksLikeCopy(notCopy), isFalse, reason: notCopy);
     }
     expect(_looksLikeCopy('ok'), isFalse); // too short, lowercase
+    // Pure glue around already-localized pieces stays out of the way.
+    expect(_looksLikeCopy(r'${context.l10n.consistentDay}'), isFalse);
+    expect(_looksLikeCopy(r'${avg.round()}% '), isFalse);
   });
 }

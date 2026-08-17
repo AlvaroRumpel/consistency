@@ -1,127 +1,343 @@
 {
   "@@locale": "en",
   "appTitle": "Consistency",
+  "@appTitle": {
+    "description": "The app's name, shown as the window/task title."
+  },
   "greeting": "Hi, {name}",
   "@greeting": {
+    "description": "Home page greeting, followed by the user's nickname.",
     "placeholders": {
       "name": {"type": "String"}
     }
   },
+  "defaultNickname": "User",
+  "@defaultNickname": {
+    "description": "Stands in for the nickname until the user sets one."
+  },
   "recordDays": "{count, plural, =1{RECORD 1 DAY} other{RECORD {count} DAYS}}",
   "@recordDays": {
+    "description": "All-time best streak, under the Home progress ring.",
     "placeholders": {
       "count": {"type": "int"}
     }
   },
   "todaysGoals": "TODAY'S GOALS",
+  "@todaysGoals": {
+    "description": "Heading above the goal list when the day shown is today."
+  },
   "goals": "GOALS",
+  "@goals": {
+    "description": "Heading above the goal list for any day other than today."
+  },
   "newGoal": "New goal",
+  "@newGoal": {
+    "description": "Button under the Home goal list that opens the goal sheet."
+  },
   "tapToSave": "TAP TO SAVE",
+  "@tapToSave": {
+    "description": "Progress ring caption while the day has unsaved changes."
+  },
   "savedTapToEdit": "SAVED · TAP TO EDIT",
+  "@savedTapToEdit": {
+    "description": "Progress ring caption once the day is saved."
+  },
   "streakDays": "{count, plural, =1{1 day} other{{count} days}}",
   "@streakDays": {
+    "description": "A goal's current streak, on its card and detail page.",
     "placeholders": {
       "count": {"type": "int"}
     }
   },
   "navCalendar": "Calendar",
+  "@navCalendar": {
+    "description": "Bottom navigation label for the calendar tab."
+  },
   "navHome": "Home",
+  "@navHome": {
+    "description": "Bottom navigation label for the home tab."
+  },
   "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Bottom navigation label for the settings tab."
+  },
   "errorTitle": "Something went wrong",
+  "@errorTitle": {
+    "description": "Default message of the error view shown when a load fails."
+  },
   "tryAgain": "Try again",
+  "@tryAgain": {
+    "description": "Retry button of the error view."
+  },
   "couldNotSave": "Couldn't save. We'll try again on the next save.",
+  "@couldNotSave": {
+    "description": "Snackbar shown when writing the day to storage failed."
+  },
 
   "hello": "Hello, ",
+  "@hello": {
+    "description": "Settings page greeting, followed by the nickname badge."
+  },
   "changeNickname": "Change your nickname, {nickname}",
   "@changeNickname": {
+    "description": "Settings row that opens the nickname sheet.",
     "placeholders": {
       "nickname": {"type": "String"}
     }
   },
   "nicknameLabel": "Nickname",
+  "@nicknameLabel": {
+    "description": "Label of the nickname field in the nickname sheet."
+  },
   "valueCannotBeEmpty": "Value cannot be empty",
+  "@valueCannotBeEmpty": {
+    "description": "Validation error for an empty nickname field."
+  },
   "updateNickname": "Update nickname",
+  "@updateNickname": {
+    "description": "Submit button of the nickname sheet."
+  },
   "archivedGoals": "{count, plural, =1{Archived goals (1)} other{Archived goals ({count})}}",
   "@archivedGoals": {
+    "description": "Settings row that opens the archived goals page.",
     "placeholders": {
       "count": {"type": "int"}
     }
   },
   "aboutTheApp": "About the app",
+  "@aboutTheApp": {
+    "description": "Settings row and title of the about dialog."
+  },
   "aboutBody": "Consistency is a simple app, it consists of marking, saving and numbering the days that you have completed your personal daily goals, I hope you enjoy and understand the purpose of the app, any questions you can forward to support.",
+  "@aboutBody": {
+    "description": "Body text of the about dialog."
+  },
   "madeWithLove": "Made with ♥ by Álvaro Rumpel",
+  "@madeWithLove": {
+    "description": "Author credit at the bottom of the about dialog."
+  },
   "exportBackup": "Export backup",
+  "@exportBackup": {
+    "description": "Settings row that shares a backup file."
+  },
   "importBackup": "Import backup",
+  "@importBackup": {
+    "description": "Settings row that picks a backup file to import."
+  },
   "deleteAllData": "Delete all data",
+  "@deleteAllData": {
+    "description": "Settings row that opens the delete-everything dialog."
+  },
   "sendOpinion": "Send your opinion",
+  "@sendOpinion": {
+    "description": "Settings row that opens a pre-filled feedback email."
+  },
   "areYouSure": "Are you sure?",
+  "@areYouSure": {
+    "description": "Title of the delete-everything confirmation dialog."
+  },
   "dataWillBeLost": "All of your data will be lost!\nAre you sure?",
+  "@dataWillBeLost": {
+    "description": "Body of the delete-everything confirmation dialog."
+  },
   "yesImSure": "Yes! I'm Sure",
+  "@yesImSure": {
+    "description": "Confirm button of the delete-everything dialog."
+  },
   "noooo": "Noooo!",
+  "@noooo": {
+    "description": "Cancel button of the delete-everything dialog."
+  },
   "undoDeletion": "Click here to undo the deletion",
+  "@undoDeletion": {
+    "description": "Snackbar action offered right after deleting all data."
+  },
   "backupReady": "Backup ready to share.",
+  "@backupReady": {
+    "description": "Snackbar shown when the backup file was handed to the share sheet."
+  },
   "couldNotExport": "Couldn't export the backup.",
+  "@couldNotExport": {
+    "description": "Snackbar shown when writing or sharing the backup failed."
+  },
   "couldNotReadFile": "Couldn't read that file.",
+  "@couldNotReadFile": {
+    "description": "Snackbar shown when the file picker or the file read failed."
+  },
   "notABackup": "That file isn't a Consistency backup.",
+  "@notABackup": {
+    "description": "Snackbar shown when the picked file isn't a valid backup."
+  },
   "backupImported": "Backup imported.",
+  "@backupImported": {
+    "description": "Snackbar shown after a successful import."
+  },
   "backupImportedButSaveFailed": "Backup imported, but saving failed.",
+  "@backupImportedButSaveFailed": {
+    "description": "Snackbar shown when an import applied in memory but couldn't be written."
+  },
   "dailyTarget": "Daily target: {percent}%",
   "@dailyTarget": {
+    "description": "Label above the consistency threshold slider.",
     "placeholders": {
       "percent": {"type": "int"}
     }
   },
   "thresholdCaption": "A day counts when the average of your goals reaches this. Changing it recalculates your history.",
+  "@thresholdCaption": {
+    "description": "Caption under the consistency threshold slider."
+  },
   "themeSystem": "System",
+  "@themeSystem": {
+    "description": "Theme picker option that follows the system setting."
+  },
   "themeLight": "Light",
+  "@themeLight": {
+    "description": "Theme picker option for the light theme."
+  },
   "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Theme picker option for the dark theme."
+  },
   "reminder": "REMINDER",
+  "@reminder": {
+    "description": "Heading of the reminder section in Settings."
+  },
   "dailyReminder": "Daily reminder",
+  "@dailyReminder": {
+    "description": "Label of the switch that turns the daily reminder on."
+  },
   "time": "Time",
+  "@time": {
+    "description": "Label of the row that picks the reminder time."
+  },
   "reminderCaption": "We only nudge you if the day isn't saved yet.",
+  "@reminderCaption": {
+    "description": "Caption under the reminder section."
+  },
   "notificationsBlocked": "Notifications are blocked in system settings.",
+  "@notificationsBlocked": {
+    "description": "Snackbar shown when the system denied notification permission."
+  },
 
   "importBackupTitle": "Import backup",
+  "@importBackupTitle": {
+    "description": "Title of the import dialog."
+  },
   "backupSummary": "{goals, plural, =1{1 goal} other{{goals} goals}} · {days, plural, =1{1 day} other{{days} days}}",
   "@backupSummary": {
+    "description": "What the picked backup file contains, in the import dialog.",
     "placeholders": {
       "goals": {"type": "int"},
       "days": {"type": "int"}
     }
   },
   "replaceOption": "Replace everything — deletes your current data",
+  "@replaceOption": {
+    "description": "Import dialog option that overwrites the current data."
+  },
   "mergeOption": "Merge — keeps both; the newest version of each day wins",
+  "@mergeOption": {
+    "description": "Import dialog option that merges the backup into the current data."
+  },
   "cancel": "Cancel",
+  "@cancel": {
+    "description": "Dismiss button of the import dialog."
+  },
   "import": "Import",
+  "@import": {
+    "description": "Confirm button of the import dialog."
+  },
 
   "archivedGoalsTitle": "Archived goals",
+  "@archivedGoalsTitle": {
+    "description": "App bar title of the archived goals page."
+  },
   "restore": "Restore",
+  "@restore": {
+    "description": "Button that unarchives a goal from the archived goals list."
+  },
   "archivedOn": "archived on {date} · record {days, plural, =1{1 day} other{{days} days}}",
   "@archivedOn": {
+    "description": "Subtitle of a row in the archived goals list.",
     "placeholders": {
       "date": {"type": "String"},
       "days": {"type": "int"}
     }
   },
   "noArchivedGoals": "No archived goals",
+  "@noArchivedGoals": {
+    "description": "Empty state of the archived goals page."
+  },
   "noArchivedGoalsCaption": "Archived goals leave the Home but keep their history.",
+  "@noArchivedGoalsCaption": {
+    "description": "Caption under the archived goals empty state."
+  },
 
   "newGoalTitle": "New goal",
+  "@newGoalTitle": {
+    "description": "Title of the goal sheet when creating a goal."
+  },
   "editGoalTitle": "Edit goal",
+  "@editGoalTitle": {
+    "description": "Title of the goal sheet when editing a goal."
+  },
   "name": "NAME",
+  "@name": {
+    "description": "Label of the goal name field in the goal sheet."
+  },
   "nameRequired": "Name is required",
+  "@nameRequired": {
+    "description": "Validation error for an empty goal name."
+  },
   "nameTooLong": "Keep it under 50 characters",
+  "@nameTooLong": {
+    "description": "Validation error for an over-long goal name."
+  },
   "type": "TYPE",
+  "@type": {
+    "description": "Label of the goal type picker in the goal sheet."
+  },
   "typeCheck": "Done / not done",
+  "@typeCheck": {
+    "description": "Goal type option for a simple daily checkmark."
+  },
   "typePercent": "Percent 0–100",
+  "@typePercent": {
+    "description": "Goal type option for a daily percentage."
+  },
   "typeCheckCaption": "Marked done or not done each day.",
-  "typePercentCaption": "Track progress from 0 to 100 percent.",
+  "@typeCheckCaption": {
+    "description": "Caption under the done/not done goal type."
+  },
+  "typePercentCaption": "Progress from 0 to 100% each day, in steps of 25.",
+  "@typePercentCaption": {
+    "description": "Caption under the percent goal type."
+  },
   "addGoal": "Add goal",
+  "@addGoal": {
+    "description": "Submit button of the goal sheet when creating a goal."
+  },
   "saveChanges": "Save changes",
+  "@saveChanges": {
+    "description": "Submit button of the goal sheet when editing a goal."
+  },
   "archiveGoal": "Archive goal",
+  "@archiveGoal": {
+    "description": "Button that archives a goal."
+  },
   "archiveConfirmTitle": "Archive this goal?",
+  "@archiveConfirmTitle": {
+    "description": "Title of the archive confirmation dialog."
+  },
   "archiveConfirmBody": "It will no longer appear in your daily list.",
+  "@archiveConfirmBody": {
+    "description": "Body of the archive confirmation dialog."
+  },
   "archive": "Archive",
+  "@archive": {
+    "description": "Confirm button of the archive confirmation dialog."
+  },
 
   "month": "Month",
   "@month": {
@@ -160,7 +376,7 @@
   },
   "saveDay": "Save {date}",
   "@saveDay": {
-    "description": "Button that saves the selected calendar day, e.g. 'Save 14/08'.",
+    "description": "Button that saves the selected calendar day, e.g. 'Save 8/14'.",
     "placeholders": {
       "date": {"type": "String"}
     }
@@ -220,7 +436,7 @@
       "date": {"type": "String"}
     }
   },
-  "yearSummary": "{year} · {consistent} consistent days of {recorded}",
+  "yearSummary": "{year} · {consistent, plural, =1{1 consistent day} other{{consistent} consistent days}} of {recorded}",
   "@yearSummary": {
     "description": "Totals under the calendar's year heatmap.",
     "placeholders": {
@@ -229,7 +445,7 @@
       "recorded": {"type": "int"}
     }
   },
-  "bestAndCurrent": "best streak {best} days · current {current}",
+  "bestAndCurrent": "best streak {best, plural, =1{1 day} other{{best} days}} · current {current}",
   "@bestAndCurrent": {
     "description": "All-time streak line under the calendar's year heatmap.",
     "placeholders": {

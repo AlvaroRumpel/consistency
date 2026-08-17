@@ -74,7 +74,7 @@ class ReminderService with WidgetsBindingObserver {
   // finish and be observed by a caller before this reaction has been queued.
   // _enqueue() queues and returns immediately; the future it hands back is
   // only there for callers that want to wait for the queue to drain.
-  Future<void> sync() async {
+  Future<void> sync() {
     final cancelled = _enqueue(_scheduler.cancel);
     if (!_settings.notifEnabled) return cancelled;
 
@@ -92,20 +92,22 @@ class ReminderService with WidgetsBindingObserver {
       today: today,
     ).globalStreak();
 
-    // No BuildContext out here: load the strings straight from the
-    // delegate. It's backed by a SynchronousFuture, so this never actually
-    // suspends the isolate.
+    // No BuildContext out here, so the strings come straight from the
+    // delegate — inside the enqueued closure, where suspending is fine.
     var locale = _localeOf();
     if (!AppLocalizations.delegate.isSupported(locale)) {
       locale = const Locale('en');
     }
-    final l10n = await AppLocalizations.delegate.load(locale);
+    final name = _settings.nickname;
 
-    return _enqueue(() => _scheduler.schedule(ReminderRequest(
-          when: when,
-          title: l10n.reminderTitle,
-          body: l10n.reminderBody(_settings.nicknameOrDefault, streak),
-        )));
+    return _enqueue(() async {
+      final l10n = await AppLocalizations.delegate.load(locale);
+      return _scheduler.schedule(ReminderRequest(
+        when: when,
+        title: l10n.reminderTitle,
+        body: l10n.reminderBody(name ?? l10n.defaultNickname, streak),
+      ));
+    });
   }
 
   Future<bool> enable() async {

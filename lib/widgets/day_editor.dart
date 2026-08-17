@@ -50,8 +50,7 @@ class _DayEditorState extends State<DayEditor> {
       builder: (context, state, _) {
         if (state is DayEditorError) {
           return Center(
-            child:
-                ErrorView(message: state.message, onRetry: controller.reload),
+            child: ErrorView(onRetry: controller.reload),
           );
         }
         if (state is! DayEditorReady) {

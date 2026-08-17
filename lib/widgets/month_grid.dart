@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../configs/app_tokens.dart';
-import '../configs/date_format.dart';
 import '../configs/text_styles.dart';
 import '../models/date_key.dart';
 
@@ -29,7 +28,6 @@ class MonthGrid extends StatelessWidget {
     final rows = ((leading + daysInMonth) / 7).ceil();
 
     final locale = Localizations.localeOf(context).toLanguageTag();
-    ensureDateSymbols();
     // Sunday first, matching `leading` above.
     final weekdayLabels = DateFormat(null, locale).dateSymbols.NARROWWEEKDAYS;
 

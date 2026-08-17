@@ -7,7 +7,6 @@ class SettingsStore extends ChangeNotifier {
   SettingsStore(this._repo);
 
   String? get nickname => _repo.nickname;
-  String get nicknameOrDefault => nickname ?? 'User';
   ThemeMode get themeMode => _repo.themeMode;
   int get threshold => _repo.threshold;
   bool get notifEnabled => _repo.notifEnabled;

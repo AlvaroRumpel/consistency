@@ -25,6 +25,30 @@ void main() {
     }
   });
 
+  testWidgets('day counts read as singular at 1', (tester) async {
+    for (final (locale, summary, streak) in [
+      (const Locale('en'), '2026 · 1 consistent day of 3', 'best streak 1 day'),
+      (
+        const Locale('pt'),
+        '2026 · 1 dia consistente de 3',
+        'melhor sequência 1 dia'
+      ),
+    ]) {
+      late AppLocalizations l;
+      await tester.pumpWidget(MaterialApp(
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(builder: (context) {
+          l = context.l10n;
+          return const SizedBox.shrink();
+        }),
+      ));
+      expect(l.yearSummary(2026, 1, 3), summary);
+      expect(l.bestAndCurrent(1, 1), startsWith(streak));
+    }
+  });
+
   testWidgets('an unsupported locale falls back to English', (tester) async {
     late AppLocalizations l;
     await tester.pumpWidget(MaterialApp(

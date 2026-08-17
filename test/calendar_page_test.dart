@@ -92,7 +92,7 @@ void main() {
     expect(find.byType(YearHeatmap), findsOneWidget);
     expect(find.text('${today.year}'), findsOneWidget);
     expect(find.byType(QualityLegend), findsOneWidget);
-    expect(find.textContaining('consistent days of'), findsOneWidget);
+    expect(find.textContaining('consistent day'), findsOneWidget);
     expect(find.textContaining('best streak'), findsOneWidget);
     expect(find.textContaining('Save '), findsNothing);
   });
@@ -106,7 +106,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('${today.year - 1}'), findsOneWidget);
-    expect(find.textContaining('consistent days of'), findsOneWidget);
+    expect(find.textContaining('consistent day'), findsOneWidget);
     expect(find.textContaining('best streak'), findsNothing);
 
     // Back to the month view: the panel must edit a day of the month on

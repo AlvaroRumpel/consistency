@@ -1,4 +1,5 @@
 import 'package:consistency/configs/app_tokens.dart';
+import 'package:consistency/configs/date_format.dart';
 import 'package:consistency/models/app_data.dart';
 import 'package:consistency/models/day_entry.dart';
 import 'package:consistency/models/goal.dart';
@@ -91,10 +92,8 @@ void main() {
     ));
     await pumpFrames(tester);
     expect(find.text('Restore goal'), findsOneWidget);
-    final d = ago(1);
-    final dmy = '${d.day.toString().padLeft(2, '0')}/'
-        '${d.month.toString().padLeft(2, '0')}/${d.year}';
-    expect(find.text('Archived on $dmy'), findsOneWidget);
+    expect(find.text('Archived on ${formatDayMonthYear(ago(1), 'en')}'),
+        findsOneWidget);
 
     await tester.tap(find.text('Restore goal'));
     await pumpFrames(tester);

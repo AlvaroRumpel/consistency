@@ -80,7 +80,9 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                         valueListenable: _controller.stateNotifier,
                         builder: (context, value, _) {
                           return Text(
-                            value is SettingData ? value.nickname : '...',
+                            value is SettingData
+                                ? value.nickname ?? context.l10n.defaultNickname
+                                : '...',
                             style: context.textStyles.titleText,
                           );
                         },
@@ -101,10 +103,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   builder: (context, value, _) => value is SettingError
                       ? SizedBox(
                           width: double.infinity,
-                          child: ErrorView(
-                            message: value.message,
-                            onRetry: _controller.reload,
-                          ),
+                          child: ErrorView(onRetry: _controller.reload),
                         )
                       : const SizedBox.shrink(),
                 ),
@@ -115,14 +114,15 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                         onTap: () async {
                           final nickname = await _changeNicknameBottomSheet(
                             context,
-                            (value is SettingData ? value.nickname : 'User'),
+                            value is SettingData ? value.nickname : null,
                           );
 
                           _controller.saveNickname(nickname);
                         },
                         top: true,
                         title: context.l10n.changeNickname(
-                            value is SettingData ? value.nickname : 'User'),
+                            (value is SettingData ? value.nickname : null) ??
+                                context.l10n.defaultNickname),
                       );
                     }),
                 ListTileCustom(
@@ -213,12 +213,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
 
   Future<String?> _changeNicknameBottomSheet(
     BuildContext context,
-    String previousName,
+    String? previousName,
   ) async {
     final formKey = GlobalKey<FormState>();
-    final nicknameEC = TextEditingController(
-      text: previousName != 'User' ? previousName : '',
-    );
+    final nicknameEC = TextEditingController(text: previousName ?? '');
 
     return await showModalBottomSheet<String>(
       backgroundColor: Theme.of(context).cardColor,
@@ -507,8 +505,8 @@ class _ReminderSection extends StatelessWidget {
     final settings = context.watch<SettingsStore>();
     final enabled = settings.notifEnabled;
     final (hour, minute) = settings.notifTime;
-    final time =
-        '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    final time = MaterialLocalizations.of(context)
+        .formatTimeOfDay(TimeOfDay(hour: hour, minute: minute));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,

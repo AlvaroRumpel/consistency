@@ -50,7 +50,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Row(
           children: [
             Expanded(
-              child: Text(context.l10n.greeting(view.nickname),
+              child: Text(
+                  context.l10n
+                      .greeting(view.nickname ?? context.l10n.defaultNickname),
                   style: context.textStyles.titleText),
             ),
             StreakBadge(streak: view.streak),
