@@ -10,7 +10,16 @@ class ErrorView extends StatelessWidget {
   final String? message;
   final VoidCallback onRetry;
 
-  const ErrorView({super.key, this.message, required this.onRetry});
+  /// Shows the "Export raw file" button when set — omitted where there is
+  /// no repository to read the raw file from.
+  final VoidCallback? onExportRaw;
+
+  const ErrorView({
+    super.key,
+    this.message,
+    required this.onRetry,
+    this.onExportRaw,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +51,17 @@ class ErrorView extends StatelessWidget {
                   .copyWith(color: AppColors.whiteColor),
             ),
           ),
+          if (onExportRaw != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onExportRaw,
+              icon: const Icon(Icons.download_outlined),
+              label: Text(
+                context.l10n.exportRawFile,
+                style: context.textStyles.normalText,
+              ),
+            ),
+          ],
         ],
       ),
     );

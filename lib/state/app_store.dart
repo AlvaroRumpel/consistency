@@ -31,6 +31,10 @@ class AppStore extends ChangeNotifier {
   Object? get loadError => _loadError;
   Object? get saveError => _saveError;
 
+  /// The main file's raw text even when it fails to parse — see
+  /// [GoalsRepository.readRaw]. Never throws.
+  Future<String?> readRaw() => _repo.readRaw();
+
   Future<void> load() async {
     try {
       _data = await _repo.load();

@@ -16,6 +16,7 @@ import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
 import '../widgets/import_dialog.dart';
 import '../widgets/list_tile_custom.dart';
+import '../widgets/raw_export.dart';
 import 'archived_goals_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -103,7 +104,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   builder: (context, value, _) => value is SettingError
                       ? SizedBox(
                           width: double.infinity,
-                          child: ErrorView(onRetry: _controller.reload),
+                          child: ErrorView(
+                            onRetry: _controller.reload,
+                            onExportRaw: () => exportRawFile(context),
+                          ),
                         )
                       : const SizedBox.shrink(),
                 ),
