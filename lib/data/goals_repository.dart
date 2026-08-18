@@ -5,6 +5,7 @@ import '../models/app_data.dart';
 abstract class GoalsRepository {
   Future<bool> exists();
   Future<AppData> load();
+  Future<String?> readRaw();
   Future<void> save(AppData data);
   Future<void> moveToUndo();
   Future<bool> restoreFromUndo();

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:consistency/data/file_goals_repository.dart';
@@ -98,5 +99,39 @@ void main() {
     await blocker.delete();
     await repo.save(sample('B'));
     expect((await repo.load()).goals.single.name, 'B');
+  });
+
+  test('readRaw on empty dir gives null', () async {
+    expect(await repo.readRaw(), isNull);
+  });
+
+  test('readRaw after a save decodes to the saved data', () async {
+    await repo.save(sample('Run'));
+    final raw = await repo.readRaw();
+    expect(raw, isNotNull);
+    expect(AppData.fromJson(jsonDecode(raw!)).goals.single.name, 'Run');
+  });
+
+  test('readRaw rescues a corrupt main file unaltered, even with a valid .bak',
+      () async {
+    await repo.save(sample('Run'));
+    await repo.save(sample('Sprint'));
+    File('${dir.path}/consistency.json').writeAsStringSync('{not json');
+    expect(await repo.readRaw(), '{not json');
+  });
+
+  test('readRaw falls back to .bak when main is missing', () async {
+    await repo.save(sample('Run'));
+    await repo.save(sample('Sprint'));
+    File('${dir.path}/consistency.json').deleteSync();
+    final raw = await repo.readRaw();
+    expect(raw, isNotNull);
+    expect(AppData.fromJson(jsonDecode(raw!)).goals.single.name, 'Run');
+  });
+
+  test('readRaw gives null after moveToUndo', () async {
+    await repo.save(sample('Run'));
+    await repo.moveToUndo();
+    expect(await repo.readRaw(), isNull);
   });
 }
