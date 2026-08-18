@@ -513,5 +513,21 @@
     "placeholders": {
       "year": {"type": "int"}
     }
+  },
+
+  "widgetStreak": "{count, plural, =1{1 day streak} other{{count} day streak}}",
+  "@widgetStreak": {
+    "description": "Home-screen widget's streak line.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "widgetTodayPending": "Today: pending",
+  "@widgetTodayPending": {
+    "description": "Home-screen widget's second line when today isn't saved yet."
+  },
+  "widgetTodayDone": "Today: saved",
+  "@widgetTodayDone": {
+    "description": "Home-screen widget's second line once today is saved."
   }
 }

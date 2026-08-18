@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'configs/l10n_ext.dart';
 import 'configs/theme.dart';
@@ -19,6 +20,57 @@ import 'pages/skeleton_page.dart';
 import 'pages/splash_page.dart';
 import 'state/app_store.dart';
 import 'state/settings_store.dart';
+import 'widget/home_widget_bridge.dart';
+import 'widget/widget_bridge.dart';
+import 'widget/widget_sync_service.dart';
+import 'widget/widget_tick.dart';
+
+const _widgetTickTask = 'widget-tick';
+
+/// WorkManager entry point. Runs in a headless engine with no app state, so
+/// it rebuilds just enough (prefs, repo, both stores) to publish once, books
+/// the next tick and exits — any failure is swallowed so a bad tick never
+/// wedges the schedule.
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final repo = await FileGoalsRepository.open();
+      final store = AppStore(repo);
+      await store.load();
+      await publishTick(
+        bridge: HomeWidgetBridge(),
+        store: store,
+        settings: SettingsStore(SettingsRepository(prefs)),
+        now: DateTime.now(),
+      );
+      await _scheduleTick(ExistingWorkPolicy.update);
+    } catch (e, s) {
+      debugPrint('widget tick failed: $e\n$s');
+    }
+    return true;
+  });
+}
+
+/// Books the daily tick for the next 00:05 local. One-off rather than
+/// periodic: a periodic task keeps the anchor it was first registered with,
+/// so it drifts off midnight and never re-aligns — each run books the next
+/// one from the current clock instead.
+///
+/// [policy] differs per caller. `replace` cancels every pending run under the
+/// unique name, which is what a launch wants (re-anchor once, no leftovers)
+/// but not what the tick itself wants: called from inside the running tick it
+/// would cancel that very run, so its result is never reported. `update`
+/// (APPEND_OR_REPLACE on Android) chains the next run onto the current one
+/// instead, leaving it to finish and report honestly.
+Future<void> _scheduleTick(ExistingWorkPolicy policy) =>
+    Workmanager().registerOneOffTask(
+      _widgetTickTask,
+      'widgetTick',
+      initialDelay: delayToNextTick(DateTime.now()),
+      existingWorkPolicy: policy,
+    );
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,12 +86,19 @@ Future<void> main() async {
   }
   final store = AppStore(repo);
   unawaited(store.load()); // the splash waits on it
+  try {
+    await Workmanager().initialize(callbackDispatcher);
+    await _scheduleTick(ExistingWorkPolicy.replace);
+  } catch (e, s) {
+    debugPrint('Workmanager setup failed: $e\n$s');
+  }
   runApp(
     ConsistencyApp(
       settings: SettingsStore(SettingsRepository(prefs)),
       store: store,
       scheduler: LocalReminderScheduler(),
       backups: PlatformBackupService(),
+      bridge: HomeWidgetBridge(),
     ),
   );
 }
@@ -49,6 +108,7 @@ class ConsistencyApp extends StatefulWidget {
   final AppStore store;
   final ReminderScheduler scheduler;
   final BackupService backups;
+  final WidgetBridge bridge;
 
   const ConsistencyApp({
     super.key,
@@ -56,6 +116,7 @@ class ConsistencyApp extends StatefulWidget {
     required this.store,
     required this.scheduler,
     required this.backups,
+    required this.bridge,
   });
 
   @override
@@ -68,16 +129,23 @@ class _ConsistencyAppState extends State<ConsistencyApp> {
     store: widget.store,
     settings: widget.settings,
   );
+  late final WidgetSyncService _widgetSync = WidgetSyncService(
+    bridge: widget.bridge,
+    store: widget.store,
+    settings: widget.settings,
+  );
 
   @override
   void initState() {
     super.initState();
     unawaited(_reminders.start());
+    unawaited(_widgetSync.start());
   }
 
   @override
   void dispose() {
     _reminders.dispose();
+    _widgetSync.dispose();
     super.dispose();
   }
 

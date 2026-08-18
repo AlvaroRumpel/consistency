@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_card">#434345</color>
+    <color name="widget_hairline">#5A5A5C</color>
+    <color name="widget_text">#F2F5F7</color>
+</resources>

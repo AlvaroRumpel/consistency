@@ -46,6 +46,10 @@ const _allowed = {
 /// Keep this small; the default for a single capitalized word is "copy".
 const _notCopyWords = {
   'WorkSans', // font family name (lib/configs/text_styles.dart)
+  // Android AppWidgetProvider class names (lib/widget/home_widget_bridge.dart)
+  // — the Kotlin side (Task 3) must match these exactly.
+  'ConsistencyWidgetProviderSmall',
+  'ConsistencyWidgetProviderLarge',
 };
 
 final _stringLiteral = RegExp(

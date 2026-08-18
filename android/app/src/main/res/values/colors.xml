@@ -1,4 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="background_color">#39393A</color>
+
+    <!-- Home-screen widget. Card/hairline/text are overridden in
+         values-night; the flame and quality ramps are the same in both
+         themes on purpose - they encode data, not chrome. -->
+    <color name="widget_card">#F6F8FA</color>
+    <color name="widget_hairline">#B9C6CF</color>
+    <color name="widget_text">#26282B</color>
+
+    <!-- Flame, by streak bucket: 0 / 1-6 / 7-29 / 30-99 / 100+ -->
+    <color name="widget_flame_0">#8A9299</color>
+    <color name="widget_flame_1">#E0862E</color>
+    <color name="widget_flame_2">#E85D2A</color>
+    <color name="widget_flame_3">#CB2E33</color>
+    <color name="widget_flame_4">#2CA8CB</color>
+
+    <!-- Week strip, by day quality tier: no data / 1 / 2 / 3 / 4 -->
+    <color name="widget_quality_0">#C4CFD6</color>
+    <color name="widget_quality_1">#CB2E33</color>
+    <color name="widget_quality_2">#E0862E</color>
+    <color name="widget_quality_3">#2CA8CB</color>
+    <color name="widget_quality_4">#418F3F</color>
 </resources>

@@ -12,6 +12,7 @@ class SettingsStore extends ChangeNotifier {
   bool get notifEnabled => _repo.notifEnabled;
   (int, int) get notifTime => _repo.notifTime;
   bool get onboardingDone => _repo.onboardingDone;
+  String? get widgetLocale => _repo.widgetLocale;
 
   Future<void> _apply(Future<void> Function() write) async {
     await write();
@@ -27,4 +28,9 @@ class SettingsStore extends ChangeNotifier {
       _apply(() => _repo.setNotifTime(h, m));
   Future<void> setOnboardingDone(bool v) =>
       _apply(() => _repo.setOnboardingDone(v));
+
+  /// Deliberately not through [_apply]: nothing on screen reads it, and
+  /// notifying here would bounce straight back into `WidgetSyncService`,
+  /// which is what writes it.
+  Future<void> setWidgetLocale(String v) => _repo.setWidgetLocale(v);
 }
