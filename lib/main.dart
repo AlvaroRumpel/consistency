@@ -1,5 +1,4 @@
 import 'dart:async' show unawaited;
-import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,7 +13,6 @@ import 'data/file_goals_repository.dart';
 import 'data/legacy_migration.dart';
 import 'data/settings_repository.dart';
 import 'l10n/app_localizations.dart';
-import 'models/date_key.dart';
 import 'notifications/reminder_scheduler.dart';
 import 'notifications/reminder_service.dart';
 import 'pages/onboarding_page.dart';
@@ -24,14 +22,15 @@ import 'state/app_store.dart';
 import 'state/settings_store.dart';
 import 'widget/home_widget_bridge.dart';
 import 'widget/widget_bridge.dart';
-import 'widget/widget_publisher.dart';
 import 'widget/widget_sync_service.dart';
+import 'widget/widget_tick.dart';
 
 const _widgetTickTask = 'widget-tick';
 
 /// WorkManager entry point. Runs in a headless engine with no app state, so
-/// it rebuilds just enough (prefs, repo, both stores) to publish once and
-/// exits — any failure is swallowed so a bad tick never wedges the schedule.
+/// it rebuilds just enough (prefs, repo, both stores) to publish once, books
+/// the next tick and exits — any failure is swallowed so a bad tick never
+/// wedges the schedule.
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
@@ -40,21 +39,13 @@ void callbackDispatcher() {
       final repo = await FileGoalsRepository.open();
       final store = AppStore(repo);
       await store.load();
-      final settings = SettingsStore(SettingsRepository(prefs));
-
-      var locale = PlatformDispatcher.instance.locale;
-      if (!AppLocalizations.delegate.isSupported(locale)) {
-        locale = const Locale('en');
-      }
-      final l10n = await AppLocalizations.delegate.load(locale);
-      final snapshot = WidgetPublisher.snapshot(
-        data: store.data,
-        threshold: settings.threshold,
-        today: dateOnly(DateTime.now()),
-        nickname: settings.nickname ?? l10n.defaultNickname,
-        l10n: l10n,
+      await publishTick(
+        bridge: HomeWidgetBridge(),
+        store: store,
+        settings: SettingsStore(SettingsRepository(prefs)),
+        now: DateTime.now(),
       );
-      await WidgetPublisher.publish(HomeWidgetBridge(), snapshot);
+      await _scheduleTick();
     } catch (e, s) {
       debugPrint('widget tick failed: $e\n$s');
     }
@@ -62,13 +53,19 @@ void callbackDispatcher() {
   });
 }
 
-/// Time until the next 00:05 local, so the first tick lands there and every
-/// 24h after (WorkManager reschedules itself from [Workmanager.frequency]).
-Duration _delayToNextFiveAfterMidnight(DateTime now) {
-  var next = DateTime(now.year, now.month, now.day, 0, 5);
-  if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
-  return next.difference(now);
-}
+/// (Re)anchors the daily tick on the next 00:05 local. One-off rather than
+/// periodic: a periodic task keeps the anchor it was first registered with,
+/// so it drifts off midnight and never re-aligns — each run books the next
+/// one from the current clock instead. `replace` from inside the running
+/// tick also cancels that run, which is harmless: it has already published
+/// by the time this is called, and the replacement is what keeps the chain
+/// alive.
+Future<void> _scheduleTick() => Workmanager().registerOneOffTask(
+      _widgetTickTask,
+      'widgetTick',
+      initialDelay: delayToNextTick(DateTime.now()),
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+    );
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,12 +83,7 @@ Future<void> main() async {
   unawaited(store.load()); // the splash waits on it
   try {
     await Workmanager().initialize(callbackDispatcher);
-    await Workmanager().registerPeriodicTask(
-      _widgetTickTask,
-      'widgetTick',
-      frequency: const Duration(hours: 24),
-      initialDelay: _delayToNextFiveAfterMidnight(DateTime.now()),
-    );
+    await _scheduleTick();
   } catch (e, s) {
     debugPrint('Workmanager setup failed: $e\n$s');
   }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_small_label">Consistency</string>
+    <string name="widget_large_label">Consistency semana</string>
+    <string name="widget_small_description">Dias seguidos e o status de hoje.</string>
+    <string name="widget_large_description">Dias seguidos, o status de hoje e os últimos 7 dias.</string>
+</resources>

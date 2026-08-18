@@ -2,4 +2,6 @@
 <resources>
     <string name="widget_small_label">Consistency</string>
     <string name="widget_large_label">Consistency week</string>
+    <string name="widget_small_description">Days in a row and today\'s status.</string>
+    <string name="widget_large_description">Days in a row, today\'s status and the last 7 days.</string>
 </resources>

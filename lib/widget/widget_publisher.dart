@@ -75,7 +75,9 @@ class WidgetPublisher {
     await bridge.save('week', s.week);
     await bridge.save('line1', s.line1);
     await bridge.save('line2', s.line2);
-    // Lets the Android side tell a fresh write from a stale one.
+    // Not read by the Android side (nothing there compares timestamps);
+    // it is here so the widget's SharedPreferences file says when it was
+    // last written when someone is debugging a stale-looking widget.
     await bridge.save('updatedAt', DateTime.now().toUtc().toIso8601String());
     await bridge.update();
   }

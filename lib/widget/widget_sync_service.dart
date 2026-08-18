@@ -69,6 +69,11 @@ class WidgetSyncService with WidgetsBindingObserver {
   // returns immediately; the future it hands back is only there for callers
   // that want to wait for the queue to drain.
   Future<void> sync() {
+    // An unloaded store (or one whose load failed) holds AppData.empty, and
+    // publishing that would wipe a good widget down to zeros. A stale widget
+    // beats a wrong one, so skip the bridge entirely.
+    if (!_store.loaded || _store.loadError != null) return Future.value();
+
     final today = dateOnly(_now());
     final threshold = _settings.threshold;
     final nickname = _settings.nickname;
@@ -82,6 +87,8 @@ class WidgetSyncService with WidgetsBindingObserver {
     }
 
     return _enqueue(() async {
+      // The headless tick has no app locale of its own and reads this back.
+      await _settings.setWidgetLocale(locale.languageCode);
       final l10n = await AppLocalizations.delegate.load(locale);
       final snapshot = WidgetPublisher.snapshot(
         data: data,

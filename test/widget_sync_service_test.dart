@@ -15,6 +15,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// microtasks, so a single event-loop hop always empties it.
 Future<void> drain() => Future<void>.delayed(Duration.zero);
 
+/// A repository whose load blows up, so the store ends up with a loadError.
+class LoadThrowsRepository extends InMemoryGoalsRepository {
+  @override
+  Future<AppData> load() async => throw const FormatException('boom');
+}
+
 /// A [WidgetBridge] whose every call throws, to exercise the failure path.
 class ThrowingWidgetBridge implements WidgetBridge {
   @override
@@ -88,6 +94,44 @@ void main() {
     await store.saveDay(d(17), {'g': 100});
     await drain();
     expect(bridge.updates, before);
+  });
+
+  test('a store that has not loaded is never published', () async {
+    final (_, settings, _, _) = await boot();
+    final unloaded = AppStore(
+        InMemoryGoalsRepository(AppData(goals: [goal], entries: const [])));
+    final bridge = FakeWidgetBridge();
+    final service = WidgetSyncService(
+      bridge: bridge,
+      store: unloaded,
+      settings: settings,
+      now: () => DateTime(2026, 8, 17, 9),
+    );
+
+    await service.start();
+    await drain();
+
+    expect(bridge.updates, 0);
+    expect(bridge.data, isEmpty);
+  });
+
+  test('a failed load leaves the last good snapshot alone', () async {
+    final (_, settings, bridge, _) = await boot();
+    final published = Map<String, Object>.from(bridge.data);
+    final broken = AppStore(LoadThrowsRepository());
+    await broken.load();
+    final service = WidgetSyncService(
+      bridge: bridge,
+      store: broken,
+      settings: settings,
+      now: () => DateTime(2026, 8, 17, 9),
+    );
+
+    await service.start();
+    await drain();
+
+    expect(bridge.updates, 1);
+    expect(bridge.data, published);
   });
 
   test('a bridge failure is logged and does not throw', () async {

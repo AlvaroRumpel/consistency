@@ -80,6 +80,29 @@ void main() {
     expect(s.line1, en.widgetStreak(3));
   });
 
+  test('week tiers use the <25/<50/<75 cut-offs', () {
+    final g = goal('g', GoalType.percent, created: 4);
+    final data = AppData(goals: [
+      g
+    ], entries: [
+      entry(4, {'g': 0}),
+      entry(5, {'g': 24.9}),
+      entry(6, {'g': 25}),
+      entry(7, {'g': 49.9}),
+      entry(8, {'g': 50}),
+      entry(9, {'g': 74.9}),
+      entry(10, {'g': 75}),
+    ]);
+    final s = WidgetPublisher.snapshot(
+      data: data,
+      threshold: 50,
+      today: d(10),
+      nickname: 'Alvaro',
+      l10n: en,
+    );
+    expect(s.week, '1122334');
+  });
+
   test('publish writes all seven keys and updates once', () async {
     final bridge = FakeWidgetBridge();
     final s = WidgetPublisher.snapshot(

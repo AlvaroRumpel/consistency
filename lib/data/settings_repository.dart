@@ -14,6 +14,7 @@ class SettingsRepository {
   static const _notifHour = 'notifHour';
   static const _notifMinute = 'notifMinute';
   static const _onboardingDone = 'onboardingDone';
+  static const _widgetLocale = 'widgetLocale';
 
   String? get nickname {
     final n = _p.getString(_nickname)?.trim();
@@ -54,4 +55,10 @@ class SettingsRepository {
 
   bool get onboardingDone => _p.getBool(_onboardingDone) ?? false;
   Future<void> setOnboardingDone(bool v) => _p.setBool(_onboardingDone, v);
+
+  /// Language code the home-screen widget was last published with. Not a
+  /// user setting: the headless midnight tick has no app locale, so the
+  /// foreground app leaves its own here for the tick to read back.
+  String? get widgetLocale => _p.getString(_widgetLocale);
+  Future<void> setWidgetLocale(String v) => _p.setString(_widgetLocale, v);
 }
