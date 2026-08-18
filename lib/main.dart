@@ -45,7 +45,7 @@ void callbackDispatcher() {
         settings: SettingsStore(SettingsRepository(prefs)),
         now: DateTime.now(),
       );
-      await _scheduleTick();
+      await _scheduleTick(ExistingWorkPolicy.update);
     } catch (e, s) {
       debugPrint('widget tick failed: $e\n$s');
     }
@@ -53,18 +53,23 @@ void callbackDispatcher() {
   });
 }
 
-/// (Re)anchors the daily tick on the next 00:05 local. One-off rather than
+/// Books the daily tick for the next 00:05 local. One-off rather than
 /// periodic: a periodic task keeps the anchor it was first registered with,
 /// so it drifts off midnight and never re-aligns — each run books the next
-/// one from the current clock instead. `replace` from inside the running
-/// tick also cancels that run, which is harmless: it has already published
-/// by the time this is called, and the replacement is what keeps the chain
-/// alive.
-Future<void> _scheduleTick() => Workmanager().registerOneOffTask(
+/// one from the current clock instead.
+///
+/// [policy] differs per caller. `replace` cancels every pending run under the
+/// unique name, which is what a launch wants (re-anchor once, no leftovers)
+/// but not what the tick itself wants: called from inside the running tick it
+/// would cancel that very run, so its result is never reported. `update`
+/// (APPEND_OR_REPLACE on Android) chains the next run onto the current one
+/// instead, leaving it to finish and report honestly.
+Future<void> _scheduleTick(ExistingWorkPolicy policy) =>
+    Workmanager().registerOneOffTask(
       _widgetTickTask,
       'widgetTick',
       initialDelay: delayToNextTick(DateTime.now()),
-      existingWorkPolicy: ExistingWorkPolicy.replace,
+      existingWorkPolicy: policy,
     );
 
 Future<void> main() async {
@@ -83,7 +88,7 @@ Future<void> main() async {
   unawaited(store.load()); // the splash waits on it
   try {
     await Workmanager().initialize(callbackDispatcher);
-    await _scheduleTick();
+    await _scheduleTick(ExistingWorkPolicy.replace);
   } catch (e, s) {
     debugPrint('Workmanager setup failed: $e\n$s');
   }
