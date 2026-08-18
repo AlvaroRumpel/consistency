@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../models/app_data.dart';
 import 'goals_repository.dart';
 
@@ -7,12 +9,19 @@ class InMemoryGoalsRepository implements GoalsRepository {
   AppData? undo;
   int saves = 0;
 
+  /// Overrides what readRaw() returns, so a test can simulate corrupt bytes
+  /// without going through `stored`.
+  String? rawOverride;
+
   InMemoryGoalsRepository([this.stored]);
 
   @override
   Future<bool> exists() async => stored != null;
   @override
   Future<AppData> load() async => stored ?? AppData.empty;
+  @override
+  Future<String?> readRaw() async =>
+      rawOverride ?? (stored == null ? null : jsonEncode(stored!.toJson()));
   @override
   Future<void> save(AppData data) async {
     stored = data;

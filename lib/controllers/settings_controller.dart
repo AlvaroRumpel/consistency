@@ -25,11 +25,18 @@ class SettingsController extends BaseController<SettingState> {
 
   @override
   void onInit() {
+    store.addListener(reload);
     settings.addListener(reload);
     reload();
   }
 
-  void reload() => emit(SettingData(nickname: settings.nickname));
+  void reload() {
+    if (store.loadError != null) {
+      emit(SettingError());
+      return;
+    }
+    emit(SettingData(nickname: settings.nickname));
+  }
 
   Future<void> clearAllData() => store.clearAll();
 
@@ -49,6 +56,7 @@ class SettingsController extends BaseController<SettingState> {
 
   @override
   void onDispose() {
+    store.removeListener(reload);
     settings.removeListener(reload);
     super.onDispose();
   }

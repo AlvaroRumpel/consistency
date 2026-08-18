@@ -36,6 +36,28 @@ class FileGoalsRepository implements GoalsRepository {
     return AppData.empty;
   }
 
+  @override
+  Future<String?> readRaw() => _enqueue(_readRaw);
+
+  /// The main file's raw text if it exists, corrupt or not — rescuing
+  /// whatever bytes are there is the point. Falls back to `.bak`, then null.
+  /// Decodes leniently: invalid UTF-8 bytes become the replacement
+  /// character instead of throwing (readAsString would throw and this
+  /// method would report nothing to rescue).
+  Future<String?> _readRaw() async {
+    try {
+      if (await _main.exists()) {
+        return utf8.decode(await _main.readAsBytes(), allowMalformed: true);
+      }
+      if (await _bak.exists()) {
+        return utf8.decode(await _bak.readAsBytes(), allowMalformed: true);
+      }
+      return null;
+    } on FileSystemException {
+      return null;
+    }
+  }
+
   Future<AppData?> _tryRead(File f) async {
     if (!await f.exists()) return null;
     try {

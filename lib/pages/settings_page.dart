@@ -16,6 +16,7 @@ import '../state/settings_store.dart';
 import '../widgets/error_view.dart';
 import '../widgets/import_dialog.dart';
 import '../widgets/list_tile_custom.dart';
+import '../widgets/raw_export.dart';
 import 'archived_goals_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -103,7 +104,10 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
                   builder: (context, value, _) => value is SettingError
                       ? SizedBox(
                           width: double.infinity,
-                          child: ErrorView(onRetry: _controller.reload),
+                          child: ErrorView(
+                            onRetry: _controller.reload,
+                            onExportRaw: () => exportRawFile(context),
+                          ),
                         )
                       : const SizedBox.shrink(),
                 ),
@@ -341,11 +345,11 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         BackupCodec.encode(store.data),
       );
       if (!context.mounted) return;
-      _snack(context, context.l10n.backupReady);
+      snack(context, context.l10n.backupReady);
     } catch (e, s) {
       debugPrint('exportBackup failed: $e\n$s');
       if (!context.mounted) return;
-      _snack(context, context.l10n.couldNotExport, error: true);
+      snack(context, context.l10n.couldNotExport, error: true);
     } finally {
       _busy = false;
     }
@@ -371,7 +375,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
       // permission, FormatException on undecodable bytes, and more.
       debugPrint('pickBackup failed: $e\n$s');
       if (!context.mounted) return;
-      _snack(context, context.l10n.couldNotReadFile, error: true);
+      snack(context, context.l10n.couldNotReadFile, error: true);
       return;
     }
     if (result == null || !context.mounted) return;
@@ -383,7 +387,7 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
       imported = BackupCodec.decode(picked.contents);
     } on FormatException {
       if (!context.mounted) return;
-      _snack(context, context.l10n.notABackup, error: true);
+      snack(context, context.l10n.notABackup, error: true);
       return;
     }
 
@@ -401,20 +405,13 @@ class _SettingsPageState extends State<SettingsPage> with MessagesMixin {
         ? imported
         : BackupCodec.merge(store.data, imported));
     if (!context.mounted) return;
-    _snack(
+    snack(
       context,
       store.saveError == null
           ? context.l10n.backupImported
           : context.l10n.backupImportedButSaveFailed,
       error: store.saveError != null,
     );
-  }
-
-  void _snack(BuildContext context, String message, {bool error = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: error ? Theme.of(context).colorScheme.error : null,
-    ));
   }
 
   Future<void> _aboutTheAppDialog(BuildContext context) async {

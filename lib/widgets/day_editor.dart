@@ -5,6 +5,7 @@ import '../configs/text_styles.dart';
 import '../controllers/day_editor_controller.dart';
 import 'error_view.dart';
 import 'goal_card.dart';
+import 'raw_export.dart';
 
 /// Renders a [DayEditorController]: a caller-supplied header, one [GoalCard]
 /// per goal and an optional footer, both built from the current [DayView].
@@ -50,7 +51,10 @@ class _DayEditorState extends State<DayEditor> {
       builder: (context, state, _) {
         if (state is DayEditorError) {
           return Center(
-            child: ErrorView(onRetry: controller.reload),
+            child: ErrorView(
+              onRetry: controller.reload,
+              onExportRaw: () => exportRawFile(context),
+            ),
           );
         }
         if (state is! DayEditorReady) {

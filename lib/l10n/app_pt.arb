@@ -16,6 +16,10 @@
   "errorTitle": "Algo deu errado",
   "tryAgain": "Tentar de novo",
   "couldNotSave": "Não foi possível salvar. Tentaremos novamente no próximo salvamento.",
+  "exportRawFile": "Exportar arquivo bruto",
+  "rawExportEmpty": "Não há nada para exportar.",
+  "rawExportReady": "Arquivo bruto pronto para compartilhar.",
+  "couldNotExportRaw": "Não foi possível exportar o arquivo bruto.",
 
   "hello": "Olá, ",
   "changeNickname": "Mudar seu apelido, {nickname}",

@@ -73,6 +73,22 @@
   "@couldNotSave": {
     "description": "Snackbar shown when writing the day to storage failed."
   },
+  "exportRawFile": "Export raw file",
+  "@exportRawFile": {
+    "description": "Error view button that shares the raw data file, even if it's corrupt."
+  },
+  "rawExportEmpty": "There's nothing to export.",
+  "@rawExportEmpty": {
+    "description": "Snackbar shown when there is no raw data file to export."
+  },
+  "rawExportReady": "Raw file ready to share.",
+  "@rawExportReady": {
+    "description": "Snackbar shown when the raw data file was handed to the share sheet."
+  },
+  "couldNotExportRaw": "Couldn't export the raw file.",
+  "@couldNotExportRaw": {
+    "description": "Snackbar shown when sharing the raw data file failed."
+  },
 
   "hello": "Hello, ",
   "@hello": {

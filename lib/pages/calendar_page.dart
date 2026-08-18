@@ -14,6 +14,7 @@ import '../widgets/day_editor.dart';
 import '../widgets/error_view.dart';
 import '../widgets/month_grid.dart';
 import '../widgets/quality_legend.dart';
+import '../widgets/raw_export.dart';
 import '../widgets/year_heatmap.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -67,7 +68,10 @@ class _CalendarPageState extends State<CalendarPage> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: _card(context),
                   child: switch (state) {
-                    CalendarError() => ErrorView(onRetry: _controller.reload),
+                    CalendarError() => ErrorView(
+                        onRetry: _controller.reload,
+                        onExportRaw: () => exportRawFile(context),
+                      ),
                     // A short window (small phone, landscape) scrolls instead
                     // of overflowing; a tall one just shows it all at once.
                     CalendarData d => SingleChildScrollView(
