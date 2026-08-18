@@ -55,7 +55,8 @@ class ErrorView extends StatelessWidget {
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: onExportRaw,
-              icon: const Icon(Icons.download_outlined),
+              icon: Icon(Icons.download_outlined,
+                  color: context.textStyles.normalText.color),
               label: Text(
                 context.l10n.exportRawFile,
                 style: context.textStyles.normalText,

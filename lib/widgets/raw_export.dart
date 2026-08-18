@@ -6,34 +6,46 @@ import '../data/backup_service.dart';
 import '../models/date_key.dart';
 import '../state/app_store.dart';
 
+// A double-tap must not fire two exports; there's only ever one export
+// button visible at a time, so one file-level flag is enough.
+bool _busy = false;
+
 /// Shares the raw data file straight off disk, even when it's corrupt — the
 /// last resort offered from the error screen when the app can't parse it.
 Future<void> exportRawFile(BuildContext context) async {
-  final store = context.read<AppStore>();
-  final raw = await store.readRaw();
-  if (!context.mounted) return;
-
-  if (raw == null || raw.isEmpty) {
-    _snack(context, context.l10n.rawExportEmpty);
-    return;
-  }
-
-  final backups = context.read<BackupService>();
+  if (_busy) return;
+  _busy = true;
   try {
-    await backups.exportBackup(
-      'consistency-raw-${dateKey(DateTime.now())}.json',
-      raw,
-    );
+    final store = context.read<AppStore>();
+    final raw = await store.readRaw();
     if (!context.mounted) return;
-    _snack(context, context.l10n.rawExportReady);
-  } catch (e, s) {
-    debugPrint('exportRawFile failed: $e\n$s');
-    if (!context.mounted) return;
-    _snack(context, context.l10n.couldNotExportRaw, error: true);
+
+    if (raw == null || raw.isEmpty) {
+      snack(context, context.l10n.rawExportEmpty);
+      return;
+    }
+
+    final backups = context.read<BackupService>();
+    try {
+      await backups.exportBackup(
+        'consistency-raw-${dateKey(DateTime.now())}.json',
+        raw,
+      );
+      if (!context.mounted) return;
+      snack(context, context.l10n.rawExportReady);
+    } catch (e, s) {
+      debugPrint('exportRawFile failed: $e\n$s');
+      if (!context.mounted) return;
+      snack(context, context.l10n.couldNotExportRaw, error: true);
+    }
+  } finally {
+    _busy = false;
   }
 }
 
-void _snack(BuildContext context, String message, {bool error = false}) {
+/// Shared snackbar helper for the backup/raw-export flows (settings_page
+/// uses this too — one copy instead of two near-identical ones).
+void snack(BuildContext context, String message, {bool error = false}) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     content: Text(message),
     backgroundColor: error ? Theme.of(context).colorScheme.error : null,

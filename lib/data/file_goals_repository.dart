@@ -41,10 +41,17 @@ class FileGoalsRepository implements GoalsRepository {
 
   /// The main file's raw text if it exists, corrupt or not — rescuing
   /// whatever bytes are there is the point. Falls back to `.bak`, then null.
+  /// Decodes leniently: invalid UTF-8 bytes become the replacement
+  /// character instead of throwing (readAsString would throw and this
+  /// method would report nothing to rescue).
   Future<String?> _readRaw() async {
     try {
-      if (await _main.exists()) return await _main.readAsString();
-      if (await _bak.exists()) return await _bak.readAsString();
+      if (await _main.exists()) {
+        return utf8.decode(await _main.readAsBytes(), allowMalformed: true);
+      }
+      if (await _bak.exists()) {
+        return utf8.decode(await _bak.readAsBytes(), allowMalformed: true);
+      }
       return null;
     } on FileSystemException {
       return null;

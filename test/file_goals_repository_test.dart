@@ -134,4 +134,14 @@ void main() {
     await repo.moveToUndo();
     expect(await repo.readRaw(), isNull);
   });
+
+  test('readRaw rescues invalid UTF-8 bytes instead of reporting nothing',
+      () async {
+    File('${dir.path}/consistency.json')
+        .writeAsBytesSync([0x7b, 0xff, 0xfe, 0x22]);
+    final raw = await repo.readRaw();
+    expect(raw, isNotNull);
+    expect(raw, isNotEmpty);
+    expect(raw, contains('�'));
+  });
 }

@@ -19,11 +19,10 @@ void main() {
     final repo = _LoadThrows()..rawOverride = '{corrupt';
     final backups = FakeBackupService();
     await tester.pumpWidget(await buildApp(repo: repo, backups: backups));
-    // Two rounds: the first only gets us mid-way through the splash→home
-    // route transition, and a snackbar shown before it settles renders in
-    // both the outgoing and incoming Scaffold.
-    await pumpFrames(tester);
-    await pumpFrames(tester);
+    // 20, not the default 10: one round only gets partway through the
+    // splash→manager route transition, and a snackbar shown before it
+    // settles renders in both the outgoing and incoming Scaffold.
+    await pumpFrames(tester, 20);
 
     expect(find.text('Try again'), findsOneWidget);
     expect(find.text('Export raw file'), findsOneWidget);
@@ -52,5 +51,30 @@ void main() {
 
     expect(backups.lastExportContents, isNull);
     expect(find.text("There's nothing to export."), findsOneWidget);
+  });
+
+  testWidgets('a failed export shows the failure snackbar', (tester) async {
+    final repo = _LoadThrows()..rawOverride = '{corrupt';
+    final backups = FakeBackupService()..throwOnExport = true;
+    await tester.pumpWidget(await buildApp(repo: repo, backups: backups));
+    await pumpFrames(tester, 20);
+
+    await tester.tap(find.text('Export raw file'));
+    await pumpFrames(tester);
+
+    expect(find.text("Couldn't export the raw file."), findsOneWidget);
+  });
+
+  testWidgets('the Settings tab shows the same error and export button',
+      (tester) async {
+    final repo = _LoadThrows()..rawOverride = '{corrupt';
+    await tester.pumpWidget(await buildApp(repo: repo));
+    await pumpFrames(tester, 20);
+
+    await tester.tap(find.text('Settings'));
+    await pumpFrames(tester);
+
+    expect(find.text('Try again'), findsOneWidget);
+    expect(find.text('Export raw file'), findsOneWidget);
   });
 }
